@@ -6,29 +6,20 @@ Blockchain simple state storage.
 
 - [ ] Stateless: Data in this storage don't have any effect for blockchain.
 - [ ] Stateful: Data in this storage will affect blockchain.
+- [ ] Transaction based on cache.
 - [ ] Snapshot based on CoW.
   - [ ] Load snapshot.
   - [ ] Rollback snapshot.
-  - [ ] Read snapshot.
+  - [ ] Read Only snapshot.
 - [ ] Support multi-type of backend.
+  - [ ] Store trait.
+  - [ ] Sled backend.
 
 ## Design
 
 ### Stateless
 
-Stateless storage has interface same as `BTreeMap`, beacuse `Stateless` trait
-impl `DerefMut` directly.
-
-``` rust
-pub trait Stateless<D: Digest>:
-    DerefMut<Output = BTreeMap<Output<D>, Vec<u8>>>
-{
-
-    fn flush(&self) -> Result<usize>;
-
-    async flush_async(&self) -> Result<usize>;
-}
-```
+Stateless storage has interface same as `BTreeMap`.
 
 ### Stateful
 
@@ -39,4 +30,14 @@ pub trait Stateful<D: Digest>: Stateless<D> {
     fn root(&self) -> Output<D>;
 }
 ```
+
+`bs3` compute merkle when you call `root` method.
+
+### Transaction
+
+> Transaction often use for compute blockchain transaction.
+
+Transaction implement by `BTreeMap` cache.
+
+### Snapshot
 
