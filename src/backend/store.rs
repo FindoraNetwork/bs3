@@ -8,9 +8,9 @@ pub enum Operation {
 }
 
 pub trait Store {
+    /// Provide this method to get value from backend.
     fn get(&self, key: &[u8]) -> Result<Option<Vec<u8>>>;
 
-    // fn insert(&self, key: &[u8], value: Vec<u8>) -> Result<Option<Vec<u8>>>;
-
+    /// Provide this method to execute transaction.
     fn execute(&self, batch: Vec<(&[u8], &Operation)>) -> Result<()>;
 }
