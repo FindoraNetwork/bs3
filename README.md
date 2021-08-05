@@ -4,8 +4,8 @@ Blockchain simple state storage.
 
 ## Features (WIP)
 
-- [ ] Stateless: Data in this storage don't have any effect for blockchain.
-- [ ] Stateful: Data in this storage will affect blockchain.
+- [ ] Stateless: Data in this storage don't affect block.
+- [ ] Stateful: Data in this storage will affect block.
 - [X] Transaction based on cache.
 - [ ] Snapshot based on CoW for each block.
   - [ ] Load snapshot from any height to recover node.
