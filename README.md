@@ -18,6 +18,11 @@ Blockchain simple state storage.
 
 ## Design
 
+### Backend Requirement
+
+- get value by key.
+- batch execute.
+
 ### Stateless
 
 Stateless storage has interface same as `BTreeMap`.
