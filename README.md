@@ -45,4 +45,5 @@ Transaction implement by `BTreeMap` cache.
 - Each height have a index map, this map use to find which snapshot have this data.
   - This link refer to closer height less than itself.
 
+![](docs/assets/BS3-snapshot.svg)
 
