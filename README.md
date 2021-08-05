@@ -14,6 +14,7 @@ Blockchain simple state storage.
 - [X] Support multi-type of backend.
   - [X] Store trait.
   - [ ] Sled backend.
+  - [ ] Memory backend.
 
 ## Design
 
