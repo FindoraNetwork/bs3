@@ -7,6 +7,9 @@ Blockchain simple state storage.
 - [ ] Stateless: Data in this storage don't affect block.
 - [ ] Stateful: Data in this storage will affect block.
 - [X] Transaction based on cache.
+  - [X] Force sync state to lastest success transaction. (For `check_tx`)
+  - [X] Commit transaction for success transaction. (For `deliver_tx`)
+  - [X] Revert transaction for failed transaction. (For `deliver_tx`)
 - [ ] Snapshot based on CoW for each block.
   - [ ] Load snapshot from any height to recover node.
   - [ ] Rollback snapshot.
