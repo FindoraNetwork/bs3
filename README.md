@@ -8,9 +8,10 @@ Blockchain simple state storage.
 - [ ] Stateful: Data in this storage will affect blockchain.
 - [X] Transaction based on cache.
 - [ ] Snapshot based on CoW for each block.
-  - [ ] Load snapshot.
+  - [ ] Load snapshot from any height to recover node.
   - [ ] Rollback snapshot.
-  - [ ] Read Only snapshot.
+  - [ ] Read any height snapshot.
+  - [ ] Use snapshot to compute world state and compute merkle root.
 - [X] Support multi-type of backend.
   - [X] Store trait.
   - [ ] Sled backend.
