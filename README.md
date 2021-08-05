@@ -41,3 +41,8 @@ Transaction implement by `BTreeMap` cache.
 
 ### Snapshot
 
+- Block height `n`'s snapshot is state diff of height `n-1` between `n`. If `n == 0` mean no state.
+- Each height have a index map, this map use to find which snapshot have this data.
+  - This link refer to closer height less than itself.
+
+
