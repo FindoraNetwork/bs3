@@ -7,7 +7,7 @@ Blockchain simple state storage.
 - [ ] Stateless: Data in this storage don't have any effect for blockchain.
 - [ ] Stateful: Data in this storage will affect blockchain.
 - [X] Transaction based on cache.
-- [ ] Snapshot based on CoW.
+- [ ] Snapshot based on CoW for each block.
   - [ ] Load snapshot.
   - [ ] Rollback snapshot.
   - [ ] Read Only snapshot.
