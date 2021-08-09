@@ -14,3 +14,6 @@ pub mod prelude;
 
 mod error;
 pub use error::{Error, Result};
+
+mod snapshot;
+
