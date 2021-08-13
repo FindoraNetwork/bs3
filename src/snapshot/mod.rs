@@ -8,7 +8,10 @@ use crate::{
 use alloc::{borrow::Cow, collections::BTreeMap, format, vec::Vec};
 use digest::{Digest, Output};
 
-use self::{utils::storage_key, value::{StoreHeight, ToStoreBytes}};
+use self::{
+    utils::storage_key,
+    value::{StoreHeight, ToStoreBytes},
+};
 
 // mod direct;
 mod utils;
@@ -85,7 +88,6 @@ impl<'a, D: Digest> SnapshotedStorage<'a, D> {
         operations.push((height_key_bytes, height_value_bytes));
 
         self.store.execute(operations)?;
-        self.cache.clear();
         self.height += 1;
         Ok(self.height)
     }
