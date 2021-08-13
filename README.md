@@ -10,9 +10,9 @@ Blockchain simple state storage.
   - [X] Force sync state to lastest success transaction. (For `check_tx`)
   - [X] Commit transaction for success transaction. (For `deliver_tx`)
   - [X] Revert transaction for failed transaction. (For `deliver_tx`)
-- [ ] Snapshot based on CoW for each block.
+- [X] Snapshot based on CoW for each block.
   - [ ] Load snapshot from any height to recover node.
-  - [ ] Rollback snapshot.
+  - [X] Rollback snapshot.
   - [ ] Read any height snapshot.
   - [ ] Use snapshot to compute world state and compute merkle root.
 - [X] Support multi-type of backend.

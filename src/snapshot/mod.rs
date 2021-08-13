@@ -1,10 +1,6 @@
 use core::mem;
 
-use crate::{
-    backend::{Operation, Store},
-    prelude::{Tree, TreeMut},
-    Result,
-};
+use crate::{Error, Result, backend::{Operation, Store}, prelude::{Tree, TreeMut}};
 use alloc::{borrow::Cow, collections::BTreeMap, format, vec::Vec};
 use digest::{Digest, Output};
 
@@ -22,7 +18,6 @@ pub struct SnapshotedStorage<'a, D: Digest> {
     height: u64,
     cache: BTreeMap<Output<D>, Operation>,
     namespace: &'a str,
-    lower_keys: Vec<Vec<u8>>,
 }
 
 /// Methods for create storage.
@@ -37,7 +32,6 @@ impl<'a, D: Digest> SnapshotedStorage<'a, D> {
             height,
             cache: BTreeMap::default(),
             namespace,
-            lower_keys: Vec::new(),
         };
         s.rollback(height)?;
         Ok(s)
@@ -53,7 +47,6 @@ impl<'a, D: Digest> SnapshotedStorage<'a, D> {
             height: 0,
             cache: BTreeMap::new(),
             namespace,
-            lower_keys: Vec::new(),
         }
     }
 
@@ -66,10 +59,16 @@ impl<'a, D: Digest> SnapshotedStorage<'a, D> {
 
 /// Methods for snapshot.
 impl<'a, D: Digest> SnapshotedStorage<'a, D> {
+    /// rollback to point height, target_height must less than current height.
     pub fn rollback(&mut self, target_height: u64) -> Result<()> {
-        Ok(())
+        if target_height > self.height {
+            Err(Error::HeightError)
+        } else {
+            self.sync_height(target_height)
+        }
     }
 
+    /// Commit this snapshot.
     pub fn commit(&mut self) -> Result<u64> {
         let mut operations = Vec::new();
 
@@ -80,21 +79,30 @@ impl<'a, D: Digest> SnapshotedStorage<'a, D> {
             operations.push((key_bytes, v));
         }
         // incr current height
-        let store_height = StoreHeight {
-            height: self.height,
-        };
-        let height_key_bytes = utils::current_height_key(self.namespace);
-        let height_value_bytes = Operation::Update(store_height.to_bytes()?);
-        operations.push((height_key_bytes, height_value_bytes));
 
-        self.store.execute(operations)?;
-        self.height += 1;
+        self.sync_height(self.height + 1)?;
+
         Ok(self.height)
     }
 }
 
 /// Methods for internal helper
 impl<'a, D: Digest> SnapshotedStorage<'a, D> {
+    pub fn sync_height(&mut self, target_height: u64) -> Result<()> {
+        self.height = target_height;
+
+        let mut operations = Vec::new();
+        let store_height = StoreHeight {
+            height: self.height,
+        };
+        let height_key_bytes = utils::current_height_key(self.namespace);
+        let height_value_bytes = Operation::Update(store_height.to_bytes()?);
+        operations.push((height_key_bytes, height_value_bytes));
+        self.store.execute(operations)?;
+
+        Ok(())
+    }
+
     pub(crate) fn direct_raw_get(&self, key: &Output<D>) -> Result<Option<Vec<u8>>> {
         let key = storage_key(self.namespace, key, self.height);
         let value = self.store.get_lt(&key)?;

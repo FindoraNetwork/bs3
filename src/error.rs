@@ -7,6 +7,7 @@ pub enum Error {
     StoreError(Box<dyn Debug>),
     #[cfg(feature = "cbor")]
     CborError(serde_cbor::Error),
+    HeightError,
 }
 
 #[cfg(feature = "cbor")]
