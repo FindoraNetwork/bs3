@@ -1,5 +1,5 @@
 mod store;
-pub use store::{Operation, Store};
+pub use store::Store;
 
 #[cfg(features = "sled-backend")]
 mod sled;

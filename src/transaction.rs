@@ -4,39 +4,37 @@ use digest::{Digest, Output};
 use crate::{
     backend::{Operation, Store},
     prelude::{Tree, TreeMut},
-    Result,
+    Result, SnapshotableStorage,
 };
 
-pub struct Transaction<'a, D: Digest, S: Store> {
-    pub(crate) store: &'a S,
+pub struct Transaction<'a, D: Digest> {
+    pub(crate) store: &'a SnapshotableStorage<'a, D>,
     pub(crate) cache: BTreeMap<Output<D>, Operation>,
 }
 
-impl<'a, D, S> Transaction<'a, D, S>
+impl<'a, D> Transaction<'a, D>
 where
     D: Digest,
-    S: Store,
 {
-    pub(crate) fn new(store: &'a S) -> Self {
+    pub(crate) fn new(store: &'a SnapshotableStorage<'a, D>) -> Self {
         Transaction {
             store,
             cache: BTreeMap::new(),
         }
     }
 
-    pub(crate) fn to_operations(&self) -> Vec<(&[u8], &Operation)> {
-        let mut operations = Vec::new();
-        for (k, v) in &self.cache {
-            operations.push((k.as_ref(), v))
-        }
-        operations
-    }
+    //     pub(crate) fn to_operations(&self) -> Vec<(&[u8], &Operation)> {
+    // let mut operations = Vec::new();
+    // for (k, v) in &self.cache {
+    //     operations.push((k.as_ref(), v))
+    // }
+    // operations
+    // }
 }
 
-impl<'a, D, S> Tree<D> for Transaction<'a, D, S>
+impl<'a, D> Tree<D> for Transaction<'a, D>
 where
     D: Digest,
-    S: Store,
 {
     fn get(&self, key: &Output<D>) -> Result<Option<Cow<'_, [u8]>>> {
         let cache_result = self.cache.get(key);
@@ -55,10 +53,9 @@ where
     }
 }
 
-impl<'a, D, S> TreeMut<D> for Transaction<'a, D, S>
+impl<'a, D> TreeMut<D> for Transaction<'a, D>
 where
     D: Digest,
-    S: Store,
 {
     fn get_mut(&mut self, key: &Output<D>) -> Result<Option<&mut [u8]>> {
         if let Some(Operation::Delete) = self.cache.get(key) {

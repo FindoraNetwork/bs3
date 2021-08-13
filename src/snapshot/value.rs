@@ -1,7 +1,7 @@
 use alloc::vec::Vec;
 use serde::{Deserialize, Serialize};
 
-use crate::{backend::Operation, Result};
+use crate::Result;
 
 pub trait ToStoreBytes {
     fn to_bytes(&self) -> Result<Vec<u8>>;
