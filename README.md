@@ -6,7 +6,7 @@ Blockchain simple state storage.
 
 - [ ] Stateless: Data in this storage don't affect block.
 - [ ] Stateful: Data in this storage will affect block.
-- [ ] Transaction based on cache.
+- [X] Transaction based on cache.
   - [X] Force sync state to lastest success transaction. (For `check_tx`)
   - [X] Commit transaction for success transaction. (For `deliver_tx`)
   - [X] Revert transaction for failed transaction. (For `deliver_tx`)
@@ -19,7 +19,7 @@ Blockchain simple state storage.
   - [X] Store trait.
   - [ ] Sled backend.
   - [ ] Memory backend.
-- [X] 100% same as `BTreeMap`.
+- [X] 100% compact `BTreeMap<Output<D>, Vec<u8>>`.
 - [ ] Testing
   - [ ] Basic usage
   - [ ] Logic
