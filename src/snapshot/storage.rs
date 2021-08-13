@@ -3,16 +3,19 @@ use core::mem;
 use alloc::{collections::BTreeMap, vec::Vec};
 use digest::{Digest, Output};
 
-use crate::{Error, Result, backend::Store};
+use crate::{
+    backend::Store,
+    prelude::{Tree, TreeMut},
+    Error, Result, Transaction,
+};
 
-use super::{Operation, StoreHeight, StoreValue, ToStoreBytes, operation::OperationOwned, utils};
-
+use super::{operation::OperationOwned, utils, Operation, StoreHeight, StoreValue, ToStoreBytes};
 
 /// Snapshotable Storage
 pub struct SnapshotableStorage<'a, D: Digest> {
     store: &'a dyn Store,
     height: u64,
-    cache: BTreeMap<Output<D>, OperationOwned>,
+    pub(crate) cache: BTreeMap<Output<D>, OperationOwned>,
     namespace: &'a str,
 }
 
@@ -73,7 +76,9 @@ impl<'a, D: Digest> SnapshotableStorage<'a, D> {
 
         for (k, v) in cache {
             let key_bytes = utils::storage_key(self.namespace, &k, self.height);
-            let store_value = StoreValue { operation: v.to_operation() };
+            let store_value = StoreValue {
+                operation: v.to_operation(),
+            };
             operations.push((key_bytes, store_value.to_bytes()?));
         }
 
@@ -84,9 +89,28 @@ impl<'a, D: Digest> SnapshotableStorage<'a, D> {
     }
 }
 
+/// Methods for transaction
+impl<'a, D: Digest> SnapshotableStorage<'a, D> {
+    /// Generate transaction for this Bs3 db.
+    ///
+    /// Use immutable reference let you can start multiple transactions.
+    pub fn transaction(&'a mut self) -> Transaction<'a, D> {
+        Transaction::new(self)
+    }
+
+    /// Consume transaction to apply.
+    pub fn execute(&mut self, mut tx: Transaction<'_, D>) {
+        self.cache.append(&mut tx.cache);
+    }
+}
+
 /// Methods for internal helper
 impl<'a, D: Digest> SnapshotableStorage<'a, D> {
-    pub(crate) fn sync_height(&mut self, target_height: u64, pre_commit: Option<Vec<(Vec<u8>, Vec<u8>)>>) -> Result<()> {
+    pub(crate) fn sync_height(
+        &mut self,
+        target_height: u64,
+        pre_commit: Option<Vec<(Vec<u8>, Vec<u8>)>>,
+    ) -> Result<()> {
         self.height = target_height;
 
         let mut operations = if let Some(ops) = pre_commit {
@@ -114,8 +138,8 @@ impl<'a, D: Digest> SnapshotableStorage<'a, D> {
     }
 }
 
-impl<'a, D: Digest> SnapshotableStorage<'a, D> {
-    pub fn get(&self, key: &Output<D>) -> Result<Option<&[u8]>> {
+impl<'a, D: Digest> Tree<D> for SnapshotableStorage<'a, D> {
+    fn get(&self, key: &Output<D>) -> Result<Option<&[u8]>> {
         let cache_result = self.cache.get(key);
         match cache_result {
             Some(OperationOwned::Update(v)) => Ok(Some(v.as_slice())),
@@ -127,15 +151,17 @@ impl<'a, D: Digest> SnapshotableStorage<'a, D> {
                     let r = StoreValue::from_bytes(bytes)?;
                     match r.operation {
                         Operation::Update(v) => Ok(Some(&v)),
-                        Operation::Delete => Ok(None)
+                        Operation::Delete => Ok(None),
                     }
                 }
                 None => Ok(None),
             },
         }
     }
+}
 
-    pub fn get_mut(&mut self, key: &Output<D>) -> Result<Option<&mut [u8]>> {
+impl<'a, D: Digest> TreeMut<D> for SnapshotableStorage<'a, D> {
+    fn get_mut(&mut self, key: &Output<D>) -> Result<Option<&mut [u8]>> {
         if let Some(OperationOwned::Delete) = self.cache.get(key) {
             return Ok(None);
         }
@@ -144,7 +170,8 @@ impl<'a, D: Digest> SnapshotableStorage<'a, D> {
             if let Some(bytes) = self.store.get_lt(k.as_slice())? {
                 // if has value in cache, same as update.
                 let r = StoreValue::from_bytes(bytes)?;
-                self.cache.insert(key.clone(), r.operation.to_operation_owned());
+                self.cache
+                    .insert(key.clone(), r.operation.to_operation_owned());
             } else {
                 return Ok(None);
             }
@@ -158,8 +185,10 @@ impl<'a, D: Digest> SnapshotableStorage<'a, D> {
         }
     }
 
-    pub fn insert(&mut self, key: Output<D>, value: Vec<u8>) -> Result<Option<Vec<u8>>> {
-        if let Some(OperationOwned::Update(v)) = self.cache.insert(key, OperationOwned::Update(value)) {
+    fn insert(&mut self, key: Output<D>, value: Vec<u8>) -> Result<Option<Vec<u8>>> {
+        if let Some(OperationOwned::Update(v)) =
+            self.cache.insert(key, OperationOwned::Update(value))
+        {
             // insert into cache, if cache has this value, return this value.
             Ok(Some(v))
         } else {
@@ -167,8 +196,10 @@ impl<'a, D: Digest> SnapshotableStorage<'a, D> {
         }
     }
 
-    pub fn remove(&mut self, key: &Output<D>) -> Result<Option<Vec<u8>>> {
-        if let Some(OperationOwned::Update(v)) = self.cache.insert(key.clone(), OperationOwned::Delete) {
+    fn remove(&mut self, key: &Output<D>) -> Result<Option<Vec<u8>>> {
+        if let Some(OperationOwned::Update(v)) =
+            self.cache.insert(key.clone(), OperationOwned::Delete)
+        {
             // insert into cache, if cache has this value, return this value.
             Ok(Some(v))
         } else {
@@ -176,4 +207,3 @@ impl<'a, D: Digest> SnapshotableStorage<'a, D> {
         }
     }
 }
-

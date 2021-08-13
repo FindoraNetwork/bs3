@@ -2,23 +2,6 @@ use crate::Result;
 use alloc::vec::Vec;
 use digest::{Digest, Output};
 
-// /// Get result.
-// pub enum Bytes<'a> {
-//     Owned(Vec<u8>),
-//     Borrowed(&'a [u8]),
-// }
-//
-// impl<'a> Deref for Bytes<'a> {
-//     type Target = [u8];
-//
-//     fn deref(&self) -> &Self::Target {
-//         match self {
-//             Self::Owned(v) => v.as_slice(),
-//             Self::Borrowed(v) => *v,
-//         }
-//     }
-// }
-//
 pub trait Tree<D: Digest> {
     /// Get value by key in tree.
     ///

@@ -5,8 +5,8 @@ extern crate alloc;
 
 pub mod backend;
 
-// mod transaction;
-// pub use transaction::Transaction;
+mod transaction;
+pub use transaction::Transaction;
 
 // mod bs3;
 // pub use bs3::Bs3;

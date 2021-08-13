@@ -1,10 +1,10 @@
 mod operation;
-pub use operation::Operation;
+pub use operation::{Operation, OperationOwned};
 
 pub mod utils;
 
 mod value;
-pub use value::{StoreValue, StoreHeight, ToStoreBytes, FromStoreBytes};
+pub use value::{FromStoreBytes, StoreHeight, StoreValue, ToStoreBytes};
 
 mod storage;
 pub use storage::SnapshotableStorage;
