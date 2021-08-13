@@ -1,5 +1,6 @@
 #![no_std]
 
+// #[macro_use]
 extern crate alloc;
 
 pub mod backend;
@@ -16,4 +17,4 @@ mod error;
 pub use error::{Error, Result};
 
 mod snapshot;
-
+pub use snapshot::SnapshotedStorage;

@@ -15,7 +15,7 @@ pub trait TreeMut<D: Digest> {
     fn get_mut(&mut self, key: &Output<D>) -> Result<Option<&mut [u8]>>;
 
     /// Insert value.
-    fn insert(&mut self, key: &Output<D>, value: Vec<u8>) -> Result<Option<Vec<u8>>>;
+    fn insert(&mut self, key: Output<D>, value: Vec<u8>) -> Result<Option<Vec<u8>>>;
 
     /// Remove value.
     fn remove(&mut self, key: &Output<D>) -> Result<Option<Vec<u8>>>;

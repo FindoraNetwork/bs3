@@ -81,7 +81,7 @@ where
         }
     }
 
-    fn insert(&mut self, key: &Output<D>, value: Vec<u8>) -> Result<Option<Vec<u8>>> {
+    fn insert(&mut self, key: Output<D>, value: Vec<u8>) -> Result<Option<Vec<u8>>> {
         if let Some(Operation::Update(v)) = self.cache.insert(key.clone(), Operation::Update(value))
         {
             Ok(Some(v))

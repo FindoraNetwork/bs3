@@ -19,6 +19,7 @@ Blockchain simple state storage.
   - [X] Store trait.
   - [ ] Sled backend.
   - [ ] Memory backend.
+- [ ] 99% usage as `BTreeMap`.
 
 ## Design
 
