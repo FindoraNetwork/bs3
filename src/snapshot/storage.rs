@@ -12,7 +12,7 @@ use super::{FromStoreBytes, Operation, StoreHeight, StoreValue, ToStoreBytes, ut
 pub struct SnapshotableStorage<'a, D: Digest> {
     store: &'a dyn Store,
     height: u64,
-    cache: BTreeMap<Output<D>, Operation>,
+    cache: BTreeMap<Output<D>, Operation<'a>>,
     namespace: &'a str,
 }
 
@@ -117,7 +117,7 @@ impl<'a, D: Digest> SnapshotableStorage<'a, D> {
     pub fn get(&self, key: &Output<D>) -> Result<Option<&[u8]>> {
         let cache_result = self.cache.get(key);
         match cache_result {
-            Some(Operation::Update(v)) => Ok(Some(v.as_slice())),
+            Some(Operation::Update(v)) => Ok(Some(*v)),
             Some(Operation::Delete) => Ok(None),
             None => match self.direct_raw_get(key, self.height)? {
                 // I can't write result to cache.

@@ -3,6 +3,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::Result;
 
+use super::Operation;
+
 pub trait ToStoreBytes {
     fn to_bytes(&self) -> Result<Vec<u8>>;
 }
@@ -14,28 +16,36 @@ pub trait FromStoreBytes {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct StoreValue {
-    pub operation: Operation,
+pub struct StoreValue<'a> {
+    #[serde(borrow)]
+    pub operation: Operation<'a>,
+}
+
+impl<'a> StoreValue<'a> {
+    pub fn from_bytes(bytes: &'a [u8]) -> Result<Self> {
+        let r = serde_cbor::from_slice(bytes)?;
+        Ok(r)
+    }
 }
 
 #[cfg(feature = "cbor")]
-impl ToStoreBytes for StoreValue {
+impl<'a> ToStoreBytes for StoreValue<'a> {
     fn to_bytes(&self) -> Result<Vec<u8>> {
         let bytes = serde_cbor::to_vec(self)?;
         Ok(bytes)
     }
 }
 
-#[cfg(feature = "cbor")]
-impl FromStoreBytes for StoreValue {
-    fn from_bytes(bytes: &[u8]) -> Result<Self>
-    where
-        Self: Sized,
-    {
-        let r = serde_cbor::from_slice(bytes)?;
-        Ok(r)
-    }
-}
+// #[cfg(feature = "cbor")]
+// impl<'a> FromStoreBytes for StoreValue<'a> {
+//     fn from_bytes(bytes: &'a [u8]) -> Result<Self>
+//     where
+//         Self: Sized,
+//     {
+//         let r = serde_cbor::from_slice(bytes)?;
+//         Ok(r)
+//     }
+// }
 
 #[derive(Serialize, Deserialize)]
 pub struct StoreHeight {
