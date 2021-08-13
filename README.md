@@ -20,6 +20,10 @@ Blockchain simple state storage.
   - [ ] Sled backend.
   - [ ] Memory backend.
 - [X] 100% same as `BTreeMap`.
+- [ ] Testing
+  - [ ] Basic usage
+  - [ ] Logic
+  - [ ] Benchmark
 
 ## Design
 

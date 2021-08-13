@@ -92,8 +92,6 @@ impl<'a, D: Digest> SnapshotableStorage<'a, D> {
 /// Methods for transaction
 impl<'a, D: Digest> SnapshotableStorage<'a, D> {
     /// Generate transaction for this Bs3 db.
-    ///
-    /// Use immutable reference let you can start multiple transactions.
     pub fn transaction(&'a mut self) -> Transaction<'a, D> {
         Transaction::new(self)
     }
