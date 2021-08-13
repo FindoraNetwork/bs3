@@ -1,6 +1,5 @@
 use crate::Result;
 use alloc::vec::Vec;
-use core::ops::Deref;
 use digest::{Digest, Output};
 
 // /// Get result.

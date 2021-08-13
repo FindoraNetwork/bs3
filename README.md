@@ -11,15 +11,15 @@ Blockchain simple state storage.
   - [X] Commit transaction for success transaction. (For `deliver_tx`)
   - [X] Revert transaction for failed transaction. (For `deliver_tx`)
 - [X] Snapshot based on CoW for each block.
-  - [ ] Load snapshot from any height to recover node.
+  - [X] Load snapshot from any height to recover node.
   - [X] Rollback snapshot.
-  - [ ] Read any height snapshot.
+  - [X] Read any height snapshot.
   - [ ] Use snapshot to compute world state and compute merkle root.
 - [X] Support multi-type of backend.
   - [X] Store trait.
   - [ ] Sled backend.
   - [ ] Memory backend.
-- [ ] 99% usage as `BTreeMap`.
+- [X] 100% same as `BTreeMap`.
 
 ## Design
 

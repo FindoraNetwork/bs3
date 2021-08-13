@@ -1,6 +1,5 @@
 use crate::Result;
 use alloc::vec::Vec;
-use serde::{Deserialize, Serialize};
 
 pub trait Store {
     /// Provide this method to get value from backend.
