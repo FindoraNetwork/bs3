@@ -1,3 +1,5 @@
+use core::mem;
+
 use crate::{
     backend::{Operation, Store},
     prelude::{Tree, TreeMut},
@@ -6,16 +8,18 @@ use crate::{
 use alloc::{borrow::Cow, collections::BTreeMap, format, vec::Vec};
 use digest::{Digest, Output};
 
-use self::utils::storage_key;
+use self::{utils::storage_key, value::{StoreHeight, ToStoreBytes}};
 
 // mod direct;
 mod utils;
+mod value;
 
 pub struct SnapshotedStorage<'a, D: Digest> {
     store: &'a dyn Store,
     height: u64,
     cache: BTreeMap<Output<D>, Operation>,
     namespace: &'a str,
+    lower_keys: Vec<Vec<u8>>,
 }
 
 /// Methods for create storage.
@@ -30,6 +34,7 @@ impl<'a, D: Digest> SnapshotedStorage<'a, D> {
             height,
             cache: BTreeMap::default(),
             namespace,
+            lower_keys: Vec::new(),
         };
         s.rollback(height)?;
         Ok(s)
@@ -45,6 +50,7 @@ impl<'a, D: Digest> SnapshotedStorage<'a, D> {
             height: 0,
             cache: BTreeMap::new(),
             namespace,
+            lower_keys: Vec::new(),
         }
     }
 
@@ -62,12 +68,22 @@ impl<'a, D: Digest> SnapshotedStorage<'a, D> {
     }
 
     pub fn commit(&mut self) -> Result<u64> {
-        let operations = Vec::new();
-        for (k, v) in &self.cache {
-            let key = utils::storage_key(self.namespace, &k, self.height);
-            // let key =
+        let mut operations = Vec::new();
+
+        let cache = mem::replace(&mut self.cache, BTreeMap::new());
+
+        for (k, v) in cache {
+            let key_bytes = utils::storage_key(self.namespace, &k, self.height);
+            operations.push((key_bytes, v));
         }
-        // operations.push(utils::current_height_key(self.namespace), );
+        // incr current height
+        let store_height = StoreHeight {
+            height: self.height,
+        };
+        let height_key_bytes = utils::current_height_key(self.namespace);
+        let height_value_bytes = Operation::Update(store_height.to_bytes()?);
+        operations.push((height_key_bytes, height_value_bytes));
+
         self.store.execute(operations)?;
         self.cache.clear();
         self.height += 1;
@@ -87,7 +103,6 @@ impl<'a, D: Digest> SnapshotedStorage<'a, D> {
         }
     }
 }
-
 
 // impl<'a, D: Digest> Tree<D> for SnapshotedStorage<'a, D> {
 // fn get(&self, key: &Output<D>) -> Result<Option<Cow<'_, [u8]>>> {
