@@ -1,19 +1,20 @@
 use core::mem;
 
-use crate::{Error, Result, backend::{Operation, Store}, prelude::{Tree, TreeMut}};
-use alloc::{borrow::Cow, collections::BTreeMap, format, vec::Vec};
+use crate::{
+    backend::{Operation, Store},
+    prelude::TreeMut,
+    Error, Result,
+};
+use alloc::{collections::BTreeMap, vec::Vec};
 use digest::{Digest, Output};
 
-use self::{
-    utils::storage_key,
-    value::{StoreHeight, ToStoreBytes},
-};
+use self::value::{StoreHeight, ToStoreBytes};
 
 // mod direct;
 mod utils;
 mod value;
 
-pub struct SnapshotedStorage<'a, D: Digest> {
+pub struct SnapshotableStorage<'a, D: Digest> {
     store: &'a dyn Store,
     height: u64,
     cache: BTreeMap<Output<D>, Operation>,
@@ -21,13 +22,32 @@ pub struct SnapshotedStorage<'a, D: Digest> {
 }
 
 /// Methods for create storage.
-impl<'a, D: Digest> SnapshotedStorage<'a, D> {
+impl<'a, D: Digest> SnapshotableStorage<'a, D> {
+    pub fn new(store: &'a impl Store) -> Self {
+        Self::new_with_namespace(store, "")
+    }
+
+    pub fn new_with_height(store: &'a impl Store, height: u64) -> Result<Self> {
+        let mut s = Self::new(store);
+        s.rollback(height)?;
+        Ok(s)
+    }
+
+    pub fn new_with_namespace(store: &'a impl Store, namespace: &'a str) -> Self {
+        Self {
+            store: store as &'a dyn Store,
+            height: 0,
+            cache: BTreeMap::new(),
+            namespace,
+        }
+    }
+
     pub fn new_with_height_namespace(
         store: &'a impl Store,
         height: u64,
         namespace: &'a str,
     ) -> Result<Self> {
-        let mut s = SnapshotedStorage {
+        let mut s = Self {
             store: store as &'a dyn Store,
             height,
             cache: BTreeMap::default(),
@@ -36,29 +56,10 @@ impl<'a, D: Digest> SnapshotedStorage<'a, D> {
         s.rollback(height)?;
         Ok(s)
     }
-
-    pub fn new(store: &'a impl Store) -> Self {
-        Self::new_with_namespace(store, "")
-    }
-
-    pub fn new_with_namespace(store: &'a impl Store, namespace: &'a str) -> Self {
-        SnapshotedStorage {
-            store: store as &'a dyn Store,
-            height: 0,
-            cache: BTreeMap::new(),
-            namespace,
-        }
-    }
-
-    pub fn new_with_height(store: &'a impl Store, height: u64) -> Result<Self> {
-        let mut s = Self::new(store);
-        s.rollback(height)?;
-        Ok(s)
-    }
 }
 
 /// Methods for snapshot.
-impl<'a, D: Digest> SnapshotedStorage<'a, D> {
+impl<'a, D: Digest> SnapshotableStorage<'a, D> {
     /// rollback to point height, target_height must less than current height.
     pub fn rollback(&mut self, target_height: u64) -> Result<()> {
         if target_height > self.height {
@@ -87,8 +88,8 @@ impl<'a, D: Digest> SnapshotedStorage<'a, D> {
 }
 
 /// Methods for internal helper
-impl<'a, D: Digest> SnapshotedStorage<'a, D> {
-    pub fn sync_height(&mut self, target_height: u64) -> Result<()> {
+impl<'a, D: Digest> SnapshotableStorage<'a, D> {
+    pub(crate) fn sync_height(&mut self, target_height: u64) -> Result<()> {
         self.height = target_height;
 
         let mut operations = Vec::new();
@@ -103,15 +104,15 @@ impl<'a, D: Digest> SnapshotedStorage<'a, D> {
         Ok(())
     }
 
-    pub(crate) fn direct_raw_get(&self, key: &Output<D>) -> Result<Option<Vec<u8>>> {
-        let key = storage_key(self.namespace, key, self.height);
-        let value = self.store.get_lt(&key)?;
-        if let Some(bytes) = value {
-            Ok(Some(bytes))
-        } else {
-            Ok(None)
-        }
-    }
+    //     pub(crate) fn direct_raw_get(&self, key: &Output<D>) -> Result<Option<Vec<u8>>> {
+    // let key = storage_key(self.namespace, key, self.height);
+    // let value = self.store.get_lt(&key)?;
+    // if let Some(bytes) = value {
+    //     Ok(Some(bytes))
+    // } else {
+    //     Ok(None)
+    // }
+    // }
 }
 
 // impl<'a, D: Digest> Tree<D> for SnapshotedStorage<'a, D> {
@@ -124,8 +125,8 @@ impl<'a, D: Digest> SnapshotedStorage<'a, D> {
 // }
 // }
 
-impl<'a, D: Digest> TreeMut<D> for SnapshotedStorage<'a, D> {
-    fn get_mut(&mut self, key: &Output<D>) -> Result<Option<&mut [u8]>> {
+impl<'a, D: Digest> TreeMut<D> for SnapshotableStorage<'a, D> {
+    fn get_mut(&mut self, _key: &Output<D>) -> Result<Option<&mut [u8]>> {
         Ok(None)
     }
 

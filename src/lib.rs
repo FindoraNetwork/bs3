@@ -17,4 +17,4 @@ mod error;
 pub use error::{Error, Result};
 
 mod snapshot;
-pub use snapshot::SnapshotedStorage;
+pub use snapshot::SnapshotableStorage;
