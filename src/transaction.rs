@@ -1,4 +1,4 @@
-use alloc::{borrow::Cow, collections::BTreeMap, vec::Vec};
+use alloc::{collections::BTreeMap, vec::Vec};
 use digest::{Digest, Output};
 
 use crate::{
@@ -21,6 +21,17 @@ where
             store,
             cache: BTreeMap::new(),
         }
+    }
+
+    fn raw_insert(&mut self, key: &Output<D>, value: OperationOwned) -> Result<Option<Vec<u8>>> {
+        Ok(match self.cache.insert(key.clone(), value) {
+            Some(OperationOwned::Update(v)) => Some(v),
+            Some(OperationOwned::Delete) => None,
+            None => match self.store.get(key)? {
+                Some(v) => Some(Vec::from(v)),
+                None => None,
+            },
+        })
     }
 }
 
@@ -52,24 +63,10 @@ where
     }
 
     fn insert(&mut self, key: Output<D>, value: Vec<u8>) -> Result<Option<Vec<u8>>> {
-        if let Some(OperationOwned::Update(v)) =
-            self.cache.insert(key, OperationOwned::Update(value))
-        {
-            // insert into cache, if cache has this value, return this value.
-            Ok(Some(v))
-        } else {
-            Ok(None)
-        }
+        self.raw_insert(&key, OperationOwned::Update(value))
     }
 
     fn remove(&mut self, key: &Output<D>) -> Result<Option<Vec<u8>>> {
-        if let Some(OperationOwned::Update(v)) =
-            self.cache.insert(key.clone(), OperationOwned::Delete)
-        {
-            // insert into cache, if cache has this value, return this value.
-            Ok(Some(v))
-        } else {
-            Ok(None)
-        }
+        self.raw_insert(key, OperationOwned::Delete)
     }
 }
