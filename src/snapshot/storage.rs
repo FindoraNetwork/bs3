@@ -12,41 +12,49 @@ use crate::{
 use super::{operation::OperationOwned, utils, Operation, StoreHeight, StoreValue, ToStoreBytes};
 
 /// Snapshotable Storage
-pub struct SnapshotableStorage<'a, D: Digest> {
-    store: &'a dyn Store,
+pub struct SnapshotableStorage<'a, D, R>
+where
+    D: Digest,
+    R: Iterator<Item = (&'a [u8], &'a [u8])>,
+{
+    store: &'a dyn Store<'a, Range = R>,
     height: u64,
     pub(crate) cache: BTreeMap<Output<D>, OperationOwned>,
     namespace: &'a str,
 }
 
 /// Methods for create storage.
-impl<'a, D: Digest> SnapshotableStorage<'a, D> {
-    pub fn new(store: &'a impl Store) -> Self {
+impl<'a, D, R> SnapshotableStorage<'a, D, R>
+where
+    D: Digest,
+    R: Iterator<Item = (&'a [u8], &'a [u8])>,
+{
+    pub fn new(store: &'a impl Store<'a, Range = R>) -> Self {
         Self::new_with_name(store, "")
     }
 
-    pub fn new_with_name(store: &'a impl Store, name: &'a str) -> Self {
+    pub fn new_with_name(store: &'a impl Store<'a, Range = R>, name: &'a str) -> Self {
         Self {
-            store: store as &'a dyn Store,
+            store: store as &'a dyn Store<Range = R>,
             height: 0,
             cache: BTreeMap::new(),
             namespace: name,
         }
     }
 
-    pub fn new_with_height(store: &'a impl Store, height: u64) -> Result<Self> {
+    pub fn new_with_height(store: &'a impl Store<'a, Range = R>, height: u64) -> Result<Self> {
         let mut s = Self::new(store);
         s.rollback(height)?;
         Ok(s)
     }
 
     pub fn new_with_height_namespace(
-        store: &'a impl Store,
+        store: &'a impl Store<'a, Range = R>,
         height: u64,
         namespace: &'a str,
     ) -> Result<Self> {
         let mut s = Self {
-            store: store as &'a dyn Store,
+            store: store as &'a dyn Store<Range = R>,
             height,
             cache: BTreeMap::new(),
             namespace,
@@ -57,7 +65,11 @@ impl<'a, D: Digest> SnapshotableStorage<'a, D> {
 }
 
 /// Methods for snapshot.
-impl<'a, D: Digest> SnapshotableStorage<'a, D> {
+impl<'a, D, R> SnapshotableStorage<'a, D, R>
+where
+    D: Digest,
+    R: Iterator<Item = (&'a [u8], &'a [u8])>,
+{
     /// rollback to point height, target_height must less than current height.
     pub fn rollback(&mut self, target_height: u64) -> Result<()> {
         if target_height > self.height {
@@ -90,20 +102,28 @@ impl<'a, D: Digest> SnapshotableStorage<'a, D> {
 }
 
 /// Methods for transaction
-impl<'a, D: Digest> SnapshotableStorage<'a, D> {
+impl<'a, D, R> SnapshotableStorage<'a, D, R>
+where
+    D: Digest,
+    R: Iterator<Item = (&'a [u8], &'a [u8])>,
+{
     /// Generate transaction for this Bs3 db.
-    pub fn transaction(&'a mut self) -> Transaction<'a, D> {
+    pub fn transaction(&'a mut self) -> Transaction<'a, D, R> {
         Transaction::new(self)
     }
 
     /// Consume transaction to apply.
-    pub fn execute(&mut self, mut tx: Transaction<'_, D>) {
+    pub fn execute(&'a mut self, mut tx: Transaction<'a, D, R>) {
         self.cache.append(&mut tx.cache);
     }
 }
 
 /// Methods for internal helper
-impl<'a, D: Digest> SnapshotableStorage<'a, D> {
+impl<'a, D, R> SnapshotableStorage<'a, D, R>
+where
+    D: Digest,
+    R: Iterator<Item = (&'a [u8], &'a [u8])>,
+{
     pub(crate) fn sync_height(
         &mut self,
         target_height: u64,
@@ -129,17 +149,21 @@ impl<'a, D: Digest> SnapshotableStorage<'a, D> {
     }
 
     /// Get value in target height directly.
-    pub(crate) fn direct_raw_get(&self, key: &Output<D>, height: u64) -> Result<Option<&[u8]>> {
-        let key = utils::storage_key(self.namespace, key, height);
-        let value = self.store.get_lt(&key)?;
-        Ok(value)
+    pub(crate) fn raw_get_lt(&self, key: &Output<D>, height: u64) -> Result<Option<&[u8]>> {
+        let end_key = utils::storage_key(self.namespace, key, height);
+        let begin_key = utils::storage_key(self.namespace, key, 0);
+        let mut value = self.store.range(&begin_key, &end_key)?;
+        Ok(match value.next() {
+            Some((_, v)) => Some(v),
+            None => None,
+        })
     }
 
     fn raw_insert(&mut self, key: &Output<D>, value: OperationOwned) -> Result<Option<Vec<u8>>> {
         Ok(match self.cache.insert(key.clone(), value) {
             Some(OperationOwned::Update(v)) => Some(v),
             Some(OperationOwned::Delete) => None,
-            None => match self.direct_raw_get(key, self.height)? {
+            None => match self.raw_get_lt(key, self.height)? {
                 Some(bytes) => {
                     let r = StoreValue::from_bytes(bytes)?;
                     match r.operation {
@@ -153,13 +177,17 @@ impl<'a, D: Digest> SnapshotableStorage<'a, D> {
     }
 }
 
-impl<'a, D: Digest> Tree<D> for SnapshotableStorage<'a, D> {
+impl<'a, D, R> Tree<D> for SnapshotableStorage<'a, D, R>
+where
+    D: Digest,
+    R: Iterator<Item = (&'a [u8], &'a [u8])>,
+{
     fn get(&self, key: &Output<D>) -> Result<Option<&[u8]>> {
         let cache_result = self.cache.get(key);
         match cache_result {
             Some(OperationOwned::Update(v)) => Ok(Some(v.as_slice())),
             Some(OperationOwned::Delete) => Ok(None),
-            None => match self.direct_raw_get(key, self.height)? {
+            None => match self.raw_get_lt(key, self.height)? {
                 // I can't write result to cache.
                 // If want cache to speed up, in lower `Store`.
                 Some(bytes) => {
@@ -175,20 +203,25 @@ impl<'a, D: Digest> Tree<D> for SnapshotableStorage<'a, D> {
     }
 }
 
-impl<'a, D: Digest> TreeMut<D> for SnapshotableStorage<'a, D> {
+impl<'a, D, R> TreeMut<D> for SnapshotableStorage<'a, D, R>
+where
+    D: Digest,
+    R: Iterator<Item = (&'a [u8], &'a [u8])>,
+{
     fn get_mut(&mut self, key: &Output<D>) -> Result<Option<&mut [u8]>> {
         if let Some(OperationOwned::Delete) = self.cache.get(key) {
             return Ok(None);
         }
         if self.cache.contains_key(key) {
-            let k = utils::storage_key(self.namespace, key, self.height);
-            if let Some(bytes) = self.store.get_lt(k.as_slice())? {
-                // if has value in cache, same as update.
-                let r = StoreValue::from_bytes(bytes)?;
-                self.cache
-                    .insert(key.clone(), r.operation.to_operation_owned());
-            } else {
-                return Ok(None);
+            match self.raw_get_lt(key, self.height)? {
+                Some(bytes) => {
+                    let r = StoreValue::from_bytes(bytes)?;
+                    // this assign to prevent #[warn(mutable_borrow_reservation_conflict)]
+                    let operation_owned = r.operation.to_operation_owned();
+                    self.cache
+                        .insert(key.clone(), operation_owned);
+                }
+                None => return Ok(None),
             }
         }
 

@@ -7,16 +7,21 @@ use crate::{
     Result, SnapshotableStorage,
 };
 
-pub struct Transaction<'a, D: Digest> {
-    pub(crate) store: &'a mut SnapshotableStorage<'a, D>,
+pub struct Transaction<'a, D, R>
+where
+    D: Digest,
+    R: Iterator<Item = (&'a [u8], &'a [u8])>,
+{
+    pub(crate) store: &'a mut SnapshotableStorage<'a, D, R>,
     pub(crate) cache: BTreeMap<Output<D>, OperationOwned>,
 }
 
-impl<'a, D> Transaction<'a, D>
+impl<'a, D, R> Transaction<'a, D, R>
 where
     D: Digest,
+    R: Iterator<Item = (&'a [u8], &'a [u8])>,
 {
-    pub(crate) fn new(store: &'a mut SnapshotableStorage<'a, D>) -> Self {
+    pub(crate) fn new(store: &'a mut SnapshotableStorage<'a, D, R>) -> Self {
         Transaction {
             store,
             cache: BTreeMap::new(),
@@ -35,9 +40,10 @@ where
     }
 }
 
-impl<'a, D> Tree<D> for Transaction<'a, D>
+impl<'a, D, R> Tree<D> for Transaction<'a, D, R>
 where
     D: Digest,
+    R: Iterator<Item = (&'a [u8], &'a [u8])>,
 {
     fn get(&self, key: &Output<D>) -> Result<Option<&[u8]>> {
         let cache_result = self.cache.get(key);
@@ -49,9 +55,10 @@ where
     }
 }
 
-impl<'a, D> TreeMut<D> for Transaction<'a, D>
+impl<'a, D, R> TreeMut<D> for Transaction<'a, D, R>
 where
     D: Digest,
+    R: Iterator<Item = (&'a [u8], &'a [u8])>,
 {
     fn get_mut(&mut self, key: &Output<D>) -> Result<Option<&mut [u8]>> {
         let cache_result = self.cache.get_mut(key);
