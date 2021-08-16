@@ -14,7 +14,7 @@ pub struct MemoryBackend {
 impl MemoryBackend {
     pub fn new() -> Self {
         Self {
-            cache: BTreeMap::new()
+            cache: BTreeMap::new(),
         }
     }
 }
