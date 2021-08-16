@@ -10,6 +10,7 @@ pub enum Error {
     HeightError,
     BorrowMutError(cell::BorrowMutError),
     BorrowError(cell::BorrowError),
+    LockReadError
 }
 
 #[cfg(feature = "cbor")]

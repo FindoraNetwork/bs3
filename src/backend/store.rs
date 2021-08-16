@@ -15,4 +15,6 @@ pub trait Store<'a> {
 
     /// Provide this method to range key.
     fn range(&'a self, begin_key: Vec<u8>, end_key: Vec<u8>) -> Result<Self::Range>;
+
+    fn commit(&mut self) -> Result<()>;
 }

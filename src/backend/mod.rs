@@ -1,8 +1,9 @@
 mod store;
 pub use store::Store;
 
-mod memory;
-pub use memory::MemoryBackend;
+#[cfg(feature = "sled-backend")]
+pub mod sled;
 
-#[cfg(features = "sled-backend")]
-mod sled;
+#[cfg(feature = "memory-backend")]
+pub mod memory;
+

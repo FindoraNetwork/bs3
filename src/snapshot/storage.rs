@@ -17,7 +17,7 @@ where
     D: Digest,
     R: Iterator<Item = (&'a Vec<u8>, &'a Vec<u8>)>,
 {
-    store: &'a dyn Store<'a, Range = R>,
+    store: &'a mut dyn Store<'a, Range = R>,
     height: u64,
     pub(crate) cache: BTreeMap<Output<D>, OperationOwned>,
     namespace: &'a str,
@@ -151,7 +151,7 @@ where
     }
 
     /// Get value in target height directly.
-    pub(crate) fn raw_get_lt(&self, key: &Output<D>, height: u64) -> Result<Option<&[u8]>> {
+    pub(crate) fn raw_get_lt(&'a self, key: &Output<D>, height: u64) -> Result<Option<&[u8]>> {
         let end_key = utils::storage_key(self.namespace, key, height);
         let begin_key = utils::storage_key(self.namespace, key, 0);
         let mut value = self.store.range(begin_key, end_key)?;
@@ -161,7 +161,7 @@ where
         })
     }
 
-    fn raw_insert(&mut self, key: &Output<D>, value: OperationOwned) -> Result<Option<Vec<u8>>> {
+    fn raw_insert(&'a mut self, key: &Output<D>, value: OperationOwned) -> Result<Option<Vec<u8>>> {
         Ok(match self.cache.insert(key.clone(), value) {
             Some(OperationOwned::Update(v)) => Some(v),
             Some(OperationOwned::Delete) => None,

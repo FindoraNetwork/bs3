@@ -18,5 +18,11 @@ sled = { version = "0.34", optional = true }
 [features]
 default = ["cbor"]
 
-sled-backend = ["sled"]
+# feature for std usage.
+std = []
+
+# Define backend.
+memory-backend = ["std"]
+sled-backend = ["sled", "std"]
+
 cbor = ["serde_cbor"]
