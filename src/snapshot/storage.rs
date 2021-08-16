@@ -1,4 +1,4 @@
-use core::mem;
+use core::{marker::PhantomData, mem};
 
 use alloc::{collections::BTreeMap, vec::Vec};
 use digest::{Digest, Output};
@@ -12,53 +12,57 @@ use crate::{
 use super::{operation::OperationOwned, utils, Operation, StoreHeight, StoreValue, ToStoreBytes};
 
 /// Snapshotable Storage
-pub struct SnapshotableStorage<'a, D, R>
+pub struct SnapshotableStorage<'a, S, D, R>
 where
     D: Digest,
     R: Iterator<Item = (&'a Vec<u8>, &'a Vec<u8>)>,
+    S: Store,
 {
-    store: &'a mut dyn Store<'a, Range = R>,
+    store: S,
     height: u64,
     pub(crate) cache: BTreeMap<Output<D>, OperationOwned>,
     namespace: &'a str,
+    marker_r: PhantomData<R>,
 }
 
 /// Methods for create storage.
-impl<'a, D, R> SnapshotableStorage<'a, D, R>
+impl<'a, S, D, R> SnapshotableStorage<'a, S, D, R>
 where
     D: Digest,
     R: Iterator<Item = (&'a Vec<u8>, &'a Vec<u8>)>,
-    Self: 'a
+    S: Store,
 {
-    pub fn new(store: &'a mut impl Store<'a, Range = R>) -> Self {
+    pub fn new(store: S) -> Self {
         Self::new_with_name(store, "")
     }
 
-    pub fn new_with_name(store: &'a mut impl Store<'a, Range = R>, name: &'a str) -> Self {
+    pub fn new_with_name(store: S, name: &'a str) -> Self {
         Self {
-            store: store as &'a mut dyn Store<Range = R>,
+            store,
             height: 0,
             cache: BTreeMap::new(),
             namespace: name,
+            marker_r: PhantomData,
         }
     }
 
-    pub fn new_with_height(store: &'a mut impl Store<'a, Range = R>, height: u64) -> Result<Self> {
+    pub fn new_with_height(store: S, height: u64) -> Result<Self> {
         let mut s = Self::new(store);
         s.rollback(height)?;
         Ok(s)
     }
 
     pub fn new_with_height_namespace(
-        store: &'a mut impl Store<'a, Range = R>,
+        store: S,
         height: u64,
         namespace: &'a str,
     ) -> Result<Self> {
         let mut s = Self {
-            store: store as &'a mut dyn Store<Range = R>,
+            store: store,
             height,
             cache: BTreeMap::new(),
             namespace,
+            marker_r: PhantomData,
         };
         s.rollback(height)?;
         Ok(s)
@@ -66,11 +70,11 @@ where
 }
 
 /// Methods for snapshot.
-impl<'a, D, R> SnapshotableStorage<'a, D, R>
+impl<'a, S, D, R> SnapshotableStorage<'a, S, D, R>
 where
     D: Digest,
     R: Iterator<Item = (&'a Vec<u8>, &'a Vec<u8>)>,
-    Self: 'a
+    S: Store,
 {
     /// rollback to point height, target_height must less than current height.
     pub fn rollback(&mut self, target_height: u64) -> Result<()> {
@@ -99,32 +103,36 @@ where
         // incr current height
         self.sync_height(self.height + 1, Some(operations))?;
 
+        self.store.commit()?;
+
         Ok(self.height)
     }
 }
 
 /// Methods for transaction
-impl<'a, D, R> SnapshotableStorage<'a, D, R>
+impl<'a, S, D, R> SnapshotableStorage<'a, S, D, R>
 where
     D: Digest,
     R: Iterator<Item = (&'a Vec<u8>, &'a Vec<u8>)>,
+    S: Store,
 {
     /// Generate transaction for this Bs3 db.
-    pub fn transaction(&'a mut self) -> Transaction<'a, D, R> {
+    pub fn transaction(&'a mut self) -> Transaction<'a, S, D, R> {
         Transaction::new(self)
     }
 
     /// Consume transaction to apply.
-    pub fn execute(&'a mut self, mut tx: Transaction<'a, D, R>) {
+    pub fn execute(&'a mut self, mut tx: Transaction<'a, S, D, R>) {
         self.cache.append(&mut tx.cache);
     }
 }
 
 /// Methods for internal helper
-impl<'a, D, R> SnapshotableStorage<'a, D, R>
+impl<'a, S, D, R> SnapshotableStorage<'a, S, D, R>
 where
     D: Digest,
     R: Iterator<Item = (&'a Vec<u8>, &'a Vec<u8>)>,
+    S: Store,
 {
     pub(crate) fn sync_height(
         &mut self,
@@ -151,7 +159,7 @@ where
     }
 
     /// Get value in target height directly.
-    pub(crate) fn raw_get_lt(&'a self, key: &Output<D>, height: u64) -> Result<Option<&[u8]>> {
+    pub(crate) fn raw_get_lt(&self, key: &Output<D>, height: u64) -> Result<Option<&[u8]>> {
         let end_key = utils::storage_key(self.namespace, key, height);
         let begin_key = utils::storage_key(self.namespace, key, 0);
         let mut value = self.store.range(begin_key, end_key)?;
@@ -161,7 +169,7 @@ where
         })
     }
 
-    fn raw_insert(&'a mut self, key: &Output<D>, value: OperationOwned) -> Result<Option<Vec<u8>>> {
+    fn raw_insert(&mut self, key: &Output<D>, value: OperationOwned) -> Result<Option<Vec<u8>>> {
         Ok(match self.cache.insert(key.clone(), value) {
             Some(OperationOwned::Update(v)) => Some(v),
             Some(OperationOwned::Delete) => None,
@@ -179,10 +187,11 @@ where
     }
 }
 
-impl<'a, D, R> Tree<D> for SnapshotableStorage<'a, D, R>
+impl<'a, S, D, R> Tree<D> for SnapshotableStorage<'a, S, D, R>
 where
     D: Digest,
     R: Iterator<Item = (&'a Vec<u8>, &'a Vec<u8>)>,
+    S: Store,
 {
     fn get(&self, key: &Output<D>) -> Result<Option<&[u8]>> {
         let cache_result = self.cache.get(key);
@@ -205,11 +214,11 @@ where
     }
 }
 
-impl<'a, D, R> TreeMut<D> for SnapshotableStorage<'a, D, R>
+impl<'a, S, D, R> TreeMut<D> for SnapshotableStorage<'a, S, D, R>
 where
     D: Digest,
     R: Iterator<Item = (&'a Vec<u8>, &'a Vec<u8>)>,
-    Self: 'a
+    S: Store,
 {
     fn get_mut(&mut self, key: &Output<D>) -> Result<Option<&mut [u8]>> {
         if let Some(OperationOwned::Delete) = self.cache.get(key) {
