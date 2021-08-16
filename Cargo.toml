@@ -22,7 +22,6 @@ default = ["cbor"]
 std = []
 
 # Define backend.
-memory-backend = ["std"]
 sled-backend = ["sled", "std"]
 
 cbor = ["serde_cbor"]

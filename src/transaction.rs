@@ -1,7 +1,12 @@
 use alloc::{collections::BTreeMap, vec::Vec};
 use digest::{Digest, Output};
 
-use crate::{Result, SnapshotableStorage, backend::Store, prelude::{Tree, TreeMut}, snapshot::OperationOwned};
+use crate::{
+    backend::Store,
+    prelude::{Tree, TreeMut},
+    snapshot::OperationOwned,
+    Result, SnapshotableStorage,
+};
 
 pub struct Transaction<'a, S, D, R>
 where

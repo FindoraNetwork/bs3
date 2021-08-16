@@ -52,11 +52,7 @@ where
         Ok(s)
     }
 
-    pub fn new_with_height_namespace(
-        store: S,
-        height: u64,
-        namespace: &'a str,
-    ) -> Result<Self> {
+    pub fn new_with_height_namespace(store: S, height: u64, namespace: &'a str) -> Result<Self> {
         let mut s = Self {
             store: store,
             height,
@@ -230,8 +226,7 @@ where
                     let r = StoreValue::from_bytes(bytes)?;
                     // this assign to prevent #[warn(mutable_borrow_reservation_conflict)]
                     let operation_owned = r.operation.to_operation_owned();
-                    self.cache
-                        .insert(key.clone(), operation_owned);
+                    self.cache.insert(key.clone(), operation_owned);
                 }
                 None => return Ok(None),
             }
