@@ -88,6 +88,8 @@ where
         // exchange cache.
         let cache = mem::replace(&mut self.cache, BTreeMap::new());
 
+        log::debug!("Snapshot Cache: {:#?}", cache);
+
         for (k, v) in cache {
             let key_bytes = utils::storage_key(self.namespace, &k, self.height);
             let store_value = StoreValue {
@@ -99,7 +101,7 @@ where
         // incr current height
         self.sync_height(self.height + 1, Some(operations))?;
 
-        self.store.commit()?;
+        log::debug!("Sync snapshot success in height: {}", self.height);
 
         Ok(self.height)
     }
@@ -119,6 +121,7 @@ where
 
     /// Consume transaction to apply.
     pub fn execute(&'a mut self, mut tx: Transaction<'a, S, D, R>) {
+        log::debug!("Transaction Cache: {:#?}", tx.cache);
         self.cache.append(&mut tx.cache);
     }
 }

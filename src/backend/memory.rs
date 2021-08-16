@@ -1,5 +1,3 @@
-use core::cell::RefCell;
-
 use alloc::{
     collections::{btree_map::Range, BTreeMap},
     vec::Vec,
@@ -10,8 +8,15 @@ use crate::Result;
 use super::Store;
 
 pub struct MemoryBackend {
-    cache: BTreeMap<Vec<u8>, Vec<u8>>,
-    store: RefCell<BTreeMap<Vec<u8>, Vec<u8>>>,
+    pub cache: BTreeMap<Vec<u8>, Vec<u8>>,
+}
+
+impl MemoryBackend {
+    pub fn new() -> Self {
+        Self {
+            cache: BTreeMap::new()
+        }
+    }
 }
 
 impl Store for MemoryBackend {
@@ -28,17 +33,17 @@ impl Store for MemoryBackend {
         Ok(self.cache.range(begin_key..end_key))
     }
 
-    fn execute(&self, batch: Vec<(Vec<u8>, Vec<u8>)>) -> Result<()> {
-        let mut inner = self.store.try_borrow_mut()?;
+    fn execute(&mut self, batch: Vec<(Vec<u8>, Vec<u8>)>) -> Result<()> {
+        let inner = &mut self.cache;
         for (key, value) in batch {
             inner.insert(key, value);
         }
         Ok(())
     }
 
-    fn commit(&mut self) -> Result<()> {
-        let store = self.store.get_mut();
-        self.cache.append(store);
-        Ok(())
-    }
+    // fn commit(&mut self) -> Result<()> {
+    // let store = self.store.get_mut();
+    // self.cache.append(store);
+    // Ok(())
+    // }
 }
