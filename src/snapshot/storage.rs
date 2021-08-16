@@ -15,7 +15,7 @@ use super::{operation::OperationOwned, utils, Operation, StoreHeight, StoreValue
 pub struct SnapshotableStorage<'a, D, R>
 where
     D: Digest,
-    R: Iterator<Item = (&'a [u8], &'a [u8])>,
+    R: Iterator<Item = (&'a Vec<u8>, &'a Vec<u8>)>,
 {
     store: &'a dyn Store<'a, Range = R>,
     height: u64,
@@ -27,34 +27,35 @@ where
 impl<'a, D, R> SnapshotableStorage<'a, D, R>
 where
     D: Digest,
-    R: Iterator<Item = (&'a [u8], &'a [u8])>,
+    R: Iterator<Item = (&'a Vec<u8>, &'a Vec<u8>)>,
+    Self: 'a
 {
-    pub fn new(store: &'a impl Store<'a, Range = R>) -> Self {
+    pub fn new(store: &'a mut impl Store<'a, Range = R>) -> Self {
         Self::new_with_name(store, "")
     }
 
-    pub fn new_with_name(store: &'a impl Store<'a, Range = R>, name: &'a str) -> Self {
+    pub fn new_with_name(store: &'a mut impl Store<'a, Range = R>, name: &'a str) -> Self {
         Self {
-            store: store as &'a dyn Store<Range = R>,
+            store: store as &'a mut dyn Store<Range = R>,
             height: 0,
             cache: BTreeMap::new(),
             namespace: name,
         }
     }
 
-    pub fn new_with_height(store: &'a impl Store<'a, Range = R>, height: u64) -> Result<Self> {
+    pub fn new_with_height(store: &'a mut impl Store<'a, Range = R>, height: u64) -> Result<Self> {
         let mut s = Self::new(store);
         s.rollback(height)?;
         Ok(s)
     }
 
     pub fn new_with_height_namespace(
-        store: &'a impl Store<'a, Range = R>,
+        store: &'a mut impl Store<'a, Range = R>,
         height: u64,
         namespace: &'a str,
     ) -> Result<Self> {
         let mut s = Self {
-            store: store as &'a dyn Store<Range = R>,
+            store: store as &'a mut dyn Store<Range = R>,
             height,
             cache: BTreeMap::new(),
             namespace,
@@ -68,7 +69,8 @@ where
 impl<'a, D, R> SnapshotableStorage<'a, D, R>
 where
     D: Digest,
-    R: Iterator<Item = (&'a [u8], &'a [u8])>,
+    R: Iterator<Item = (&'a Vec<u8>, &'a Vec<u8>)>,
+    Self: 'a
 {
     /// rollback to point height, target_height must less than current height.
     pub fn rollback(&mut self, target_height: u64) -> Result<()> {
@@ -105,7 +107,7 @@ where
 impl<'a, D, R> SnapshotableStorage<'a, D, R>
 where
     D: Digest,
-    R: Iterator<Item = (&'a [u8], &'a [u8])>,
+    R: Iterator<Item = (&'a Vec<u8>, &'a Vec<u8>)>,
 {
     /// Generate transaction for this Bs3 db.
     pub fn transaction(&'a mut self) -> Transaction<'a, D, R> {
@@ -122,7 +124,7 @@ where
 impl<'a, D, R> SnapshotableStorage<'a, D, R>
 where
     D: Digest,
-    R: Iterator<Item = (&'a [u8], &'a [u8])>,
+    R: Iterator<Item = (&'a Vec<u8>, &'a Vec<u8>)>,
 {
     pub(crate) fn sync_height(
         &mut self,
@@ -152,7 +154,7 @@ where
     pub(crate) fn raw_get_lt(&self, key: &Output<D>, height: u64) -> Result<Option<&[u8]>> {
         let end_key = utils::storage_key(self.namespace, key, height);
         let begin_key = utils::storage_key(self.namespace, key, 0);
-        let mut value = self.store.range(&begin_key, &end_key)?;
+        let mut value = self.store.range(begin_key, end_key)?;
         Ok(match value.next() {
             Some((_, v)) => Some(v),
             None => None,
@@ -180,7 +182,7 @@ where
 impl<'a, D, R> Tree<D> for SnapshotableStorage<'a, D, R>
 where
     D: Digest,
-    R: Iterator<Item = (&'a [u8], &'a [u8])>,
+    R: Iterator<Item = (&'a Vec<u8>, &'a Vec<u8>)>,
 {
     fn get(&self, key: &Output<D>) -> Result<Option<&[u8]>> {
         let cache_result = self.cache.get(key);
@@ -206,7 +208,8 @@ where
 impl<'a, D, R> TreeMut<D> for SnapshotableStorage<'a, D, R>
 where
     D: Digest,
-    R: Iterator<Item = (&'a [u8], &'a [u8])>,
+    R: Iterator<Item = (&'a Vec<u8>, &'a Vec<u8>)>,
+    Self: 'a
 {
     fn get_mut(&mut self, key: &Output<D>) -> Result<Option<&mut [u8]>> {
         if let Some(OperationOwned::Delete) = self.cache.get(key) {

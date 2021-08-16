@@ -9,6 +9,7 @@ pub enum Error {
     CborError(serde_cbor::Error),
     HeightError,
     BorrowMutError(cell::BorrowMutError),
+    BorrowError(cell::BorrowError),
 }
 
 #[cfg(feature = "cbor")]
@@ -21,6 +22,12 @@ impl From<serde_cbor::Error> for Error {
 impl From<cell::BorrowMutError> for Error {
     fn from(e: cell::BorrowMutError) -> Self {
         Self::BorrowMutError(e)
+    }
+}
+
+impl From<cell::BorrowError> for Error {
+    fn from(e: cell::BorrowError) -> Self {
+        Self::BorrowError(e)
     }
 }
 

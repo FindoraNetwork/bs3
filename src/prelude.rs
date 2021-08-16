@@ -4,8 +4,6 @@ use digest::{Digest, Output};
 
 pub trait Tree<D: Digest> {
     /// Get value by key in tree.
-    ///
-    /// Note: use CoW to avoid use refcell.
     fn get(&self, key: &Output<D>) -> Result<Option<&[u8]>>;
 }
 
