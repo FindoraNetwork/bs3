@@ -19,7 +19,7 @@ Blockchain simple state storage.
   - [X] Store trait.
   - [ ] Sled backend.
   - [X] Memory backend.
-- [X] 100% compact `BTreeMap<Output<D>, Vec<u8>>`.
+- [X] 99% compact `BTreeMap<Output<D>, Vec<u8>>`.
 - [ ] Testing
   - [ ] Basic usage
   - [ ] Logic
