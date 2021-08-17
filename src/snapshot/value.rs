@@ -36,17 +36,6 @@ impl<'a> ToStoreBytes for StoreValue<'a> {
     }
 }
 
-// #[cfg(feature = "cbor")]
-// impl<'a> FromStoreBytes for StoreValue<'a> {
-//     fn from_bytes(bytes: &'a [u8]) -> Result<Self>
-//     where
-//         Self: Sized,
-//     {
-//         let r = serde_cbor::from_slice(bytes)?;
-//         Ok(r)
-//     }
-// }
-
 #[derive(Serialize, Deserialize)]
 pub struct StoreHeight {
     pub height: u64,

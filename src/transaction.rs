@@ -1,30 +1,25 @@
 use alloc::{collections::BTreeMap, vec::Vec};
 use digest::{Digest, Output};
 
-use crate::{
-    backend::Store,
-    prelude::{Tree, TreeMut},
-    snapshot::OperationOwned,
-    Result, SnapshotableStorage,
-};
+use crate::{Result, SnapshotableStorage, backend::Store, prelude::{Tree, TreeMut}, snapshot::{OperationOwned, bytes_ref::BytesRef}};
 
 pub struct Transaction<'a, S, D, R>
 where
     D: Digest,
-    R: Iterator<Item = (&'a Vec<u8>, &'a Vec<u8>)>,
-    S: Store,
+    R: Iterator<Item = (Vec<u8>, Vec<u8>)>,
+    S: Store<Range = R>,
 {
-    pub(crate) store: &'a mut SnapshotableStorage<'a, S, D, R>,
+    pub(crate) store: &'a mut SnapshotableStorage<S, D, R>,
     pub(crate) cache: BTreeMap<Output<D>, OperationOwned>,
 }
 
 impl<'a, S, D, R> Transaction<'a, S, D, R>
 where
     D: Digest,
-    R: Iterator<Item = (&'a Vec<u8>, &'a Vec<u8>)>,
-    S: Store,
+    R: Iterator<Item = (Vec<u8>, Vec<u8>)>,
+    S: Store<Range = R>,
 {
-    pub(crate) fn new(store: &'a mut SnapshotableStorage<'a, S, D, R>) -> Self {
+    pub(crate) fn new(store: &'a mut SnapshotableStorage<S, D, R>) -> Self {
         Transaction {
             store,
             cache: BTreeMap::new(),
@@ -35,10 +30,7 @@ where
         Ok(match self.cache.insert(key.clone(), value) {
             Some(OperationOwned::Update(v)) => Some(v),
             Some(OperationOwned::Delete) => None,
-            None => match self.store.get(key)? {
-                Some(v) => Some(Vec::from(v)),
-                None => None,
-            },
+            None => self.store.get(key)?.map(|v| v.into()),
         })
     }
 }
@@ -46,13 +38,13 @@ where
 impl<'a, S, D, R> Tree<D> for Transaction<'a, S, D, R>
 where
     D: Digest,
-    R: Iterator<Item = (&'a Vec<u8>, &'a Vec<u8>)>,
-    S: Store,
+    R: Iterator<Item = (Vec<u8>, Vec<u8>)>,
+    S: Store<Range = R>,
 {
-    fn get(&self, key: &Output<D>) -> Result<Option<&[u8]>> {
+    fn get(&self, key: &Output<D>) -> Result<Option<BytesRef>> {
         let cache_result = self.cache.get(key);
         Ok(match cache_result {
-            Some(OperationOwned::Update(v)) => Some(v.as_slice()),
+            Some(OperationOwned::Update(v)) => Some(BytesRef::Borrow(v.as_slice())),
             Some(OperationOwned::Delete) => None,
             None => self.store.get(key)?,
         })
@@ -62,8 +54,8 @@ where
 impl<'a, S, D, R> TreeMut<D> for Transaction<'a, S, D, R>
 where
     D: Digest,
-    R: Iterator<Item = (&'a Vec<u8>, &'a Vec<u8>)>,
-    S: Store,
+    R: Iterator<Item = (Vec<u8>, Vec<u8>)>,
+    S: Store<Range = R>,
 {
     fn get_mut(&mut self, key: &Output<D>) -> Result<Option<&mut [u8]>> {
         let cache_result = self.cache.get_mut(key);

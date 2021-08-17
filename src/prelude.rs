@@ -1,10 +1,10 @@
-use crate::Result;
+use crate::{Result, snapshot::bytes_ref::BytesRef};
 use alloc::vec::Vec;
 use digest::{Digest, Output};
 
 pub trait Tree<D: Digest> {
     /// Get value by key in tree.
-    fn get(&self, key: &Output<D>) -> Result<Option<&[u8]>>;
+    fn get(&self, key: &Output<D>) -> Result<Option<BytesRef<'_>>>;
 }
 
 pub trait TreeMut<D: Digest> {

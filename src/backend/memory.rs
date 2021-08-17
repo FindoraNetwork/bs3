@@ -20,7 +20,7 @@ impl MemoryBackend {
 }
 
 impl Store for MemoryBackend {
-    type Range<'a> = Range<'a, Vec<u8>, Vec<u8>>;
+    // type Range<'a> = Range<'a, Vec<u8>, Vec<u8>>;
 
     fn get(&self, key: &[u8]) -> Result<Option<&[u8]>> {
         Ok(match self.cache.get(key) {
