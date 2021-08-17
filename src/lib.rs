@@ -1,4 +1,5 @@
 #![feature(generic_associated_types)]
+#![feature(cell_leak)]
 #![no_std]
 
 extern crate alloc;

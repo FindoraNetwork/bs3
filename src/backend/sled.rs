@@ -54,7 +54,7 @@ mod tests {
     use core::cell::RefCell;
     use std::{println, sync::Mutex};
 
-    use alloc::{collections::BTreeMap, sync::Arc, vec, vec::Vec};
+    use alloc::{collections::BTreeMap, sync::Weak, sync::Arc, vec, vec::Vec};
 
     use crate::Result;
 
@@ -68,24 +68,27 @@ mod tests {
     impl TestBackend {
         pub fn new() -> Self {
             let cache = Arc::new(BTreeMap::new());
-            let rc_ptr = RefCell::new(cache.clone());
 
+            let rc_ptr = RefCell::new(cache.clone());
             Self { cache, rc_ptr }
         }
 
         pub fn get(&self, key: &[u8]) -> Result<Option<&[u8]>> {
             let value = vec![1, 2, 3];
 
-            Ok(match self.cache.get(key) {
-                Some(v) => Some(v),
-                None => {
-                    let mut rc_ptr = self.rc_ptr.borrow_mut().clone();
-                    let cache_mut = Arc::get_mut(&mut rc_ptr).unwrap();
-                    cache_mut.insert(Vec::from(key), value);
-                    // None
-                    self.cache.get(key).map(|v| v.as_slice())
-                }
-            })
+            let has_key = self.cache.contains_key(key);
+            println!("size?: {}", Arc::strong_count(&self.cache));
+
+            if !has_key {
+                let mut rc_ptr = self.rc_ptr.borrow_mut();
+                println!("size?: {}", Arc::strong_count(&rc_ptr));
+                let cache_mut = Arc::get_mut(&mut rc_ptr).unwrap();
+                cache_mut.insert(Vec::from(key), value);
+            }
+
+            // let cache = self.cache.upgrade().unwrap();
+            // Ok(cache.get(key).map(|v| v.as_slice()))
+            Ok(None)
         }
     }
 
