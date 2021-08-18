@@ -3,13 +3,9 @@ use core::{marker::PhantomData, mem};
 use alloc::{collections::{BTreeMap}, string::{String, ToString}, vec::Vec};
 use digest::{Digest, Output};
 
-use crate::{
-    backend::Store,
-    prelude::{Tree, TreeMut},
-    Error, Result, Transaction,
-};
+use crate::{Error, Result, Transaction, backend::Store, bytes_ref::BytesRef, prelude::{Tree, TreeMut}};
 
-use super::{Operation, StoreHeight, StoreValue, ToStoreBytes, bytes_ref::BytesRef, operation::OperationOwned, utils};
+use super::{Operation, StoreHeight, StoreValue, ToStoreBytes, operation::OperationOwned, utils};
 
 /// Snapshotable Storage
 pub struct SnapshotableStorage<S, D, R>

@@ -22,7 +22,7 @@ Blockchain simple state storage.
 - [X] 99% compact `BTreeMap<Output<D>, Vec<u8>>`.
 - [ ] Testing
   - [ ] Basic usage
-  - [ ] Logic
+  - [99Logic
   - [ ] Benchmark
 
 ## Design

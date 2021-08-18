@@ -19,3 +19,6 @@ pub use error::{Error, Result};
 
 mod snapshot;
 pub use snapshot::SnapshotableStorage;
+
+pub mod bytes_ref;
+

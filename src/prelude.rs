@@ -1,4 +1,4 @@
-use crate::{Result, snapshot::bytes_ref::BytesRef};
+use crate::{Result, bytes_ref::BytesRef};
 use alloc::vec::Vec;
 use digest::{Digest, Output};
 
