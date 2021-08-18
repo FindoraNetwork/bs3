@@ -20,6 +20,7 @@ default = ["cbor"]
 
 # feature for std usage.
 std = []
+nightly = []
 
 # Define backend.
 sled-backend = ["sled", "std"]

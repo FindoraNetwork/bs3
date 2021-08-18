@@ -6,6 +6,8 @@ Blockchain simple state storage.
 
 - [ ] Stateless: Data in this storage don't affect block.
 - [ ] Stateful: Data in this storage will affect block.
+  - [ ] Use snapshot to compute world state and compute merkle root.
+  - [ ] Pluggable merkle.
 - [X] Transaction based on cache.
   - [X] Force sync state to lastest success transaction. (For `check_tx`)
   - [X] Commit transaction for success transaction. (For `deliver_tx`)
@@ -14,15 +16,16 @@ Blockchain simple state storage.
   - [X] Load snapshot from any height to recover node.
   - [X] Rollback snapshot.
   - [X] Read any height snapshot.
-  - [ ] Use snapshot to compute world state and compute merkle root.
 - [X] Support multi-type of backend.
   - [X] Store trait.
-  - [ ] Sled backend.
+  - [X] Sled backend.
   - [X] Memory backend.
+- [ ] Online backup.
 - [X] 99% compact `BTreeMap<Output<D>, Vec<u8>>`.
+  - [ ] Support range operater in `nightly`.
 - [ ] Testing
   - [ ] Basic usage
-  - [99Logic
+  - [ ] Logic
   - [ ] Benchmark
 
 ## Design
