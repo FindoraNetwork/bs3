@@ -29,6 +29,10 @@ impl Store for MemoryBackend {
         })
     }
 
+//     fn get_lt(&self, key:&[u8]) -> Result<BytesRef<'_>> {
+        // // if let self.cache.range()
+//     }
+
     fn range(&self, begin_key: Vec<u8>, end_key: Vec<u8>) -> Result<Self::Range<'_>> {
         Ok(self.cache.range(begin_key..end_key))
     }

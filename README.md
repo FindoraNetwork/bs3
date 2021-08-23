@@ -2,6 +2,8 @@
 
 Blockchain simple state storage.
 
+熟练使用Ultisnips可以大大加快输入速度，在输入Latex时可以缩减输入时间，让人更加专注于数学公式，而不是去思考Latex这个语言。
+
 ## Features (WIP)
 
 - [ ] Stateless: Data in this storage don't affect block.

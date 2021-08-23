@@ -1,15 +1,13 @@
-use core::cell::RefCell;
-
-use alloc::{boxed::Box, collections::BTreeMap, sync::Arc, vec::Vec};
+use alloc::{boxed::Box, sync::Arc, vec::Vec};
 use sled::{Db, Tree};
 
 use crate::{Error, Result};
 
+use super::Store;
+
 // use super::Store;
 
 pub struct SledBackend {
-    cache: Arc<BTreeMap<Vec<u8>, Vec<u8>>>,
-    rc_ptr: RefCell<Arc<BTreeMap<Vec<u8>, Vec<u8>>>>,
     tree: Tree,
 }
 
@@ -20,28 +18,17 @@ fn e(e: sled::Error) -> Error {
 impl SledBackend {
     pub fn open_tree(db: &Db, namespace: &str) -> Result<Self> {
         let tree = db.open_tree(namespace).map_err(e)?;
-        let cache = Arc::new(BTreeMap::new());
-        let rc_ptr = RefCell::new(cache.clone());
         Ok(Self {
-            cache,
-            rc_ptr,
             tree,
         })
     }
 
-    pub fn get(&self, key: &[u8]) -> Result<Option<&[u8]>> {
-        Ok(match self.cache.get(key) {
-            Some(v) => Some(v.as_slice()),
-            None => match self.tree.get(key).map_err(e)? {
-                Some(v) => {
-                    let mut rc_ptr = self.rc_ptr.borrow_mut().clone();
-                    let cache_mut = Arc::get_mut(&mut rc_ptr).unwrap();
-                    cache_mut.insert(Vec::from(key), v.to_vec());
-                    None
-                }
-                None => None,
-            },
-        })
+    pub fn get(&self, key: &[u8]) -> Result<Option<Vec<u8>>> {
+        match self.tree.get(key) {
+            Ok(Some(v)) => Ok(Some(v.to_vec())),
+            Ok(None) => Ok(None),
+            Err(e) => Err(Error::StoreError(Box::new(e)))
+        }
     }
 
     pub fn execute(&mut self, batch: Vec<(Vec<u8>, Vec<u8>)>) -> Result<()> {
@@ -49,12 +36,20 @@ impl SledBackend {
     }
 }
 
+// impl Store for SledBackend {
+    // type Range = sled::Iter;
+    //
+    // fn range(&self, begin_key: Vec<u8>, end_key: Vec<u8>) -> Result<Self::Range> {
+    //    // match self
+    // }
+// }
+
 #[cfg(test)]
 mod tests {
     use core::cell::RefCell;
-    use std::{println, sync::Mutex};
+    use std::{println};
 
-    use alloc::{collections::BTreeMap, sync::Weak, sync::Arc, vec, vec::Vec};
+    use alloc::{collections::BTreeMap, sync::Arc, vec, vec::Vec};
 
     use crate::Result;
 

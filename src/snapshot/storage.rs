@@ -8,25 +8,22 @@ use crate::{Error, Result, Transaction, backend::Store, bytes_ref::BytesRef, pre
 use super::{Operation, StoreHeight, StoreValue, ToStoreBytes, operation::OperationOwned, utils};
 
 /// Snapshotable Storage
-pub struct SnapshotableStorage<S, D, R>
+pub struct SnapshotableStorage<S, D>
 where
     D: Digest,
-    R: Iterator<Item = (Vec<u8>, Vec<u8>)>,
-    S: Store<Range = R>,
+    S: Store,
 {
     store: S,
     height: u64,
     pub(crate) cache: BTreeMap<Output<D>, OperationOwned>,
     namespace: String,
-    marker_r: PhantomData<R>,
 }
 
 /// Methods for create storage.
-impl<S, D, R> SnapshotableStorage<S, D, R>
+impl<S, D> SnapshotableStorage<S, D>
 where
     D: Digest,
-    R: Iterator<Item = (Vec<u8>, Vec<u8>)>,
-    S: Store<Range = R>,
+    S: Store,
 {
     pub fn new(store: S) -> Self {
         Self::new_with_name(store, "".to_string())
@@ -62,11 +59,10 @@ where
 }
 
 /// Methods for snapshot.
-impl<S, D, R> SnapshotableStorage<S, D, R>
+impl<S, D> SnapshotableStorage<S, D>
 where
     D: Digest,
-    R: Iterator<Item = (Vec<u8>, Vec<u8>)>,
-    S: Store<Range = R>,
+    S: Store,
 {
     /// rollback to point height, target_height must less than current height.
     pub fn rollback(&mut self, target_height: u64) -> Result<()> {
@@ -104,30 +100,28 @@ where
 }
 
 /// Methods for transaction
-impl<S, D, R> SnapshotableStorage<S, D, R>
+impl<S, D> SnapshotableStorage<S, D>
 where
     D: Digest,
-    R: Iterator<Item = (Vec<u8>, Vec<u8>)>,
-    S: Store<Range = R>,
+    S: Store,
 {
     /// Generate transaction for this Bs3 db.
-    pub fn transaction(&mut self) -> Transaction<S, D, R> {
+    pub fn transaction(&mut self) -> Transaction<S, D> {
         Transaction::new(self)
     }
 
     /// Consume transaction to apply.
-    pub fn execute(&mut self, mut tx: Transaction<S, D, R>) {
+    pub fn execute(&mut self, mut tx: Transaction<S, D>) {
         log::debug!("Transaction Cache: {:#?}", tx.cache);
         self.cache.append(&mut tx.cache);
     }
 }
 
 /// Methods for internal helper
-impl<S, D, R> SnapshotableStorage<S, D, R>
+impl<S, D> SnapshotableStorage<S, D>
 where
     D: Digest,
-    R: Iterator<Item = (Vec<u8>, Vec<u8>)>,
-    S: Store<Range = R>,
+    S: Store,
 {
     pub(crate) fn sync_height(
         &mut self,
@@ -153,18 +147,7 @@ where
         Ok(())
     }
 
-    /// Get value in target height directly.
-    pub(crate) fn raw_get_lt(&self, key: &Output<D>, height: u64) -> Result<Option<Vec<u8>>> {
-        let end_key = utils::storage_key(&self.namespace, key, height);
-        let begin_key = utils::storage_key(&self.namespace, key, 0);
-        let mut value = self.store.range(begin_key, end_key)?;
-        Ok(match value.next() {
-            Some((_, v)) => Some(v),
-            None => None,
-        })
-    }
-
-    fn raw_insert(&mut self, key: &Output<D>, value: OperationOwned) -> Result<Option<Vec<u8>>> {
+   fn raw_insert(&mut self, key: &Output<D>, value: OperationOwned) -> Result<Option<Vec<u8>>> {
         Ok(match self.cache.insert(key.clone(), value) {
             Some(OperationOwned::Update(v)) => Some(v),
             Some(OperationOwned::Delete) => None,
@@ -182,11 +165,10 @@ where
     }
 }
 
-impl<S, D, R> Tree<D> for SnapshotableStorage<S, D, R>
+impl<S, D> Tree<D> for SnapshotableStorage<S, D>
 where
     D: Digest,
-    R: Iterator<Item = (Vec<u8>, Vec<u8>)>,
-    S: Store<Range = R>,
+    S: Store,
 {
     fn get(&self, key: &Output<D>) -> Result<Option<BytesRef<'_>>> {
         let cache_result = self.cache.get(key);
@@ -210,11 +192,10 @@ where
     }
 }
 
-impl<S, D, R> TreeMut<D> for SnapshotableStorage<S, D, R>
+impl<S, D> TreeMut<D> for SnapshotableStorage<S, D>
 where
     D: Digest,
-    R: Iterator<Item = (Vec<u8>, Vec<u8>)>,
-    S: Store<Range = R>,
+    S: Store,
 {
     fn get_mut(&mut self, key: &Output<D>) -> Result<Option<&mut [u8]>> {
         if let Some(OperationOwned::Delete) = self.cache.get(key) {

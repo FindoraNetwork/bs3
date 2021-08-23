@@ -3,23 +3,21 @@ use digest::{Digest, Output};
 
 use crate::{Result, SnapshotableStorage, backend::Store, bytes_ref::BytesRef, prelude::{Tree, TreeMut}, snapshot::{OperationOwned}};
 
-pub struct Transaction<'a, S, D, R>
+pub struct Transaction<'a, S, D>
 where
     D: Digest,
-    R: Iterator<Item = (Vec<u8>, Vec<u8>)>,
-    S: Store<Range = R>,
+   S: Store,
 {
-    pub(crate) store: &'a mut SnapshotableStorage<S, D, R>,
+    pub(crate) store: &'a mut SnapshotableStorage<S, D>,
     pub(crate) cache: BTreeMap<Output<D>, OperationOwned>,
 }
 
-impl<'a, S, D, R> Transaction<'a, S, D, R>
+impl<'a, S, D> Transaction<'a, S, D>
 where
     D: Digest,
-    R: Iterator<Item = (Vec<u8>, Vec<u8>)>,
-    S: Store<Range = R>,
+    S: Store,
 {
-    pub(crate) fn new(store: &'a mut SnapshotableStorage<S, D, R>) -> Self {
+    pub(crate) fn new(store: &'a mut SnapshotableStorage<S, D>) -> Self {
         Transaction {
             store,
             cache: BTreeMap::new(),
@@ -35,11 +33,10 @@ where
     }
 }
 
-impl<'a, S, D, R> Tree<D> for Transaction<'a, S, D, R>
+impl<'a, S, D> Tree<D> for Transaction<'a, S, D>
 where
     D: Digest,
-    R: Iterator<Item = (Vec<u8>, Vec<u8>)>,
-    S: Store<Range = R>,
+    S: Store,
 {
     fn get(&self, key: &Output<D>) -> Result<Option<BytesRef>> {
         let cache_result = self.cache.get(key);
@@ -51,11 +48,10 @@ where
     }
 }
 
-impl<'a, S, D, R> TreeMut<D> for Transaction<'a, S, D, R>
+impl<'a, S, D> TreeMut<D> for Transaction<'a, S, D>
 where
     D: Digest,
-    R: Iterator<Item = (Vec<u8>, Vec<u8>)>,
-    S: Store<Range = R>,
+    S: Store,
 {
     fn get_mut(&mut self, key: &Output<D>) -> Result<Option<&mut [u8]>> {
         let cache_result = self.cache.get_mut(key);
