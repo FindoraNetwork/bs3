@@ -24,5 +24,5 @@ pub mod prelude;
 mod snapshot;
 pub use snapshot::SnapshotableStorage;
 
-mod backend;
+pub mod backend;
 pub use backend::Store;

@@ -6,4 +6,5 @@ pub mod sled;
 
 // pub mod helper;
 
-// pub mod memory;
+pub mod memory;
+pub use memory::MemoryBackend;

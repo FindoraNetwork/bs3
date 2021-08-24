@@ -3,7 +3,9 @@ use alloc::{
     vec::Vec,
 };
 
-use crate::Result;
+use crate::{CowBytes, Result};
+
+use core::ops::Bound::{Excluded, Included};
 
 use super::Store;
 
@@ -19,22 +21,37 @@ impl MemoryBackend {
     }
 }
 
-impl Store for MemoryBackend {
-    // type Range<'a> = Range<'a, Vec<u8>, Vec<u8>>;
+pub struct MemoryRange<'a> {
+    pub v: Range<'a, Vec<u8>, Vec<u8>>,
+}
 
-    fn get(&self, key: &[u8]) -> Result<Option<&[u8]>> {
-        Ok(match self.cache.get(key) {
-            Some(v) => Some(v.as_slice()),
-            None => None,
-        })
+impl<'a> Iterator for MemoryRange<'a> {
+    type Item = (CowBytes<'a>, CowBytes<'a>);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.v
+            .next()
+            .map(|v| (CowBytes::Borrowed(v.0), CowBytes::Borrowed(v.1)))
     }
+}
 
-//     fn get_lt(&self, key:&[u8]) -> Result<BytesRef<'_>> {
-        // // if let self.cache.range()
-//     }
+impl<'a> DoubleEndedIterator for MemoryRange<'a> {
+    fn next_back(&mut self) -> Option<Self::Item> {
+        self.v
+            .next_back()
+            .map(|v| (CowBytes::Borrowed(v.0), CowBytes::Borrowed(v.1)))
+    }
+}
 
-    fn range(&self, begin_key: Vec<u8>, end_key: Vec<u8>) -> Result<Self::Range<'_>> {
-        Ok(self.cache.range(begin_key..end_key))
+impl Store for MemoryBackend {
+    type Range<'a> = MemoryRange<'a>;
+
+    fn range(&self, begin_key: &[u8], end_key: &[u8]) -> Result<Self::Range<'_>> {
+        Ok(MemoryRange {
+            v: self
+                .cache
+                .range((Excluded(Vec::from(begin_key)), Included(Vec::from(end_key)))),
+        })
     }
 
     fn execute(&mut self, batch: Vec<(Vec<u8>, Vec<u8>)>) -> Result<()> {
@@ -44,10 +61,4 @@ impl Store for MemoryBackend {
         }
         Ok(())
     }
-
-    // fn commit(&mut self) -> Result<()> {
-    // let store = self.store.get_mut();
-    // self.cache.append(store);
-    // Ok(())
-    // }
 }

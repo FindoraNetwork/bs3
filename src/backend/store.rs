@@ -3,7 +3,7 @@ use alloc::vec::Vec;
 
 pub trait Store {
     #[cfg(feature = "nightly")]
-    type Range<'a>: Iterator<Item = (CowBytes<'a>, CowBytes<'a>)>;
+    type Range<'a>: DoubleEndedIterator<Item = (CowBytes<'a>, CowBytes<'a>)>;
 
     #[cfg(feature = "nightly")]
     /// Provide this method to range key.
@@ -23,8 +23,8 @@ pub trait Store {
 
     #[cfg(feature = "nightly")]
     fn get_ge(&self, key: &[u8]) -> Result<Option<CowBytes<'_>>> {
-        let mut value = self.range(&[], key)?;
-        Ok(match value.next() {
+        let mut value = self.range(&Vec::new(), key)?;
+        Ok(match value.next_back() {
             Some((_, v)) => Some(v),
             None => None,
         })
