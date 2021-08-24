@@ -1,6 +1,6 @@
-use core::fmt::Debug;
+use core::{fmt::Debug, mem};
 
-use alloc::{collections::BTreeMap, vec::Vec};
+use alloc::vec::Vec;
 use serde::{Deserialize, Serialize};
 
 use crate::{Operation, OperationBytes, Result};
@@ -10,30 +10,40 @@ use super::Model;
 #[derive(Debug)]
 pub struct Value<T>
 where
-    T: Clone + Debug + Serialize + for<'de> Deserialize<'de>,
+    T: Debug + Serialize + for<'de> Deserialize<'de>,
 {
-    value: Operation<T>,
+    value: Option<Operation<T>>,
 }
 
-impl<T> Value<T>
+impl<T> Default for Value<T>
 where
-    T: Clone + Debug + Serialize + for<'de> Deserialize<'de>,
+    T: Debug + Serialize + for<'de> Deserialize<'de>,
 {
-    // pub fn get(&self) -> Result<Cow<'a, T>> {}
+    fn default() -> Self {
+        Self { value: None }
+    }
 }
 
 impl<T> Model for Value<T>
 where
     T: Clone + Debug + Serialize + for<'de> Deserialize<'de>,
 {
-    fn operations(&self) -> Result<BTreeMap<Vec<u8>, OperationBytes>> {
-        let mut map = BTreeMap::new();
+    fn type_code(&self) -> u32 {
+        1
+    }
 
-        // Empty key.
-        let key = Vec::new();
+    fn operations(&mut self) -> Result<Vec<(Vec<u8>, OperationBytes)>> {
+        let mut vec = Vec::new();
 
-        map.insert(key, self.value.to_bytes()?);
+        let value = mem::replace(&mut self.value, None);
 
-        Ok(map)
+        if let Some(value) = value {
+            // Empty key.
+            let key = Vec::new();
+
+            vec.push((key, value.to_bytes()?));
+        }
+
+        Ok(vec)
     }
 }

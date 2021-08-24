@@ -11,13 +11,18 @@ mod operation;
 pub use operation::{Operation, OperationBytes};
 
 mod cow_lite;
-pub use cow_lite::Cow;
+pub use cow_lite::{Cow, CowBytes};
 
 mod error;
 pub use error::{Error, Result};
 
-mod model;
-pub use model::Value;
+pub mod model;
+pub use model::{Map, Value};
 
-mod prelude;
+pub mod prelude;
 
+mod snapshot;
+pub use snapshot::SnapshotableStorage;
+
+mod backend;
+pub use backend::Store;

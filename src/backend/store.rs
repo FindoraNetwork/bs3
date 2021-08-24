@@ -1,9 +1,9 @@
-use crate::{bytes_ref::BytesRef, Result};
+use crate::{CowBytes, Result};
 use alloc::vec::Vec;
 
 pub trait Store {
     #[cfg(feature = "nightly")]
-    type Range<'a>: Iterator<Item = (BytesRef<'a>, BytesRef<'a>)>;
+    type Range<'a>: Iterator<Item = (CowBytes<'a>, CowBytes<'a>)>;
 
     #[cfg(feature = "nightly")]
     /// Provide this method to range key.
@@ -12,11 +12,17 @@ pub trait Store {
     /// Provide this method to execute transaction.
     fn execute(&mut self, batch: Vec<(Vec<u8>, Vec<u8>)>) -> Result<()>;
 
+    fn insert(&mut self, key: Vec<u8>, value: Vec<u8>) -> Result<()> {
+        let mut vec = Vec::new();
+        vec.push((key, value));
+        self.execute(vec)
+    }
+
     #[cfg(not(feature = "nightly"))]
-    fn get_lt(&self, key: &[u8]) -> Result<Option<BytesRef<'_>>>;
+    fn get_ge(&self, key: &[u8]) -> Result<Option<CowBytes<'_>>>;
 
     #[cfg(feature = "nightly")]
-    fn get_lt(&self, key: &[u8]) -> Result<Option<BytesRef<'_>>> {
+    fn get_ge(&self, key: &[u8]) -> Result<Option<CowBytes<'_>>> {
         let mut value = self.range(&[], key)?;
         Ok(match value.next() {
             Some((_, v)) => Some(v),

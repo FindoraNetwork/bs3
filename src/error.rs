@@ -11,6 +11,8 @@ pub enum Error {
     BorrowMutError(cell::BorrowMutError),
     BorrowError(cell::BorrowError),
     LockReadError,
+    /// When you load a store.
+    TypeMissMatch,
 }
 
 #[cfg(feature = "cbor")]

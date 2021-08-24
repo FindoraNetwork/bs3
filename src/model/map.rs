@@ -1,47 +1,52 @@
-use core::fmt::Debug;
+use core::{fmt::Debug, mem};
 
 use alloc::{collections::BTreeMap, vec::Vec};
 use serde::{Deserialize, Serialize};
 
-use crate::{Cow, Operation, OperationBytes, Result};
+use crate::{Operation, OperationBytes, Result};
 
 use super::Model;
 
 #[derive(Debug)]
 pub struct Map<K, V>
 where
-    K: PartialEq + Eq + Serialize + for<'de> Deserialize<'de>,
-    V: Clone + Debug + Serialize + for<'de> Deserialize<'de>,
+    K: PartialEq + Eq + Serialize + for<'de> Deserialize<'de> + Ord + PartialOrd + Debug,
+    V: Clone + Debug + Serialize + for<'de> Deserialize<'de> + Debug,
 {
     value: BTreeMap<K, Operation<V>>,
 }
 
-impl<K, V> Map<K, V>
+impl<K, V> Default for Map<K, V>
 where
-    K: PartialEq + Eq + Serialize + for<'de> Deserialize<'de>,
-    V: Clone + Debug + Serialize + for<'de> Deserialize<'de>,
+    K: PartialEq + Eq + Serialize + for<'de> Deserialize<'de> + Ord + PartialOrd + Debug,
+    V: Clone + Debug + Serialize + for<'de> Deserialize<'de> + Debug,
 {
-    pub fn get(&self, key: &K) -> Result<Option<Cow<'_, V>>> {
-        Ok(None)
-    }
-
-    pub fn get_mut(&self, key: &K) -> Result<Option<&mut V>> {
-        Ok(None)
+    fn default() -> Self {
+        Self {
+            value: BTreeMap::new(),
+        }
     }
 }
 
 impl<K, V> Model for Map<K, V>
 where
-    K: PartialEq + Eq + Serialize + for<'de> Deserialize<'de>,
-    V: Clone + Debug + Serialize + for<'de> Deserialize<'de>,
+    K: PartialEq + Eq + Serialize + for<'de> Deserialize<'de> + Ord + PartialOrd + Debug,
+    V: Clone + Debug + Serialize + for<'de> Deserialize<'de> + Debug,
 {
-    fn operations(&self) -> Result<BTreeMap<Vec<u8>, OperationBytes>> {
-        let mut map = BTreeMap::new();
+    fn type_code(&self) -> u32 {
+        3
+    }
 
-        for (k, v) in self.value.iter() {
-            let key = serde_cbor::to_vec(k)?;
+    #[cfg(feature = "cbor")]
+    fn operations(&mut self) -> Result<Vec<(Vec<u8>, OperationBytes)>> {
+        let mut map = Vec::new();
+
+        let value = mem::replace(&mut self.value, BTreeMap::new());
+
+        for (k, v) in value.into_iter() {
+            let key = serde_cbor::to_vec(&k)?;
             let value = v.to_bytes()?;
-            map.insert(key, value);
+            map.push((key, value));
         }
 
         Ok(map)
