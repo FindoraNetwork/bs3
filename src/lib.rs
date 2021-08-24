@@ -2,23 +2,22 @@
 #![feature(cell_leak)]
 #![no_std]
 
+/// For features and alloc.
 extern crate alloc;
-
 #[cfg(any(feature = "std", test))]
 extern crate std;
 
-pub mod backend;
+mod operation;
+pub use operation::{Operation, OperationBytes};
 
-mod transaction;
-pub use transaction::Transaction;
-
-pub mod prelude;
+mod cow_lite;
+pub use cow_lite::Cow;
 
 mod error;
 pub use error::{Error, Result};
 
-mod snapshot;
-pub use snapshot::SnapshotableStorage;
+mod model;
+pub use model::Value;
 
-pub mod bytes_ref;
+mod prelude;
 

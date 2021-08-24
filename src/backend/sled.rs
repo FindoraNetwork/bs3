@@ -18,16 +18,14 @@ fn e(e: sled::Error) -> Error {
 impl SledBackend {
     pub fn open_tree(db: &Db, namespace: &str) -> Result<Self> {
         let tree = db.open_tree(namespace).map_err(e)?;
-        Ok(Self {
-            tree,
-        })
+        Ok(Self { tree })
     }
 
     pub fn get(&self, key: &[u8]) -> Result<Option<Vec<u8>>> {
         match self.tree.get(key) {
             Ok(Some(v)) => Ok(Some(v.to_vec())),
             Ok(None) => Ok(None),
-            Err(e) => Err(Error::StoreError(Box::new(e)))
+            Err(e) => Err(Error::StoreError(Box::new(e))),
         }
     }
 
@@ -37,17 +35,17 @@ impl SledBackend {
 }
 
 // impl Store for SledBackend {
-    // type Range = sled::Iter;
-    //
-    // fn range(&self, begin_key: Vec<u8>, end_key: Vec<u8>) -> Result<Self::Range> {
-    //    // match self
-    // }
+// type Range = sled::Iter;
+//
+// fn range(&self, begin_key: Vec<u8>, end_key: Vec<u8>) -> Result<Self::Range> {
+//    // match self
+// }
 // }
 
 #[cfg(test)]
 mod tests {
     use core::cell::RefCell;
-    use std::{println};
+    use std::println;
 
     use alloc::{collections::BTreeMap, sync::Arc, vec, vec::Vec};
 

@@ -1,19 +1,18 @@
-use crate::{Result, bytes_ref::BytesRef};
+use crate::{Cow, Result};
 use alloc::vec::Vec;
-use digest::{Digest, Output};
 
-pub trait Tree<D: Digest> {
+pub trait Tree {
     /// Get value by key in tree.
-    fn get(&self, key: &Output<D>) -> Result<Option<BytesRef<'_>>>;
+    fn get(&self, key: &[u8]) -> Result<Option<Cow<'_, Vec<u8>>>>;
 }
 
-pub trait TreeMut<D: Digest> {
+pub trait TreeMut {
     /// Get value mut.
-    fn get_mut(&mut self, key: &Output<D>) -> Result<Option<&mut [u8]>>;
+    fn get_mut(&mut self, key: &[u8]) -> Result<Option<&mut [u8]>>;
 
     /// Insert value.
-    fn insert(&mut self, key: Output<D>, value: Vec<u8>) -> Result<Option<Vec<u8>>>;
+    fn insert(&mut self, key: &[u8], value: Vec<u8>) -> Result<Option<Vec<u8>>>;
 
     /// Remove value.
-    fn remove(&mut self, key: &Output<D>) -> Result<Option<Vec<u8>>>;
+    fn remove(&mut self, key: &[u8]) -> Result<Option<Vec<u8>>>;
 }

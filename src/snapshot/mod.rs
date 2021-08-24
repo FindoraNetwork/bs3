@@ -1,12 +1,18 @@
-mod operation;
-pub use operation::{Operation, OperationOwned};
+use alloc::vec::Vec;
 
-pub mod utils;
+use crate::{BytesRef, Result};
 
-mod value;
-pub use value::{FromStoreBytes, StoreHeight, StoreValue, ToStoreBytes};
+// mod operation;
+// pub use operation::{Operation, OperationOwned};
 
-mod storage;
-pub use storage::SnapshotableStorage;
+// pub mod utils;
 
+// mod value;
+// pub use value::{FromStoreBytes, StoreHeight, StoreValue, ToStoreBytes};
 
+// mod storage;
+// pub use storage::SnapshotableStorage;
+
+pub trait KVStore {
+    fn get(&self) -> Result<Option<BytesRef<'_>>>;
+}

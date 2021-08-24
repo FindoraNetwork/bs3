@@ -1,4 +1,4 @@
-use crate::{Result, bytes_ref::BytesRef};
+use crate::{bytes_ref::BytesRef, Result};
 use alloc::vec::Vec;
 
 pub trait Store {
