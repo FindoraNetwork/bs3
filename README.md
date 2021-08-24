@@ -18,11 +18,11 @@ Blockchain simple state storage.
   - [X] Read any height snapshot.
 - [X] Support multi-type of backend.
   - [X] Store trait.
-  - [X] Sled backend.
+  - [ ] Sled backend.
   - [X] Memory backend.
 - [ ] Online backup.
 - [X] 99% compact `BTreeMap<Output<D>, Vec<u8>>`.
-  - [ ] Support range operater in `nightly`.
+  - [X] Support range operater in `nightly`.
 - [ ] Testing
   - [ ] Basic usage
   - [ ] Logic
