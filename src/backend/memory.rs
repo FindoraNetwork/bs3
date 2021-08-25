@@ -9,6 +9,7 @@ use core::ops::Bound::{Excluded, Included};
 
 use super::Store;
 
+#[derive(Debug)]
 pub struct MemoryBackend {
     pub cache: BTreeMap<Vec<u8>, Vec<u8>>,
 }

@@ -15,6 +15,17 @@ where
     value: Option<Operation<T>>,
 }
 
+impl<T> Value<T>
+where
+    T: Debug + Serialize + for<'de> Deserialize<'de>,
+{
+    pub fn new(t: T) -> Self {
+        Self {
+            value: Some(Operation::Update(t)),
+        }
+    }
+}
+
 impl<T> Default for Value<T>
 where
     T: Debug + Serialize + for<'de> Deserialize<'de>,
@@ -45,5 +56,23 @@ where
         }
 
         Ok(vec)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use alloc::string::String;
+
+    use crate::{backend::MemoryBackend, SnapshotableStorage};
+
+    use super::Value;
+
+    #[test]
+    fn test_value() {
+        let value = Value::new(String::from("aaaaaa"));
+        let store = MemoryBackend::new();
+        let mut storage = SnapshotableStorage::new(value, store).unwrap();
+        storage.commit().unwrap();
+        std::println!("{:?}", storage);
     }
 }
