@@ -57,6 +57,10 @@ where
 
         Ok(vec)
     }
+
+    fn merge(&mut self, other: Self) {
+        self.value = other.value
+    }
 }
 
 #[cfg(test)]
@@ -69,9 +73,11 @@ mod tests {
 
     #[test]
     fn test_value() {
+        env_logger::init();
         let value = Value::new(String::from("aaaaaa"));
         let store = MemoryBackend::new();
         let mut storage = SnapshotableStorage::new(value, store).unwrap();
+        storage.commit().unwrap();
         storage.commit().unwrap();
         std::println!("{:#?}", storage.store());
     }

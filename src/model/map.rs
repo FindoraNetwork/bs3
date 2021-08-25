@@ -51,4 +51,9 @@ where
 
         Ok(map)
     }
+
+    fn merge(&mut self, other: Self) {
+        let mut value = other.value;
+        self.value.append(&mut value);
+    }
 }

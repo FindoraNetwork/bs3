@@ -2,7 +2,7 @@ use alloc::{string::String, vec::Vec};
 
 use crate::{backend::Store, model::Model, snapshot::StoreValue, Error, Result};
 
-use super::{utils, value::StoreType, FromStoreBytes, StoreHeight, ToStoreBytes};
+use super::{utils, value::StoreType, FromStoreBytes, StoreHeight, ToStoreBytes, Transaction};
 
 /// Snapshotable Storage
 pub struct SnapshotableStorage<S, M>
@@ -126,8 +126,6 @@ where
     S: Store,
     M: Model,
 {
-    /// Force to write height in store.
-
     /// Read current height in store.
     fn read_height(&self) -> Result<u64> {
         let key = utils::current_height_key(&self.namespace);
@@ -140,6 +138,7 @@ where
         }
     }
 
+    /// Force to write height in store.
     fn write_height(
         &mut self,
         target_height: u64,
@@ -198,25 +197,25 @@ where
         Ok(self.height)
     }
 }
-//
-// /// Methods for transaction
-// impl<S, D> SnapshotableStorage<S, D>
-// where
-//     D: Digest,
-//     S: Store,
-// {
-//     /// Generate transaction for this Bs3 db.
-//     pub fn transaction(&mut self) -> Transaction<S, D> {
-//         Transaction::new(self)
-//     }
-//
-//     /// Consume transaction to apply.
-//     pub fn execute(&mut self, mut tx: Transaction<S, D>) {
-//         log::debug!("Transaction Cache: {:#?}", tx.cache);
-//         self.cache.append(&mut tx.cache);
-//     }
-// }
-//
+
+/// Methods for transaction
+impl<S, M> SnapshotableStorage<S, M>
+where
+    S: Store,
+    M: Model,
+{
+    /// Generate transaction for this Bs3 db.
+    pub fn transaction(&mut self) -> Transaction<S, M> {
+        Transaction::new(self)
+    }
+
+    /// Consume transaction to apply.
+    pub fn execute(&mut self, tx: Transaction<S, M>) {
+        log::debug!("Transaction Cache: {:#?}", tx.value);
+        self.value.merge(tx.value)
+    }
+}
+
 // /// Methods for internal helper
 // impl<S, D> SnapshotableStorage<S, D>
 // where

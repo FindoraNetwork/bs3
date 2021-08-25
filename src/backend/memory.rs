@@ -5,7 +5,10 @@ use alloc::{
 
 use crate::{CowBytes, Result};
 
-use core::{fmt, ops::Bound::{Excluded, Included}};
+use core::{
+    fmt,
+    ops::Bound::{Excluded, Included},
+};
 
 use super::Store;
 
@@ -16,7 +19,11 @@ pub struct MemoryBackend {
 impl fmt::Debug for MemoryBackend {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         for (key, value) in &self.cache {
-            f.write_fmt(format_args!("key: {}, value: {}\n", hex::encode(key), hex::encode(value)))?;
+            f.write_fmt(format_args!(
+                "key: {}, value: {}\n",
+                hex::encode(key),
+                hex::encode(value)
+            ))?;
         }
         Ok(())
     }

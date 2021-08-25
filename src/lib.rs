@@ -17,7 +17,7 @@ mod error;
 pub use error::{Error, Result};
 
 pub mod model;
-pub use model::{Map, Value};
+pub use model::Value;
 
 pub mod prelude;
 

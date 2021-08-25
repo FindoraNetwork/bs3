@@ -8,3 +8,6 @@ pub use value::{FromStoreBytes, StoreHeight, StoreValue, ToStoreBytes};
 
 mod storage;
 pub use storage::SnapshotableStorage;
+
+mod transaction;
+pub use transaction::Transaction;
