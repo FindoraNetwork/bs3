@@ -5,7 +5,6 @@ use crate::{backend::Store, model::Model, snapshot::StoreValue, Error, Result};
 use super::{utils, value::StoreType, FromStoreBytes, StoreHeight, ToStoreBytes};
 
 /// Snapshotable Storage
-#[derive(Debug)]
 pub struct SnapshotableStorage<S, M>
 where
     S: Store,
@@ -114,6 +113,10 @@ where
             self.init()?;
             Ok(true)
         }
+    }
+
+    pub fn store(&self) -> &S {
+        &self.store
     }
 }
 

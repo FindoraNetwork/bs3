@@ -5,13 +5,21 @@ use alloc::{
 
 use crate::{CowBytes, Result};
 
-use core::ops::Bound::{Excluded, Included};
+use core::{fmt, ops::Bound::{Excluded, Included}};
 
 use super::Store;
 
-#[derive(Debug)]
 pub struct MemoryBackend {
     pub cache: BTreeMap<Vec<u8>, Vec<u8>>,
+}
+
+impl fmt::Debug for MemoryBackend {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        for (key, value) in &self.cache {
+            f.write_fmt(format_args!("key: {}, value: {}\n", hex::encode(key), hex::encode(value)))?;
+        }
+        Ok(())
+    }
 }
 
 impl MemoryBackend {

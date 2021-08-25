@@ -1,9 +1,7 @@
-use core::fmt::Debug;
-
 use crate::{CowBytes, Result};
 use alloc::vec::Vec;
 
-pub trait Store: Debug {
+pub trait Store {
     #[cfg(feature = "nightly")]
     type Range<'a>: DoubleEndedIterator<Item = (CowBytes<'a>, CowBytes<'a>)>;
 

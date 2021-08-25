@@ -73,6 +73,6 @@ mod tests {
         let store = MemoryBackend::new();
         let mut storage = SnapshotableStorage::new(value, store).unwrap();
         storage.commit().unwrap();
-        std::println!("{:?}", storage);
+        std::println!("{:#?}", storage.store());
     }
 }
