@@ -12,7 +12,7 @@ pub struct Value<T>
 where
     T: Debug + Serialize + for<'de> Deserialize<'de>,
 {
-    value: Option<Operation<T>>,
+    pub(crate) value: Option<Operation<T>>,
 }
 
 impl<T> Value<T>
@@ -37,7 +37,7 @@ where
 
 impl<T> Model for Value<T>
 where
-    T: Clone + Debug + Serialize + for<'de> Deserialize<'de>,
+    T: Debug + Serialize + for<'de> Deserialize<'de>,
 {
     fn type_code(&self) -> u32 {
         1

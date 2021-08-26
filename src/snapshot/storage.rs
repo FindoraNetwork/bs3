@@ -10,9 +10,9 @@ where
     S: Store,
     M: Model,
 {
-    store: S,
+    pub(crate) store: S,
     height: u64,
-    value: M,
+    pub(crate) value: M,
     namespace: String,
 }
 
@@ -174,6 +174,10 @@ where
         }
     }
 
+    pub(crate) fn storage_key(&self, key: &Vec<u8>) -> Vec<u8> {
+        utils::storage_key(&self.namespace, &key, self.height)
+    }
+
     /// Commit this snapshot.
     pub fn commit(&mut self) -> Result<u64> {
         let mut operations = Vec::new();
@@ -184,7 +188,7 @@ where
         log::debug!("Snapshot Cache: {:#?}", self.value);
 
         for (k, v) in self.value.operations()? {
-            let key_bytes = utils::storage_key(&self.namespace, &k, self.height);
+            let key_bytes = self.storage_key(&k);
             let store_value = StoreValue { operation: v };
             operations.push((key_bytes, store_value.to_bytes()?));
         }

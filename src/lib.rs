@@ -17,7 +17,7 @@ mod error;
 pub use error::{Error, Result};
 
 pub mod model;
-pub use model::Value;
+// pub use model::Value;
 
 pub mod prelude;
 
@@ -26,3 +26,6 @@ pub use snapshot::SnapshotableStorage;
 
 pub mod backend;
 pub use backend::Store;
+
+mod store;
+pub use store::ValueSnapshot;

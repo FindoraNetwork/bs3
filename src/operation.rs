@@ -28,13 +28,20 @@ pub enum Operation<T> {
 
 impl<T> Operation<T>
 where
-    T: Serialize,
+    T: Serialize + for<'de> Deserialize<'de>,
 {
     pub fn to_bytes(&self) -> Result<OperationBytes> {
         match self {
             Operation::Update(v) => Ok(OperationBytes::Update(serde_cbor::to_vec(v)?)),
             Operation::Delete => Ok(OperationBytes::Delete),
         }
+    }
+
+    pub fn from_bytes(bytes: &OperationBytes) -> Result<Self> {
+        Ok(match bytes {
+            Operation::Update(v) => Operation::Update(serde_cbor::from_slice(&v)?),
+            Operation::Delete => Operation::Delete,
+        })
     }
 }
 
