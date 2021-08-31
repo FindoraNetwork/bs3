@@ -1,7 +1,9 @@
 use core::{fmt::Debug, mem};
 
 use alloc::{collections::BTreeMap, vec::Vec};
-use serde::{Deserialize, Serialize};
+
+#[cfg(feature = "cbor")]
+use minicbor::{Encode as Serialize, Decode as Deserialize};
 
 use crate::{Operation, OperationBytes, Result};
 
@@ -39,12 +41,14 @@ where
 
     #[cfg(feature = "cbor")]
     fn operations(&mut self) -> Result<Vec<(Vec<u8>, OperationBytes)>> {
+        use crate::utils::cbor_encode;
+
         let mut map = Vec::new();
 
         let value = mem::replace(&mut self.value, BTreeMap::new());
 
         for (k, v) in value.into_iter() {
-            let key = serde_cbor::to_vec(&k)?;
+            let key = cbor_encode(k)?;
             let value = v.to_bytes()?;
             map.push((key, value));
         }

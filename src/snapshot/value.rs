@@ -1,7 +1,9 @@
 use alloc::vec::Vec;
-use serde::{Deserialize, Serialize};
 
-use crate::{OperationBytes, Result};
+#[cfg(feature = "cbor")]
+use minicbor::{Encode as Serialize, Decode as Deserialize};
+
+use crate::{OperationBytes, Result, utils::cbor_encode};
 
 pub trait ToStoreBytes {
     fn to_bytes(&self) -> Result<Vec<u8>>;
@@ -15,12 +17,13 @@ pub trait FromStoreBytes {
 
 #[derive(Serialize, Deserialize)]
 pub struct StoreValue {
+    #[n(0)]
     pub operation: OperationBytes,
 }
 
 impl FromStoreBytes for StoreValue {
     fn from_bytes(bytes: &[u8]) -> Result<Self> {
-        let r = serde_cbor::from_slice(bytes)?;
+        let r = minicbor::decode(bytes)?;
         Ok(r)
     }
 }
@@ -28,20 +31,21 @@ impl FromStoreBytes for StoreValue {
 #[cfg(feature = "cbor")]
 impl ToStoreBytes for StoreValue {
     fn to_bytes(&self) -> Result<Vec<u8>> {
-        let bytes = serde_cbor::to_vec(self)?;
+        let bytes = cbor_encode(self)?;
         Ok(bytes)
     }
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct StoreHeight {
+    #[n(0)]
     pub height: u64,
 }
 
 #[cfg(feature = "cbor")]
 impl ToStoreBytes for StoreHeight {
     fn to_bytes(&self) -> Result<Vec<u8>> {
-        let bytes = serde_cbor::to_vec(self)?;
+        let bytes = cbor_encode(self)?;
         Ok(bytes)
     }
 }
@@ -49,20 +53,21 @@ impl ToStoreBytes for StoreHeight {
 #[cfg(feature = "cbor")]
 impl FromStoreBytes for StoreHeight {
     fn from_bytes(bytes: &[u8]) -> Result<Self> {
-        let r = serde_cbor::from_slice(bytes)?;
+        let r = minicbor::decode(bytes)?;
         Ok(r)
     }
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct StoreType {
+    #[n(0)]
     pub ty: u32,
 }
 
 #[cfg(feature = "cbor")]
 impl ToStoreBytes for StoreType {
     fn to_bytes(&self) -> Result<Vec<u8>> {
-        let bytes = serde_cbor::to_vec(self)?;
+        let bytes = cbor_encode(self)?;
         Ok(bytes)
     }
 }
@@ -70,7 +75,7 @@ impl ToStoreBytes for StoreType {
 #[cfg(feature = "cbor")]
 impl FromStoreBytes for StoreType {
     fn from_bytes(bytes: &[u8]) -> Result<Self> {
-        let r = serde_cbor::from_slice(bytes)?;
+        let r = minicbor::decode(bytes)?;
         Ok(r)
     }
 }

@@ -1,7 +1,8 @@
-use core::{fmt::Debug, ops::Deref};
+use core::{fmt::Debug};
 
 use alloc::vec::Vec;
-use serde::{Deserialize, Serialize};
+// use serde::{Deserialize, Serialize};
+use minicbor::{Encode as Serialize, Decode as Deserialize};
 
 use crate::{
     model::{self, Value},

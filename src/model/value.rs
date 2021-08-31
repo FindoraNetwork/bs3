@@ -1,7 +1,10 @@
 use core::{fmt::Debug, mem};
 
 use alloc::vec::Vec;
-use serde::{Deserialize, Serialize};
+// use serde::{Deserialize, Serialize};
+
+#[cfg(feature = "cbor")]
+use minicbor::{Encode as Serialize, Decode as Deserialize};
 
 use crate::{Operation, OperationBytes, Result};
 
