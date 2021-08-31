@@ -1,5 +1,4 @@
 #![feature(generic_associated_types)]
-#![feature(cell_leak)]
 #![no_std]
 
 /// For features and alloc.
