@@ -4,7 +4,7 @@ use alloc::vec::Vec;
 // use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "cbor")]
-use minicbor::{Encode as Serialize, Decode as Deserialize};
+use minicbor::{Decode as Deserialize, Encode as Serialize};
 
 use crate::{Operation, OperationBytes, Result};
 
@@ -28,6 +28,37 @@ where
         }
     }
 }
+
+// pub trait ValueAccess<T> {
+//     fn get(&self) -> &Option<Operation<T>>;
+//
+//     fn set(&mut self, value: T);
+//
+//     fn del(&mut self);
+//
+//     fn storage_key(&self) -> Vec<u8>;
+// }
+//
+// impl<T> ValueAccess<T> for Value<T>
+// where
+//     T: Debug + Serialize + for<'de> Deserialize<'de>,
+// {
+//     fn get(&self) -> &Option<Operation<T>> {
+//         &self.value
+//     }
+//
+//     fn set(&mut self, value: T) {
+//         self.value = Some(Operation::Update(value))
+//     }
+//
+//     fn del(&mut self) {
+//         self.value = Some(Operation::Delete)
+//     }
+//
+//     fn storage_key(&self) -> Vec<u8> {
+//         Vec::new()
+//     }
+// }
 
 impl<T> Default for Value<T>
 where

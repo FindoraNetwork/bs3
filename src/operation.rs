@@ -1,9 +1,9 @@
 use alloc::vec::Vec;
 
 #[cfg(feature = "cbor")]
-use minicbor::{Encode as Serialize, Decode as Deserialize};
+use minicbor::{Decode as Deserialize, Encode as Serialize};
 
-use crate::{Result, utils::cbor_encode};
+use crate::{utils::cbor_encode, Result};
 
 // #[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 // pub enum Operation<'a> {
@@ -24,7 +24,7 @@ use crate::{Result, utils::cbor_encode};
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Operation<T> {
     #[n(0)]
-    Update(#[n(0)]T),
+    Update(#[n(0)] T),
     #[n(1)]
     Delete,
 }

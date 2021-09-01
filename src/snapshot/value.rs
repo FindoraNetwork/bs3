@@ -1,9 +1,9 @@
 use alloc::vec::Vec;
 
 #[cfg(feature = "cbor")]
-use minicbor::{Encode as Serialize, Decode as Deserialize};
+use minicbor::{Decode as Deserialize, Encode as Serialize};
 
-use crate::{OperationBytes, Result, utils::cbor_encode};
+use crate::{utils::cbor_encode, OperationBytes, Result};
 
 pub trait ToStoreBytes {
     fn to_bytes(&self) -> Result<Vec<u8>>;

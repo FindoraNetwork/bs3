@@ -27,6 +27,6 @@ pub mod backend;
 pub use backend::Store;
 
 mod store;
-pub use store::ValueSnapshot;
+pub use store::ValueStore;
 
 mod utils;

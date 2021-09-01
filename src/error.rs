@@ -1,6 +1,6 @@
 use core::{cell, fmt::Debug};
 
-use alloc::{boxed::Box};
+use alloc::boxed::Box;
 
 #[derive(Debug)]
 pub enum Error {

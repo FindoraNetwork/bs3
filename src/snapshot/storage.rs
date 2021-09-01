@@ -11,9 +11,9 @@ where
     M: Model,
 {
     pub(crate) store: S,
-    height: u64,
+    pub(crate) height: u64,
     pub(crate) value: M,
-    namespace: String,
+    pub(crate) namespace: String,
 }
 
 /// Methods for create storage.

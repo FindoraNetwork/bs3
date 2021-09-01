@@ -1,8 +1,8 @@
 #[cfg(feature = "cbor")]
 mod cbor {
-    use minicbor::Encode;
     use crate::Result;
     use alloc::vec::Vec;
+    use minicbor::Encode;
 
     pub fn cbor_encode(t: impl Encode) -> Result<Vec<u8>> {
         let mut value = Vec::new();
@@ -13,5 +13,3 @@ mod cbor {
 
 #[cfg(feature = "cbor")]
 pub use cbor::cbor_encode;
-
-

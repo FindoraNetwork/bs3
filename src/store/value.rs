@@ -1,72 +1,101 @@
-use core::{fmt::Debug};
+use core::fmt::Debug;
 
 use alloc::vec::Vec;
 // use serde::{Deserialize, Serialize};
-use minicbor::{Encode as Serialize, Decode as Deserialize};
+use minicbor::{Decode as Deserialize, Encode as Serialize};
 
 use crate::{
-    model::{self, Value},
-    snapshot::{FromStoreBytes, StoreValue},
+    model::Value,
+    snapshot::{FromStoreBytes, StoreValue, Transaction},
     Cow, Operation, Result, SnapshotableStorage, Store,
 };
 
-pub struct ValueSnapshot<T, S>
-where
-    T: Debug + Serialize + for<'de> Deserialize<'de>,
-    S: Store,
-{
-    pub(crate) storage: SnapshotableStorage<S, model::Value<T>>,
+pub trait ValueStore<T> {
+    fn get(&self) -> Result<Option<Cow<'_, T>>>;
+
+    fn set(&mut self, value: T) -> Result<Option<T>>;
+
+    fn del(&mut self) -> Result<Option<T>>;
 }
 
-impl<T, S> ValueSnapshot<T, S>
+impl<T, S> ValueStore<T> for SnapshotableStorage<S, Value<T>>
 where
     T: Debug + Serialize + for<'de> Deserialize<'de>,
     S: Store,
 {
-    pub fn new(storage: SnapshotableStorage<S, Value<T>>) -> Self {
-        Self { storage }
-    }
-
-    fn storage_key(&self) -> Vec<u8> {
-        let inner_key = Vec::new();
-        self.storage.storage_key(&inner_key)
-    }
-
-    pub fn get(&self) -> Result<Option<Cow<'_, T>>> {
-        Ok(match &self.storage.value.value {
+    fn get(&self) -> Result<Option<Cow<'_, T>>> {
+        Ok(match &self.value.value {
             Some(v) => match v {
                 Operation::Update(iv) => Some(Cow::Borrowed(iv)),
                 Operation::Delete => None,
             },
-            None => match self.get_inner_value()? {
+            None => match get_inner_value(self)? {
                 Some(v) => Some(Cow::Owned(v)),
                 None => None,
             },
         })
     }
 
-    fn get_inner_value(&self) -> Result<Option<T>> {
-        let key = self.storage_key();
-        match self.storage.store.get_ge(&key)? {
-            Some(bytes) => {
-                let value = StoreValue::from_bytes(&bytes)?;
-                let operation = Operation::from_bytes(&value.operation)?;
-                match operation {
-                    Operation::Update(v) => Ok(Some(v)),
-                    Operation::Delete => Ok(None),
-                }
+    fn set(&mut self, value: T) -> Result<Option<T>> {
+        self.value.value = Some(Operation::Update(value));
+        get_inner_value(self)
+    }
+
+    fn del(&mut self) -> Result<Option<T>> {
+        self.value.value = Some(Operation::Delete);
+        get_inner_value(self)
+    }
+}
+
+// impl<'a, T, S> ValueStore<T> for Transaction<'a, S, Value<T>>
+// where
+//     T: Debug + Serialize + for<'de> Deserialize<'de>,
+//     S: Store,
+// {
+//     fn get(&self) -> Result<Option<Cow<'_, T>>> {
+//         Ok(match &self.value.value {
+//             Some(v) => match v {
+//                 Operation::Update(iv) => Some(Cow::Borrowed(iv)),
+//                 Operation::Delete => None,
+//             },
+//             None => match self.store.get()? {
+//                 Some(v) => Some(Cow::Owned(v)),
+//                 None => None,
+//             },
+//         })
+//     }
+//
+//     fn set(&mut self, value: T) -> Result<Option<T>> {
+//
+//     }
+//
+//     fn del(&mut self) -> Result<Option<T>> {}
+// }
+
+fn storage_key<S, T>(vss: &SnapshotableStorage<S, Value<T>>) -> Vec<u8>
+where
+    T: Debug + Serialize + for<'de> Deserialize<'de>,
+    S: Store,
+{
+    let inner_key = Vec::new();
+    vss.storage_key(&inner_key)
+}
+
+fn get_inner_value<S, T>(vss: &SnapshotableStorage<S, Value<T>>) -> Result<Option<T>>
+where
+    T: Debug + Serialize + for<'de> Deserialize<'de>,
+    S: Store,
+{
+    let key = storage_key(vss);
+    match vss.store.get_ge(&key)? {
+        Some(bytes) => {
+            let value = StoreValue::from_bytes(&bytes)?;
+            let operation = Operation::from_bytes(&value.operation)?;
+            match operation {
+                Operation::Update(v) => Ok(Some(v)),
+                Operation::Delete => Ok(None),
             }
-            None => Ok(None),
         }
-    }
-
-    pub fn set(&mut self, value: T) -> Result<Option<T>> {
-        self.storage.value.value = Some(Operation::Update(value));
-        self.get_inner_value()
-    }
-
-    pub fn del(&mut self) -> Result<Option<T>> {
-        self.storage.value.value = Some(Operation::Delete);
-        self.get_inner_value()
+        None => Ok(None),
     }
 }
