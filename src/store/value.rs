@@ -6,11 +6,14 @@ use minicbor::{Decode as Deserialize, Encode as Serialize};
 
 use crate::{
     model::Value,
-    snapshot::{FromStoreBytes, StoreValue, Transaction},
+    snapshot::{FromStoreBytes, StoreValue},
     Cow, Operation, Result, SnapshotableStorage, Store,
 };
 
-pub trait ValueStore<T> {
+pub trait ValueStore<T>
+where
+    T: Debug + Serialize + for<'de> Deserialize<'de>,
+{
     fn get(&self) -> Result<Option<Cow<'_, T>>>;
 
     fn set(&mut self, value: T) -> Result<Option<T>>;

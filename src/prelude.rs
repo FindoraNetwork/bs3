@@ -4,10 +4,8 @@ use alloc::vec::Vec;
 pub trait Tree {
     /// Get value by key in tree.
     fn get(&self, key: &[u8]) -> Result<Option<Cow<'_, Vec<u8>>>>;
-}
-
-pub trait TreeMut {
     /// Get value mut.
+
     fn get_mut(&mut self, key: &[u8]) -> Result<Option<&mut [u8]>>;
 
     /// Insert value.
