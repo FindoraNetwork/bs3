@@ -21,7 +21,7 @@ pub mod model;
 pub mod prelude;
 
 mod snapshot;
-pub use snapshot::SnapshotableStorage;
+pub use snapshot::{SnapshotableStorage, Transaction};
 
 pub mod backend;
 pub use backend::Store;
