@@ -5,7 +5,7 @@ where
     S: Store,
     M: Model,
 {
-    pub(crate) store: &'a mut SnapshotableStorage<S, M>,
+    pub(crate) store: &'a SnapshotableStorage<S, M>,
     pub(crate) value: M,
 }
 
@@ -14,7 +14,7 @@ where
     S: Store,
     M: Model,
 {
-    pub(crate) fn new(store: &'a mut SnapshotableStorage<S, M>) -> Self {
+    pub(crate) fn new(store: &'a SnapshotableStorage<S, M>) -> Self {
         Transaction {
             store,
             value: M::default(),
