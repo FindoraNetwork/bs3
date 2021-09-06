@@ -4,7 +4,7 @@ Blockchain simple state storage.
 
 ## Features (WIP)
 
-- [ ] Stateless: Data in this storage don't affect block.
+- [X] Stateless: Data in this storage don't affect block.
 - [ ] Stateful: Data in this storage will affect block.
   - [ ] Use snapshot to compute world state and compute merkle root.
   - [ ] Pluggable merkle.
