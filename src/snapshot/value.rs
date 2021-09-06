@@ -39,7 +39,7 @@ impl ToStoreBytes for StoreValue {
 #[derive(Serialize, Deserialize)]
 pub struct StoreHeight {
     #[n(0)]
-    pub height: u64,
+    pub height: i64,
 }
 
 #[cfg(feature = "cbor")]

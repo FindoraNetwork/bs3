@@ -11,7 +11,7 @@ where
     M: Model,
 {
     pub(crate) store: S,
-    pub(crate) height: u64,
+    pub(crate) height: i64,
     pub(crate) value: M,
     pub(crate) namespace: String,
 }
@@ -53,7 +53,7 @@ where
     /// Create a `SnapshotableStorage` from store for point height with empty namespace.
     ///
     /// If height is 0, equal to init a store.
-    pub fn new_with_height(value: M, height: u64, store: S) -> Result<Self> {
+    pub fn new_with_height(value: M, height: i64, store: S) -> Result<Self> {
         Self::new_with_height_namespace(value, height, String::new(), store)
     }
 
@@ -62,7 +62,7 @@ where
     /// If height is 0, equal to init a store.
     pub fn new_with_height_namespace(
         value: M,
-        height: u64,
+        height: i64,
         namespace: String,
         store: S,
     ) -> Result<Self> {
@@ -127,7 +127,7 @@ where
     M: Model,
 {
     /// Read current height in store.
-    fn read_height(&self) -> Result<u64> {
+    fn read_height(&self) -> Result<i64> {
         let key = utils::current_height_key(&self.namespace);
 
         if let Some(bytes) = self.store.get_ge(&key)? {
@@ -141,7 +141,7 @@ where
     /// Force to write height in store.
     fn write_height(
         &mut self,
-        target_height: u64,
+        target_height: i64,
         pre_commit: Option<Vec<(Vec<u8>, Vec<u8>)>>,
     ) -> Result<()> {
         log::debug!("Begin sync snapshot success in height: {}", self.height + 1);
@@ -165,7 +165,7 @@ where
     }
 
     /// rollback to point height, target_height must less than current height.
-    pub fn rollback(&mut self, target_height: u64) -> Result<()> {
+    pub fn rollback(&mut self, target_height: i64) -> Result<()> {
         if target_height > self.height {
             log::error!("Target height must less than current height");
             Err(Error::HeightError)
@@ -179,7 +179,7 @@ where
     }
 
     /// Commit this snapshot.
-    pub fn commit(&mut self) -> Result<u64> {
+    pub fn commit(&mut self) -> Result<i64> {
         let mut operations = Vec::new();
 
         // exchange cache.
