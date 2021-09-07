@@ -4,6 +4,7 @@ use alloc::vec::Vec;
 // use serde::{Deserialize, Serialize};
 use minicbor::{Decode as Deserialize, Encode as Serialize};
 
+use crate::utils::cbor_encode;
 use crate::{
     model::Value,
     snapshot::{FromStoreBytes, StoreValue},

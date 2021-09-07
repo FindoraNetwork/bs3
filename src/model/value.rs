@@ -101,7 +101,7 @@ where
 mod tests {
     use alloc::string::String;
 
-    use crate::{backend::MemoryBackend, SnapshotableStorage};
+    use crate::{backend::MemoryBackend, SnapshotableStorage, Store, ValueStore};
 
     use super::Value;
 
@@ -111,6 +111,7 @@ mod tests {
         let value = Value::new(String::from("aaaaaa"));
         let store = MemoryBackend::new();
         let mut storage = SnapshotableStorage::new(value, store).unwrap();
+
         storage.commit().unwrap();
         storage.commit().unwrap();
         std::println!("{:#?}", storage.store());

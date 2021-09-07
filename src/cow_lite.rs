@@ -2,6 +2,7 @@ use core::ops::Deref;
 
 use alloc::vec::Vec;
 
+#[derive(Debug)]
 pub enum Cow<'a, T> {
     Owned(T),
     Borrowed(&'a T),
