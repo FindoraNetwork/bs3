@@ -10,6 +10,7 @@ pub use vec::VecStore;
 #[cfg(test)]
 mod tests {
 
+    use crate::backend::sled::{sled_db_open, SledBackend};
     use crate::backend::MemoryBackend;
     use crate::model::{Map, Value, Vec};
     use crate::store::VecStore;
@@ -18,7 +19,7 @@ mod tests {
     use core::ops::Deref;
 
     #[test]
-    fn map_test() {
+    fn map_mem_test() {
         let m = Map::default();
         let s = MemoryBackend::new();
         let mut ss = SnapshotableStorage::new(m, s).unwrap();
@@ -41,7 +42,7 @@ mod tests {
     }
 
     #[test]
-    fn value_test() {
+    fn value_mem_test() {
         let v = Value::default();
         let s = MemoryBackend::new();
         let mut ss = SnapshotableStorage::new(v, s).unwrap();
@@ -60,7 +61,7 @@ mod tests {
     }
 
     #[test]
-    fn vec_test() {
+    fn vec_mem_test() {
         let v = Vec::default();
         let s = MemoryBackend::new();
         let mut ss = SnapshotableStorage::new(v, s).unwrap();

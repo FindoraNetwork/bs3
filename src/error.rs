@@ -18,6 +18,7 @@ pub enum Error {
     LockReadError,
     /// When you load a store.
     TypeMissMatch,
+    SledError(sled::Error),
 }
 
 #[cfg(feature = "cbor")]
@@ -43,6 +44,12 @@ impl From<cell::BorrowMutError> for Error {
 impl From<cell::BorrowError> for Error {
     fn from(e: cell::BorrowError) -> Self {
         Self::BorrowError(e)
+    }
+}
+
+impl From<sled::Error> for Error {
+    fn from(e: sled::Error) -> Self {
+        self::Error::SledError(e)
     }
 }
 
