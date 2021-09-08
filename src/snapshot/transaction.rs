@@ -5,8 +5,8 @@ where
     S: Store,
     M: Model,
 {
-    pub(crate) store: &'a SnapshotableStorage<S, M>,
-    pub(crate) value: M,
+    pub store: &'a SnapshotableStorage<S, M>,
+    pub value: M,
 }
 
 impl<'a, S, M> Transaction<'a, S, M>

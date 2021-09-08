@@ -209,12 +209,12 @@ where
     M: Model,
 {
     /// Generate transaction for this Bs3 db.
-    pub fn transaction(&mut self) -> Transaction<S, M> {
+    pub fn transaction(&self) -> Transaction<'_, S, M> {
         Transaction::new(self)
     }
 
     /// Consume transaction to apply.
-    pub fn execute(&mut self, tx: Transaction<S, M>) {
+    pub fn execute(&mut self, tx: Transaction<'_, S, M>) {
         log::debug!("Transaction Cache: {:#?}", tx.value);
         self.value.merge(tx.value)
     }
