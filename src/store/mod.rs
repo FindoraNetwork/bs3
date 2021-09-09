@@ -13,7 +13,6 @@ pub use vec::VecStore;
 #[cfg(test)]
 mod tests {
 
-    use crate::backend::sled::{sled_db_open, SledBackend};
     use crate::backend::MemoryBackend;
     use crate::model::{Map, Value, Vec};
     use crate::store::VecStore;
