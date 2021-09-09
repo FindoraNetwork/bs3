@@ -3,7 +3,7 @@ use alloc::vec::Vec;
 #[cfg(feature = "cbor")]
 use serde::{Deserialize, Serialize};
 
-use crate::{utils::cbor_encode, Error, Result};
+use crate::{utils::cbor_encode, Result};
 use ciborium::de::from_reader;
 
 // #[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -41,9 +41,7 @@ where
 
     pub fn from_bytes(bytes: &OperationBytes) -> Result<Self> {
         Ok(match bytes {
-            Operation::Update(v) => {
-                Operation::Update(from_reader(v.as_slice()).map_err(|_| Error::CborDeIoError)?)
-            }
+            Operation::Update(v) => Operation::Update(from_reader(v.as_slice())?),
             Operation::Delete => Operation::Delete,
         })
     }
