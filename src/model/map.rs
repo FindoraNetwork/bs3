@@ -3,7 +3,7 @@ use core::{fmt::Debug, mem};
 use alloc::{collections::BTreeMap, vec::Vec};
 
 #[cfg(feature = "cbor")]
-use minicbor::{Decode as Deserialize, Encode as Serialize};
+use serde::{Deserialize, Serialize};
 
 use crate::{Operation, OperationBytes, Result};
 

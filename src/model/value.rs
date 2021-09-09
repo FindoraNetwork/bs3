@@ -4,7 +4,7 @@ use alloc::vec::Vec;
 // use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "cbor")]
-use minicbor::{Decode as Deserialize, Encode as Serialize};
+use serde::{Deserialize, Serialize};
 
 use crate::{Operation, OperationBytes, Result};
 

@@ -4,7 +4,7 @@ use crate::model::Model;
 use crate::{Operation, OperationBytes};
 use alloc::{collections::BTreeMap, vec::Vec as alloc_vec};
 #[cfg(feature = "cbor")]
-use minicbor::{Decode as Deserialize, Encode as Serialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug)]
 pub struct Vec<V>

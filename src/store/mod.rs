@@ -10,7 +10,6 @@ pub use vec::VecStore;
 #[cfg(test)]
 mod tests {
 
-    use crate::backend::sled::{sled_db_open, SledBackend};
     use crate::backend::MemoryBackend;
     use crate::model::{Map, Value, Vec};
     use crate::store::VecStore;
@@ -24,21 +23,13 @@ mod tests {
         let s = MemoryBackend::new();
         let mut ss = SnapshotableStorage::new(m, s).unwrap();
         let r = ss.insert(1, 1);
-        std::println!("{:?}", r);
         let r = ss.insert(2, 2);
-        std::println!("{:?}", r);
         let r = ss.insert(3, 3);
-        std::println!("{:?}", r);
         let r = ss.commit();
-        std::println!("{:?}", r);
         let r = ss.remove(1);
-        std::println!("{:?}", r);
         let r = ss.commit();
-        std::println!("{:?}", r);
         let r = ss.get(&1);
-        std::println!("{:?}", r);
         let r = ss.get_mut(1);
-        std::println!("{:?}", r);
     }
 
     #[test]
@@ -47,17 +38,11 @@ mod tests {
         let s = MemoryBackend::new();
         let mut ss = SnapshotableStorage::new(v, s).unwrap();
         let r = ss.set(1);
-        std::println!("{:?}", r);
         let r = ss.commit();
-        std::println!("{:?}", r);
         let r = ss.get();
-        std::println!("{:?}", r);
         let r = ss.set(2);
-        std::println!("{:?}", r);
         let r = ss.commit();
-        std::println!("{:?}", r);
         let r = ss.get();
-        std::println!("{:?}", r);
     }
 
     #[test]
@@ -66,22 +51,13 @@ mod tests {
         let s = MemoryBackend::new();
         let mut ss = SnapshotableStorage::new(v, s).unwrap();
         let r = ss.insert(1);
-        std::println!("{:?}", r);
         let r = ss.insert(2);
-        std::println!("{:?}", r);
         let r = ss.insert(3);
-        std::println!("{:?}", r);
         let r = ss.commit();
-        std::println!("{:?}", r);
         let r = ss.remove(0);
-        std::println!("{:?}", r);
         let r = ss.commit();
-        std::println!("{:?}", r);
         let r = ss.get(0).unwrap().unwrap();
-        std::println!("{:?}", r.deref().clone());
         let r = ss.get(1).unwrap().unwrap();
-        std::println!("{:?}", r.deref().clone());
         let r = ss.get(2).unwrap().unwrap();
-        std::println!("{:?}", r.deref().clone());
     }
 }

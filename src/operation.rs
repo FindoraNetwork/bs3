@@ -1,9 +1,10 @@
 use alloc::vec::Vec;
 
 #[cfg(feature = "cbor")]
-use minicbor::{Decode as Deserialize, Encode as Serialize};
+use serde::{Deserialize, Serialize};
 
 use crate::{utils::cbor_encode, Result};
+use ciborium::de::from_reader;
 
 // #[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 // pub enum Operation<'a> {
@@ -23,9 +24,7 @@ use crate::{utils::cbor_encode, Result};
 //
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Operation<T> {
-    #[n(0)]
-    Update(#[n(0)] T),
-    #[n(1)]
+    Update(T),
     Delete,
 }
 
@@ -42,7 +41,7 @@ where
 
     pub fn from_bytes(bytes: &OperationBytes) -> Result<Self> {
         Ok(match bytes {
-            Operation::Update(v) => Operation::Update(minicbor::decode(v)?),
+            Operation::Update(v) => Operation::Update(from_reader(v.as_slice())?),
             Operation::Delete => Operation::Delete,
         })
     }

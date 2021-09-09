@@ -5,7 +5,7 @@ use crate::{
     Cow, Operation, Result, SnapshotableStorage, Store,
 };
 use core::fmt::Debug;
-use minicbor::{Decode as Deserialize, Encode as Serialize};
+use serde::{Deserialize, Serialize};
 
 pub trait VecStore<T>
 where

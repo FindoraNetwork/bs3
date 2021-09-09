@@ -6,7 +6,7 @@ use crate::snapshot::{FromStoreBytes, StoreValue};
 use crate::utils::cbor_encode;
 use core::option::Option::Some;
 #[cfg(feature = "cbor")]
-use minicbor::{Decode as Deserialize, Encode as Serialize};
+use serde::{Deserialize, Serialize};
 
 pub trait MapStore<K, V>
 where
