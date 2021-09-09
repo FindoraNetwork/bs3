@@ -3,7 +3,7 @@ use core::{fmt::Debug, mem};
 use alloc::{collections::BTreeMap, vec::Vec};
 
 #[cfg(feature = "cbor")]
-use minicbor::{Decode as Deserialize, Encode as Serialize};
+use serde::{Deserialize, Serialize};
 
 use crate::{Operation, OperationBytes, Result};
 
@@ -12,7 +12,7 @@ use super::Model;
 #[derive(Debug)]
 pub struct Map<K, V>
 where
-    K: PartialEq + Eq + Serialize + for<'de> Deserialize<'de> + Ord + PartialOrd + Debug,
+    K: Clone + PartialEq + Eq + Serialize + for<'de> Deserialize<'de> + Ord + PartialOrd + Debug,
     V: Clone + Serialize + for<'de> Deserialize<'de> + Debug,
 {
     pub(crate) value: BTreeMap<K, Operation<V>>,
@@ -20,7 +20,7 @@ where
 
 impl<K, V> Default for Map<K, V>
 where
-    K: PartialEq + Eq + Serialize + for<'de> Deserialize<'de> + Ord + PartialOrd + Debug,
+    K: Clone + PartialEq + Eq + Serialize + for<'de> Deserialize<'de> + Ord + PartialOrd + Debug,
     V: Clone + Serialize + for<'de> Deserialize<'de> + Debug,
 {
     fn default() -> Self {
@@ -32,7 +32,7 @@ where
 
 impl<K, V> Model for Map<K, V>
 where
-    K: PartialEq + Eq + Serialize + for<'de> Deserialize<'de> + Ord + PartialOrd + Debug,
+    K: Clone + PartialEq + Eq + Serialize + for<'de> Deserialize<'de> + Ord + PartialOrd + Debug,
     V: Clone + Serialize + for<'de> Deserialize<'de> + Debug,
 {
     fn type_code(&self) -> u32 {

@@ -1,9 +1,15 @@
 use alloc::{boxed::Box, sync::Arc, vec::Vec};
-use sled::{Db, Tree};
+use core::{
+    fmt,
+    ops::Bound::{Excluded, Included},
+};
+use sled::{Db, Iter, Tree};
 
-use crate::{Error, Result};
+use crate::{CowBytes, Error, Result};
 
 use super::Store;
+use crate::utils::cbor_encode;
+use core::ops::{Bound, RangeBounds};
 
 // use super::Store;
 
@@ -13,6 +19,23 @@ pub struct SledBackend {
 
 fn e(e: sled::Error) -> Error {
     Error::StoreError(Box::new(e))
+}
+
+pub fn sled_db_open(path: &str, is_tmp: bool) -> Result<sled::Db> {
+    let mut cfg = sled::Config::default()
+        .path(path)
+        .mode(sled::Mode::HighThroughput)
+        .cache_capacity(20_000_000)
+        .flush_every_ms(Some(3000));
+
+    if is_tmp {
+        cfg = cfg.temporary(true);
+    }
+
+    #[cfg(feature = "compress")]
+    let cfg = cfg.use_compression(true).compression_factor(15);
+
+    Ok(cfg.open()?)
 }
 
 impl SledBackend {
@@ -28,18 +51,79 @@ impl SledBackend {
             Err(e) => Err(Error::StoreError(Box::new(e))),
         }
     }
+}
 
-    pub fn execute(&mut self, batch: Vec<(Vec<u8>, Vec<u8>)>) -> Result<()> {
+pub struct SledRange<'a> {
+    pub v: Iter,
+    _s: &'a str,
+}
+
+impl<'a> Iterator for SledRange<'a> {
+    type Item = (CowBytes<'a>, CowBytes<'a>);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.v
+            .next()
+            .and_then(|item| item.ok())
+            .map(|(key, val)| (CowBytes::Owned(key.to_vec()), CowBytes::Owned(val.to_vec())))
+    }
+}
+
+impl<'a> DoubleEndedIterator for SledRange<'a> {
+    fn next_back(&mut self) -> Option<Self::Item> {
+        self.v
+            .next_back()
+            .and_then(|item| item.ok())
+            .map(|(key, val)| (CowBytes::Owned(key.to_vec()), CowBytes::Owned(val.to_vec())))
+    }
+}
+
+pub struct SledRangeBounds {
+    begin_key: Vec<u8>,
+    end_key: Vec<u8>,
+}
+
+impl RangeBounds<Vec<u8>> for SledRangeBounds {
+    fn start_bound(&self) -> Bound<&Vec<u8>> {
+        Excluded(self.begin_key.as_ref())
+    }
+
+    fn end_bound(&self) -> Bound<&Vec<u8>> {
+        Included(self.end_key.as_ref())
+    }
+}
+
+impl Store for SledBackend {
+    type Range<'a> = SledRange<'a>;
+
+    fn range(&self, begin_key: &[u8], end_key: &[u8]) -> Result<Self::Range<'_>> {
+        let r = SledRangeBounds {
+            begin_key: begin_key.to_vec(),
+            end_key: end_key.to_vec(),
+        };
+        Ok(SledRange {
+            v: self.tree.range(r),
+            _s: "",
+        })
+    }
+
+    fn execute(&mut self, batch: Vec<(Vec<u8>, Vec<u8>)>) -> Result<()> {
+        let inner = &mut self.tree;
+        for (key, value) in batch {
+            inner.insert(key, value);
+        }
         Ok(())
     }
 }
 
-// impl Store for SledBackend {
-// type Range = sled::Iter;
+// #[test]
+// fn test(){
+//     let path = "/tmp/bs3_sled_test/01";
+//     let namespace = "test_tree";
 //
-// fn range(&self, begin_key: Vec<u8>, end_key: Vec<u8>) -> Result<Self::Range> {
-//    // match self
-// }
+//     let db = sled_db_open(path,false).unwrap();
+//     let sb = SledBackend::open_tree(&db,namespace).unwrap();
+//
 // }
 
 // #[cfg(test)]

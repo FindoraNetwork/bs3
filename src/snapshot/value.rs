@@ -1,9 +1,10 @@
 use alloc::vec::Vec;
 
 #[cfg(feature = "cbor")]
-use minicbor::{Decode as Deserialize, Encode as Serialize};
+use serde::{Deserialize, Serialize};
 
 use crate::{utils::cbor_encode, OperationBytes, Result};
+use ciborium::de::from_reader;
 
 pub trait ToStoreBytes {
     fn to_bytes(&self) -> Result<Vec<u8>>;
@@ -17,13 +18,12 @@ pub trait FromStoreBytes {
 
 #[derive(Serialize, Deserialize)]
 pub struct StoreValue {
-    #[n(0)]
     pub operation: OperationBytes,
 }
 
 impl FromStoreBytes for StoreValue {
     fn from_bytes(bytes: &[u8]) -> Result<Self> {
-        let r = minicbor::decode(bytes)?;
+        let r = from_reader(bytes)?;
         Ok(r)
     }
 }
@@ -38,7 +38,6 @@ impl ToStoreBytes for StoreValue {
 
 #[derive(Serialize, Deserialize)]
 pub struct StoreHeight {
-    #[n(0)]
     pub height: i64,
 }
 
@@ -53,14 +52,13 @@ impl ToStoreBytes for StoreHeight {
 #[cfg(feature = "cbor")]
 impl FromStoreBytes for StoreHeight {
     fn from_bytes(bytes: &[u8]) -> Result<Self> {
-        let r = minicbor::decode(bytes)?;
+        let r = from_reader(bytes)?;
         Ok(r)
     }
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct StoreType {
-    #[n(0)]
     pub ty: u32,
 }
 
@@ -75,7 +73,7 @@ impl ToStoreBytes for StoreType {
 #[cfg(feature = "cbor")]
 impl FromStoreBytes for StoreType {
     fn from_bytes(bytes: &[u8]) -> Result<Self> {
-        let r = minicbor::decode(bytes)?;
+        let r = from_reader(bytes)?;
         Ok(r)
     }
 }
