@@ -3,7 +3,8 @@ use alloc::vec::Vec;
 #[cfg(feature = "cbor")]
 use serde::{Deserialize, Serialize};
 
-use crate::{utils::cbor_encode, OperationBytes, Result};
+use crate::{utils::cbor_encode, Error, OperationBytes, Result};
+use alloc::string::ToString;
 use ciborium::de::from_reader;
 
 pub trait ToStoreBytes {
@@ -23,7 +24,7 @@ pub struct StoreValue {
 
 impl FromStoreBytes for StoreValue {
     fn from_bytes(bytes: &[u8]) -> Result<Self> {
-        let r = from_reader(bytes)?;
+        let r = from_reader(bytes).map_err(|e| Error::CborDeIoError(e.to_string()))?;
         Ok(r)
     }
 }
@@ -52,7 +53,7 @@ impl ToStoreBytes for StoreHeight {
 #[cfg(feature = "cbor")]
 impl FromStoreBytes for StoreHeight {
     fn from_bytes(bytes: &[u8]) -> Result<Self> {
-        let r = from_reader(bytes)?;
+        let r = from_reader(bytes).map_err(|e| Error::CborDeIoError(e.to_string()))?;
         Ok(r)
     }
 }
@@ -73,7 +74,7 @@ impl ToStoreBytes for StoreType {
 #[cfg(feature = "cbor")]
 impl FromStoreBytes for StoreType {
     fn from_bytes(bytes: &[u8]) -> Result<Self> {
-        let r = from_reader(bytes)?;
+        let r = from_reader(bytes).map_err(|e| Error::CborDeIoError(e.to_string()))?;
         Ok(r)
     }
 }

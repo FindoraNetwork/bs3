@@ -4,7 +4,10 @@ pub use value::ValueStore;
 mod map;
 pub use map::MapStore;
 
+mod tx;
+mod utils;
 mod vec;
+
 pub use vec::VecStore;
 
 #[cfg(test)]
@@ -56,8 +59,8 @@ mod tests {
         let r = ss.commit();
         let r = ss.remove(0);
         let r = ss.commit();
-        let r = ss.get(0).unwrap().unwrap();
-        let r = ss.get(1).unwrap().unwrap();
-        let r = ss.get(2).unwrap().unwrap();
+        let r = ss.get(0);
+        let r = ss.get(1);
+        let r = ss.get(2);
     }
 }
