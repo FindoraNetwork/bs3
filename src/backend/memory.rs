@@ -66,7 +66,7 @@ impl Store for MemoryBackend {
         Ok(MemoryRange {
             v: self
                 .cache
-                .range((Excluded(Vec::from(begin_key)), Included(Vec::from(end_key)))),
+                .range((Included(Vec::from(begin_key)), Included(Vec::from(end_key)))),
         })
     }
 

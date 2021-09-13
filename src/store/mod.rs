@@ -19,48 +19,59 @@ mod tests {
     use crate::{Cow, MapStore, SnapshotableStorage, Store, ValueStore};
     use alloc::string::{String, ToString};
     use core::ops::Deref;
+    use crate::Result;
 
     #[test]
-    fn map_mem_test() {
+    fn map_mem_test() -> Result<()> {
         let m = Map::default();
         let s = MemoryBackend::new();
-        let mut ss = SnapshotableStorage::new(m, s).unwrap();
-        let r = ss.insert(1, 1);
-        let r = ss.insert(2, 2);
-        let r = ss.insert(3, 3);
-        let r = ss.commit();
-        let r = ss.remove(1);
-        let r = ss.commit();
-        let r = ss.get(&1);
-        let r = ss.get_mut(1);
+        let mut ss = SnapshotableStorage::new(m, s)?;
+
+        assert_eq!(ss.insert(1, 1)?,None);
+        assert_eq!(ss.insert(2, 2)?,None);
+        assert_eq!(ss.insert(3, 3)?,None);
+        assert_eq!(ss.remove(1)?,None);//remove valid, thought not submitted before deletion
+        assert_eq!(ss.commit()?,1);
+        assert_eq!(ss.commit()?,2);
+        assert_eq!(ss.commit()?,3);
+        assert_eq!(ss.get(&1)?,None);
+        assert_eq!(ss.get_mut(2)?,Some(&mut 2_i32));
+
+        Ok(())
     }
 
     #[test]
-    fn value_mem_test() {
+    fn value_mem_test() -> Result<()> {
         let v = Value::default();
         let s = MemoryBackend::new();
         let mut ss = SnapshotableStorage::new(v, s).unwrap();
-        let r = ss.set(1);
-        let r = ss.commit();
-        let r = ss.get();
-        let r = ss.set(2);
-        let r = ss.commit();
-        let r = ss.get();
+
+        assert_eq!(ss.set(1)?,None);
+        assert_eq!(ss.commit()?,1);
+        assert_eq!(ss.get()?,Some(Cow::Owned(1)));
+        assert_eq!(ss.set(2)?,Some(1));
+        assert_eq!(ss.commit()?,2);
+        assert_eq!(ss.get()?,Some(Cow::Owned(2)));
+
+        Ok(())
     }
 
     #[test]
-    fn vec_mem_test() {
+    fn vec_mem_test() -> Result<()> {
         let v = Vec::default();
         let s = MemoryBackend::new();
         let mut ss = SnapshotableStorage::new(v, s).unwrap();
-        let r = ss.insert(1);
-        let r = ss.insert(2);
-        let r = ss.insert(3);
-        let r = ss.commit();
-        let r = ss.remove(0);
-        let r = ss.commit();
-        let r = ss.get(0);
-        let r = ss.get(1);
-        let r = ss.get(2);
+
+        assert_eq!(ss.insert(1)?,None);
+        assert_eq!(ss.insert(2)?,None);
+        assert_eq!(ss.insert(3)?,None);
+        assert_eq!(ss.commit()?,1);
+        assert_eq!(ss.remove(0)?,None);//remove invalid, because it has already been submitted
+        assert_eq!(ss.commit()?,2);
+        assert_eq!(ss.get(0)?,Some(Cow::Owned(1)));
+        assert_eq!(ss.get(1)?,Some(Cow::Owned(2)));
+        assert_eq!(ss.get(2)?,Some(Cow::Owned(3)));
+
+        Ok(())
     }
 }

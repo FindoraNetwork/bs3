@@ -85,7 +85,7 @@ pub struct SledRangeBounds {
 
 impl RangeBounds<Vec<u8>> for SledRangeBounds {
     fn start_bound(&self) -> Bound<&Vec<u8>> {
-        Excluded(self.begin_key.as_ref())
+        Included(self.begin_key.as_ref())
     }
 
     fn end_bound(&self) -> Bound<&Vec<u8>> {
