@@ -31,7 +31,7 @@ pub trait Store: Send + Sync {
     }
 
     #[cfg(feature = "nightly")]
-    fn get_ge2(&self, keys:(&[u8],&[u8]))-> Result<Option<CowBytes<'_>>> {
+    fn get_ge2(&self, keys: (&[u8], &[u8])) -> Result<Option<CowBytes<'_>>> {
         let mut value = self.range(keys.0, keys.1)?;
         Ok(match value.next_back() {
             Some((_, v)) => Some(v),

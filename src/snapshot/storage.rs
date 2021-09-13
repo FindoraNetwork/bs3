@@ -178,10 +178,10 @@ where
         utils::storage_key(&self.namespace, &key, self.height)
     }
 
-    pub(crate) fn storage_tuple_key(&self, key: &Vec<u8>) -> (Vec<u8>,Vec<u8>){
+    pub(crate) fn storage_tuple_key(&self, key: &Vec<u8>) -> (Vec<u8>, Vec<u8>) {
         (
             utils::storage_key(&self.namespace, &key, 0),
-            utils::storage_key(&self.namespace, &key, self.height)
+            utils::storage_key(&self.namespace, &key, self.height),
         )
     }
 
