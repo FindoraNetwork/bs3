@@ -1,16 +1,22 @@
 use core::{cell, fmt::Debug};
 
 use alloc::boxed::Box;
+use alloc::string::String;
 
 #[derive(Debug)]
 pub enum Error {
     StoreError(Box<dyn Debug>),
 
     #[cfg(feature = "cbor")]
-    CborDeIoError,
+    CborDeError(ciborium::de::Error<core::convert::Infallible>),
 
     #[cfg(feature = "cbor")]
-    CborSerIoError(ciborium::ser::Error<core::convert::Infallible>),
+    CborSerError(ciborium::ser::Error<core::convert::Infallible>),
+
+    #[cfg(feature = "cbor")]
+    CborDeIoError(String),
+    #[cfg(feature = "cbor")]
+    CborSerIoError(String),
 
     HeightError,
     BorrowMutError(cell::BorrowMutError),
@@ -23,17 +29,17 @@ pub enum Error {
     SledError(sled::Error),
 }
 
-// #[cfg(feature = "cbor")]
-// impl From<ciborium::de::Error<core::convert::Infallible>> for Error {
-//     fn from(e: ciborium::de::Error<core::convert::Infallible>) -> Self {
-//         self::Error::CborDeIoError(e)
-//     }
-// }
+#[cfg(feature = "cbor")]
+impl From<ciborium::de::Error<core::convert::Infallible>> for Error {
+    fn from(e: ciborium::de::Error<core::convert::Infallible>) -> Self {
+        self::Error::CborDeError(e)
+    }
+}
 
 #[cfg(feature = "cbor")]
 impl From<ciborium::ser::Error<core::convert::Infallible>> for Error {
     fn from(e: ciborium::ser::Error<core::convert::Infallible>) -> Self {
-        self::Error::CborSerIoError(e)
+        self::Error::CborSerError(e)
     }
 }
 

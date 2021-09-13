@@ -12,23 +12,14 @@ fn sled_vec_test() {
     let mut ss = SnapshotableStorage::new(v, s).unwrap();
 
     let r = ss.insert(1);
-    std::println!("{:?}", r);
     let r = ss.insert(2);
-    std::println!("{:?}", r);
     let r = ss.insert(3);
-    std::println!("{:?}", r);
     let r = ss.commit();
-    std::println!("{:?}", r);
     let r = ss.remove(0);
-    std::println!("{:?}", r);
     let r = ss.commit();
-    std::println!("{:?}", r);
     let r = ss.get(0).unwrap().unwrap();
-    std::println!("{:?}", r.deref().clone());
     let r = ss.get(1).unwrap().unwrap();
-    std::println!("{:?}", r.deref().clone());
     let r = ss.get(2).unwrap().unwrap();
-    std::println!("{:?}", r.deref().clone());
 }
 
 fn sled_map_test() {

@@ -1,14 +1,14 @@
 #[cfg(feature = "cbor")]
-
 mod cbor {
-    use crate::Result;
+    use crate::{Error, Result};
+    use alloc::string::ToString;
     use alloc::vec::Vec;
     use ciborium::ser::into_writer;
-    use serde::{Deserialize, Serialize};
+    use serde::Serialize;
 
     pub fn cbor_encode(t: impl Serialize) -> Result<Vec<u8>> {
         let mut value = Vec::new();
-        into_writer(&t, &mut value)?;
+        into_writer(&t, &mut value).map_err(|e| Error::CborSerIoError(e.to_string()))?;
         Ok(value)
     }
 }
