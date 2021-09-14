@@ -11,7 +11,7 @@ where
     M: Model,
 {
     pub(crate) store: S,
-    pub(crate) height: i64,
+    pub height: i64,
     pub(crate) value: M,
     pub(crate) namespace: String,
 }
