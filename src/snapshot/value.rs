@@ -1,3 +1,7 @@
+//!
+//!
+//!
+
 use alloc::vec::Vec;
 
 #[cfg(feature = "cbor")]
@@ -17,6 +21,7 @@ pub trait FromStoreBytes {
         Self: Sized;
 }
 
+/// Packing of values that need to be stored to the storage layer
 #[derive(Serialize, Deserialize)]
 pub struct StoreValue {
     pub operation: OperationBytes,
@@ -37,6 +42,7 @@ impl ToStoreBytes for StoreValue {
     }
 }
 
+/// The height worth wrapping that will be deposited at each commit
 #[derive(Serialize, Deserialize)]
 pub struct StoreHeight {
     pub height: i64,
@@ -58,6 +64,7 @@ impl FromStoreBytes for StoreHeight {
     }
 }
 
+/// A cache layer worth of wrapping is stored at initialization time
 #[derive(Serialize, Deserialize)]
 pub struct StoreType {
     pub ty: u32,

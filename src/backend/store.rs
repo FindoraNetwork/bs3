@@ -1,3 +1,9 @@
+//!
+//! Trait Store is storage layer implementation constraints
+//! The abstracted range is supplied to the parent class Store to call
+//! where the type specifies the return of the range
+//!
+
 use crate::{CowBytes, Result};
 use alloc::vec::Vec;
 

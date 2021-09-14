@@ -1,3 +1,7 @@
+//!
+//! backend is storage layer
+//!
+
 mod store;
 pub use store::Store;
 

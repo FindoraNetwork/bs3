@@ -1,3 +1,6 @@
+//!
+//!
+
 use alloc::vec::Vec as alloc_vec;
 use core::fmt::Debug;
 
@@ -121,7 +124,7 @@ pub(crate) mod value_utils {
         vss: &SnapshotableStorage<S, Value<T>>,
     ) -> (alloc_vec<u8>, alloc_vec<u8>)
     where
-        T: Debug + Serialize + for<'de> Deserialize<'de>,
+        T: Clone + Debug + Serialize + for<'de> Deserialize<'de>,
         S: Store,
     {
         let inner_key = alloc_vec::new();
@@ -130,7 +133,7 @@ pub(crate) mod value_utils {
 
     pub fn get_inner_value<S, T>(vss: &SnapshotableStorage<S, Value<T>>) -> Result<Option<T>>
     where
-        T: Debug + Serialize + for<'de> Deserialize<'de>,
+        T: Clone + Debug + Serialize + for<'de> Deserialize<'de>,
         S: Store,
     {
         let store_key = storage_key(vss);

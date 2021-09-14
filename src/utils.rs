@@ -1,3 +1,5 @@
+/// Serialize
+/// T => Vec<u8>
 #[cfg(feature = "cbor")]
 mod cbor {
     use crate::{Error, Result};

@@ -71,6 +71,5 @@ where
         } else {
             Ok(None)
         };
-        // vec_utils::get_inner_value(self, index)
     }
 }

@@ -1,3 +1,11 @@
+//!
+//! All written values will become operation
+//! if value exist
+//!     T => Operation::Update(T)
+//! if value removed
+//!     Operation::Update(T) => Operation::Delete
+//!
+
 use alloc::vec::Vec;
 
 #[cfg(feature = "cbor")]

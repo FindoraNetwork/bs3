@@ -6,6 +6,7 @@ use super::utils::map_utils;
 #[cfg(feature = "cbor")]
 use serde::{Deserialize, Serialize};
 
+/// Defining the basic behavior of the map application layer
 pub trait MapStore<K, V>
 where
     K: Clone + PartialEq + Eq + Serialize + for<'de> Deserialize<'de> + Ord + PartialOrd + Debug,
@@ -17,9 +18,10 @@ where
 
     fn insert(&mut self, key: K, value: V) -> Result<Option<V>>;
 
-    fn remove(&mut self, key: K) -> Result<Option<V>>;
+    fn remove(&mut self, key: &K) -> Result<Option<V>>;
 }
 
+/// Implementing the middle and cache layers is the behavior of map
 impl<S, K, V> MapStore<K, V> for SnapshotableStorage<S, Map<K, V>>
 where
     K: Clone + PartialEq + Eq + Serialize + for<'de> Deserialize<'de> + Ord + PartialOrd + Debug,
@@ -67,8 +69,14 @@ where
         map_utils::get_inner_value(self, &key)
     }
 
-    fn remove(&mut self, key: K) -> Result<Option<V>> {
-        self.value.value.remove(&key);
-        map_utils::get_inner_value(self, &key)
+    fn remove(&mut self, key: &K) -> Result<Option<V>> {
+        return if let Some(op) = self.value.value.remove(key) {
+            match op {
+                Operation::Update(v) => Ok(Some(v)),
+                Operation::Delete => Ok(None),
+            }
+        } else {
+            Ok(None)
+        };
     }
 }

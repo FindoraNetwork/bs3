@@ -3,6 +3,7 @@ use alloc::{string::String, vec::Vec};
 use crate::{backend::Store, model::Model, snapshot::StoreValue, Error, Result};
 
 use super::{utils, value::StoreType, FromStoreBytes, StoreHeight, ToStoreBytes, Transaction};
+use crate::snapshot::utils::storage_key;
 
 /// Snapshotable Storage
 pub struct SnapshotableStorage<S, M>
@@ -117,6 +118,17 @@ where
 
     pub fn store(&self) -> &S {
         &self.store
+    }
+
+    pub fn get(&self, key: &str, height: i64) -> Result<Option<Vec<u8>>> {
+        let begin_key = storage_key(&*self.namespace, key, 0);
+        let end_key = storage_key(&*self.namespace, key, height);
+
+        if let Some(v) = self.store.get_ge2((&begin_key, &end_key))? {
+            Ok(Some(v.to_vec()))
+        } else {
+            Ok(None)
+        }
     }
 }
 

@@ -1,3 +1,6 @@
+//!
+//! vec cache layer
+//!
 use core::{fmt::Debug, mem};
 
 use crate::model::Model;
@@ -6,6 +9,8 @@ use alloc::{collections::BTreeMap, vec::Vec as alloc_vec};
 #[cfg(feature = "cbor")]
 use serde::{Deserialize, Serialize};
 
+/// define vec,inner value is btree
+///     key : usize
 #[derive(Debug)]
 pub struct Vec<V>
 where
@@ -25,10 +30,13 @@ where
     }
 }
 
+/// impl model
 impl<V> Model for Vec<V>
 where
     V: Clone + Serialize + for<'de> Deserialize<'de> + Debug,
 {
+    /// Consume the data in the cache
+    /// Also convert key to vec<u8>
     fn operations(&mut self) -> crate::Result<alloc_vec<(alloc_vec<u8>, OperationBytes)>> {
         use crate::utils::cbor_encode;
 
@@ -45,10 +53,12 @@ where
         Ok(map)
     }
 
+    /// define type 2
     fn type_code(&self) -> u32 {
         2
     }
 
+    /// Merge two caches
     fn merge(&mut self, other: Self) {
         let mut value = other.value;
         self.value.append(&mut value);

@@ -1,18 +1,18 @@
-use alloc::{boxed::Box, sync::Arc, vec::Vec};
-use core::{
-    fmt,
-    ops::Bound::{Excluded, Included},
-};
+//!
+//! Storage layer implemented using sled
+//!
+
+use alloc::{boxed::Box, vec::Vec};
+use core::ops::Bound::Included;
 use sled::{Db, Iter, Tree};
 
 use crate::{CowBytes, Error, Result};
 
 use super::Store;
-use crate::utils::cbor_encode;
 use core::ops::{Bound, RangeBounds};
 
-// use super::Store;
-
+///
+/// use sled tree
 pub struct SledBackend {
     tree: Tree,
 }
@@ -21,9 +21,27 @@ fn e(e: sled::Error) -> Error {
     Error::StoreError(Box::new(e))
 }
 
-pub fn sled_db_open(path: &str, is_tmp: bool) -> Result<sled::Db> {
+///
+/// create temp dir
+/// like
+///     /tmp/bs3_tmp_2234422334
+///
+pub fn tmp_dir() -> std::path::PathBuf {
+    let base_dir = std::env::temp_dir();
+    let name = std::format!("{}_{}", "bs3_tmp", rand::random::<u64>());
+    let path = base_dir.join(name);
+    let _ = std::fs::remove_dir_all(&path);
+    std::fs::create_dir(&path).unwrap();
+    path
+}
+
+/// create sled db
+/// feat Compression
+pub fn sled_db_open(is_tmp: bool) -> Result<sled::Db> {
+    let path = tmp_dir();
+
     let mut cfg = sled::Config::default()
-        .path(path)
+        .path(path.to_str().unwrap())
         .mode(sled::Mode::HighThroughput)
         .cache_capacity(20_000_000)
         .flush_every_ms(Some(3000));
@@ -39,11 +57,13 @@ pub fn sled_db_open(path: &str, is_tmp: bool) -> Result<sled::Db> {
 }
 
 impl SledBackend {
+    /// create tree
     pub fn open_tree(db: &Db, namespace: &str) -> Result<Self> {
         let tree = db.open_tree(namespace).map_err(e)?;
         Ok(Self { tree })
     }
 
+    /// get
     pub fn get(&self, key: &[u8]) -> Result<Option<Vec<u8>>> {
         match self.tree.get(key) {
             Ok(Some(v)) => Ok(Some(v.to_vec())),
@@ -53,11 +73,13 @@ impl SledBackend {
     }
 }
 
+/// SledRange used to host the sled iter
 pub struct SledRange<'a> {
     pub v: Iter,
     _s: &'a str,
 }
 
+/// impl Iterator
 impl<'a> Iterator for SledRange<'a> {
     type Item = (CowBytes<'a>, CowBytes<'a>);
 
@@ -69,6 +91,7 @@ impl<'a> Iterator for SledRange<'a> {
     }
 }
 
+/// impl DoubleEndedIterator
 impl<'a> DoubleEndedIterator for SledRange<'a> {
     fn next_back(&mut self) -> Option<Self::Item> {
         self.v
@@ -78,11 +101,13 @@ impl<'a> DoubleEndedIterator for SledRange<'a> {
     }
 }
 
+/// Searcher,Given start and end values
 pub struct SledRangeBounds {
     begin_key: Vec<u8>,
     end_key: Vec<u8>,
 }
 
+/// impl RangeBounds,converts start and end values
 impl RangeBounds<Vec<u8>> for SledRangeBounds {
     fn start_bound(&self) -> Bound<&Vec<u8>> {
         Included(self.begin_key.as_ref())
@@ -93,9 +118,11 @@ impl RangeBounds<Vec<u8>> for SledRangeBounds {
     }
 }
 
+/// impl store
 impl Store for SledBackend {
     type Range<'a> = SledRange<'a>;
 
+    /// Search Scope
     fn range(&self, begin_key: &[u8], end_key: &[u8]) -> Result<Self::Range<'_>> {
         let r = SledRangeBounds {
             begin_key: begin_key.to_vec(),
@@ -107,10 +134,11 @@ impl Store for SledBackend {
         })
     }
 
+    /// Batch insert
     fn execute(&mut self, batch: Vec<(Vec<u8>, Vec<u8>)>) -> Result<()> {
         let inner = &mut self.tree;
         for (key, value) in batch {
-            inner.insert(key, value);
+            let _ = inner.insert(key, value);
         }
         Ok(())
     }

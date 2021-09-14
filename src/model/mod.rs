@@ -1,3 +1,7 @@
+//!
+//! Trait Model constrains the behavior of the cache layer
+//!
+
 use core::fmt::Debug;
 
 use alloc::vec::Vec as alloc_vec;
