@@ -195,6 +195,7 @@ where
 
         // incr current height
         self.write_height(self.height + 1, Some(operations))?;
+        self.height += 1;
 
         log::debug!("Sync snapshot success in height: {}", self.height);
 
