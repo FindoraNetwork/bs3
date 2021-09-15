@@ -7,7 +7,7 @@ use crate::{model::Value, Cow, Operation, Result, SnapshotableStorage, Store};
 
 pub trait ValueStore<T>
 where
-    T: Debug + Serialize + for<'de> Deserialize<'de>,
+    T: Clone + Debug + Serialize + for<'de> Deserialize<'de>,
 {
     fn get(&self) -> Result<Option<Cow<'_, T>>>;
 
@@ -18,7 +18,7 @@ where
 
 impl<T, S> ValueStore<T> for SnapshotableStorage<S, Value<T>>
 where
-    T: Debug + Serialize + for<'de> Deserialize<'de>,
+    T: Clone + Debug + Serialize + for<'de> Deserialize<'de>,
     S: Store,
 {
     fn get(&self) -> Result<Option<Cow<'_, T>>> {
@@ -40,7 +40,19 @@ where
     }
 
     fn del(&mut self) -> Result<Option<T>> {
-        self.value.value = Some(Operation::Delete);
-        value_utils::get_inner_value(self)
+        // let pre_value = self.value.value;
+        // self.value.value = Some(Operation::Delete);
+        return if let Some(operation) = self.value.value.as_ref() {
+            match operation {
+                Operation::Update(v) => {
+                    let v2 = v.clone();
+                    self.value.value = Some(Operation::Delete);
+                    Ok(Some(v2))
+                }
+                Operation::Delete => Ok(None),
+            }
+        } else {
+            Ok(None)
+        };
     }
 }

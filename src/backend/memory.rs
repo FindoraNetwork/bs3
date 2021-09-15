@@ -1,3 +1,7 @@
+//!
+//! Storage layer in the form of memory
+//!
+
 use alloc::{
     collections::{btree_map::Range, BTreeMap},
     vec::Vec,
@@ -5,13 +9,21 @@ use alloc::{
 
 use crate::{CowBytes, Result};
 
-use core::{
-    fmt,
-    ops::Bound::{Excluded, Included},
-};
+use core::{fmt, ops::Bound::Included};
 
 use super::Store;
 
+///
+/// The data is finally stored in the B-tree
+/// key:Vec<u8>
+///     like:
+///         bytes({name_space}-ty)
+///         bytes({name_space}-kw-{hex(1)}-{:00000000000000000001})
+/// value:Vec<u8>
+///     like:
+///         bytes(Operation::Update(1))
+///         Bytes(Operation::Remove)
+///
 pub struct MemoryBackend {
     pub cache: BTreeMap<Vec<u8>, Vec<u8>>,
 }
@@ -30,6 +42,7 @@ impl fmt::Debug for MemoryBackend {
 }
 
 impl MemoryBackend {
+    /// create MemoryBackend
     pub fn new() -> Self {
         Self {
             cache: BTreeMap::new(),
@@ -37,10 +50,12 @@ impl MemoryBackend {
     }
 }
 
+/// Range used to host the b-tree
 pub struct MemoryRange<'a> {
     pub v: Range<'a, Vec<u8>, Vec<u8>>,
 }
 
+/// impl Iterator
 impl<'a> Iterator for MemoryRange<'a> {
     type Item = (CowBytes<'a>, CowBytes<'a>);
 
@@ -51,6 +66,7 @@ impl<'a> Iterator for MemoryRange<'a> {
     }
 }
 
+/// impl DoubleEndedIterator
 impl<'a> DoubleEndedIterator for MemoryRange<'a> {
     fn next_back(&mut self) -> Option<Self::Item> {
         self.v
@@ -59,17 +75,21 @@ impl<'a> DoubleEndedIterator for MemoryRange<'a> {
     }
 }
 
+/// impl store
+/// fn range used in get_ge
 impl Store for MemoryBackend {
     type Range<'a> = MemoryRange<'a>;
 
+    /// Search Scope
     fn range(&self, begin_key: &[u8], end_key: &[u8]) -> Result<Self::Range<'_>> {
         Ok(MemoryRange {
             v: self
                 .cache
-                .range((Excluded(Vec::from(begin_key)), Included(Vec::from(end_key)))),
+                .range((Included(Vec::from(begin_key)), Included(Vec::from(end_key)))),
         })
     }
 
+    /// Batch insert
     fn execute(&mut self, batch: Vec<(Vec<u8>, Vec<u8>)>) -> Result<()> {
         let inner = &mut self.cache;
         for (key, value) in batch {

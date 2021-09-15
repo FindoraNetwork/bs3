@@ -1,3 +1,9 @@
+//!
+//! Trait Store is storage layer implementation constraints
+//! The abstracted range is supplied to the parent class Store to call
+//! where the type specifies the return of the range
+//!
+
 use crate::{CowBytes, Result};
 use alloc::vec::Vec;
 
@@ -24,6 +30,15 @@ pub trait Store: Send + Sync {
     #[cfg(feature = "nightly")]
     fn get_ge(&self, key: &[u8]) -> Result<Option<CowBytes<'_>>> {
         let mut value = self.range(&Vec::new(), key)?;
+        Ok(match value.next_back() {
+            Some((_, v)) => Some(v),
+            None => None,
+        })
+    }
+
+    #[cfg(feature = "nightly")]
+    fn get_ge2(&self, keys: (&[u8], &[u8])) -> Result<Option<CowBytes<'_>>> {
+        let mut value = self.range(keys.0, keys.1)?;
         Ok(match value.next_back() {
             Some((_, v)) => Some(v),
             None => None,
