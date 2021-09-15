@@ -10,15 +10,14 @@ hex = { version = "0.4", default-features = false, features = ["alloc"] }
 log = "0.4.14"
 ciborium = { version = "0.1.0", default-features = false, optional = true }
 serde = { version = "1.0.130", features = ["derive", "alloc"], optional = true }
-rocksdb = { version = "0.17.0", default-features = false, features = ["lz4"] }
 rand = "0.8"
 
 # dependency for seld.
-sled = { version = "0.34", optional = true }
+sled = { version = "0.34", features = ["compression"], optional = true }
 
 [features]
 default = ["cbor", "nightly"]
-compress = ["rocksdb/lz4"]
+compress = []
 
 # feature for std usage.
 std = []

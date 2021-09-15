@@ -120,7 +120,7 @@ where
         &self.store
     }
 
-    pub fn get(&self, key: &str, height: i64) -> Result<Option<Vec<u8>>> {
+    fn get(&self, key: &str, height: i64) -> Result<Option<Vec<u8>>> {
         let begin_key = storage_key(&*self.namespace, key, 0);
         let end_key = storage_key(&*self.namespace, key, height);
 
