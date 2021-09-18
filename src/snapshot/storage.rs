@@ -234,9 +234,9 @@ where
     }
 
     /// Consume transaction to apply.
-    pub fn execute(&mut self, tx: Transaction<'_, S, M>) {
-        log::debug!("Transaction Cache: {:#?}", tx.value);
-        self.value.merge(tx.value)
+    pub fn execute(&mut self, val: M) {
+        log::debug!("Transaction Cache: {:#?}", val);
+        self.value.merge(val)
     }
 }
 
