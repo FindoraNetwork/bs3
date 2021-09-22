@@ -157,6 +157,7 @@ where
         pre_commit: Option<Vec<(Vec<u8>, Vec<u8>)>>,
     ) -> Result<()> {
         log::debug!("Begin sync snapshot success in height: {}", self.height + 1);
+
         self.height = target_height;
 
         let mut operations = if let Some(ops) = pre_commit {
@@ -214,7 +215,6 @@ where
 
         // incr current height
         self.write_height(self.height + 1, Some(operations))?;
-        self.height += 1;
 
         log::debug!("Sync snapshot success in height: {}", self.height);
 

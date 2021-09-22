@@ -14,7 +14,7 @@ where
 {
     fn get(&self, key: &K) -> Result<Option<Cow<'_, V>>>;
 
-    fn get_mut(&mut self, key: K) -> Result<Option<&mut V>>;
+    fn get_mut(&mut self, key: &K) -> Result<Option<&mut V>>;
 
     fn insert(&mut self, key: K, value: V) -> Result<Option<V>>;
 
@@ -43,20 +43,20 @@ where
         };
     }
 
-    fn get_mut(&mut self, key: K) -> Result<Option<&mut V>> {
-        if let Some(Operation::Delete) = self.value.value.get(&key) {
+    fn get_mut(&mut self, key: &K) -> Result<Option<&mut V>> {
+        if let Some(Operation::Delete) = self.value.value.get(key) {
             return Ok(None);
         }
 
-        if !self.value.value.contains_key(&key) {
-            if let Some(operation) = map_utils::get_inner_operation(self, &key)? {
+        if !self.value.value.contains_key(key) {
+            if let Some(operation) = map_utils::get_inner_operation(self, key)? {
                 self.value.value.insert(key.clone(), operation);
             } else {
                 return Ok(None);
             }
         }
 
-        if let Operation::Update(value) = self.value.value.get_mut(&key).unwrap() {
+        if let Operation::Update(value) = self.value.value.get_mut(key).unwrap() {
             Ok(Some(value))
         } else {
             Ok(None)

@@ -17,6 +17,9 @@ pub use map::Map;
 mod vec;
 pub use vec::Vec;
 
+mod doublekey_map;
+pub use doublekey_map::DoubleKeyMap;
+
 pub trait Model: Default + Debug {
     /// Get operations for this value.
     ///
