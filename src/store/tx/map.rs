@@ -22,8 +22,8 @@ where
         };
     }
 
-    fn get_mut(&mut self, key: K) -> crate::Result<Option<&mut V>> {
-        if let Operation::Update(value) = self.value.value.get_mut(&key).unwrap() {
+    fn get_mut(&mut self, key: &K) -> crate::Result<Option<&mut V>> {
+        if let Operation::Update(value) = self.value.value.get_mut(key).unwrap() {
             Ok(Some(value))
         } else {
             Ok(None)

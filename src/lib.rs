@@ -86,6 +86,6 @@ pub mod backend;
 pub use backend::Store;
 
 mod store;
-pub use store::{MapStore, ValueStore, VecStore};
+pub use store::{MapStore, ValueStore, VecStore, DoubleKeyMapStore};
 
 mod utils;

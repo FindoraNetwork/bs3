@@ -7,7 +7,7 @@ use core::fmt::Debug;
 use crate::snapshot::{FromStoreBytes, StoreValue};
 use crate::utils::cbor_encode;
 use crate::{
-    model::{Map, Value, Vec},
+    model::{Map, Value, Vec, DoubleKeyMap},
     Operation, Result, SnapshotableStorage, Store,
 };
 #[cfg(feature = "cbor")]
@@ -61,6 +61,55 @@ pub(crate) mod map_utils {
             + Debug,
         V: Clone + Serialize + for<'de> Deserialize<'de> + Debug,
         S: Store,
+    {
+        let operation = get_inner_operation(vss, key)?;
+        if let Some(operation) = operation {
+            match operation {
+                Operation::Update(v) => Ok(Some(v)),
+                Operation::Delete => Ok(None),
+            }
+        } else {
+            Ok(None)
+        }
+    }
+}
+
+pub(crate) mod doublekeymap_utils {
+    use super::*;
+
+    pub fn get_inner_operation<S, K1, K2, V>(
+        vss: &SnapshotableStorage<S, DoubleKeyMap<K1, K2, V>>,
+        key: &(K1, K2),
+    ) -> Result<Option<Operation<V>>>
+        where
+            K1: Clone + PartialEq + Eq + Serialize + for<'de> Deserialize<'de> + Ord + PartialOrd + Debug,
+            K2: Clone + PartialEq + Eq + Serialize + for<'de> Deserialize<'de> + Ord + PartialOrd + Debug,
+            V: Clone + Serialize + for<'de> Deserialize<'de> + Debug,
+            S: Store,
+    {
+        let key_bytes = cbor_encode(key)?;
+        let store_key = vss.storage_tuple_key(&key_bytes);
+        let bytes = vss.store.get_ge2((&store_key.0, &store_key.1))?;
+        // let store_key = vss.storage_key(&key_bytes);
+        // let bytes = vss.store.get_ge(&*store_key)?;
+        if let Some(bytes) = bytes {
+            let value = StoreValue::from_bytes(&bytes)?;
+            let operation = Operation::from_bytes(&value.operation)?;
+            Ok(Some(operation))
+        } else {
+            Ok(None)
+        }
+    }
+
+    pub fn get_inner_value<S, K1, K2, V>(
+        vss: &SnapshotableStorage<S, DoubleKeyMap<K1, K2, V>>,
+        key: &(K1, K2),
+    ) -> Result<Option<V>>
+        where
+            K1: Clone + PartialEq + Eq + Serialize + for<'de> Deserialize<'de> + Ord + PartialOrd + Debug,
+            K2: Clone + PartialEq + Eq + Serialize + for<'de> Deserialize<'de> + Ord + PartialOrd + Debug,
+            V: Clone + Serialize + for<'de> Deserialize<'de> + Debug,
+            S: Store,
     {
         let operation = get_inner_operation(vss, key)?;
         if let Some(operation) = operation {
@@ -150,3 +199,5 @@ pub(crate) mod value_utils {
         }
     }
 }
+
+
