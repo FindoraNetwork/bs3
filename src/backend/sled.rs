@@ -38,12 +38,15 @@ pub fn tmp_dir() -> std::path::PathBuf {
 
 /// create sled db
 /// feat Compression
-pub fn sled_db_open(is_tmp: bool, path: Option<&str>) -> Result<sled::Db> {
+pub fn sled_db_open(path: Option<&str>) -> Result<sled::Db> {
+
+    let is_tmp = false;
 
     let path = if let Some(path) = path {
         path.to_string()
     } else {
         let path = tmp_dir().to_str().unwrap().to_string();
+        is_tmp = true;
         path
     };
 
