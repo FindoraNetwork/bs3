@@ -40,7 +40,7 @@ pub fn tmp_dir() -> std::path::PathBuf {
 /// feat Compression
 pub fn sled_db_open(path: Option<&str>) -> Result<sled::Db> {
 
-    let is_tmp = false;
+    let mut is_tmp = false;
 
     let path = if let Some(path) = path {
         path.to_string()
