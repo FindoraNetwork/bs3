@@ -5,7 +5,7 @@ use bs3::{SnapshotableStorage, Transaction};
 
 fn sled_vec_test() -> Result<()> {
     let v = Vec::default();
-    let db = sled_db_open(false).unwrap();
+    let db = sled_db_open(false,None).unwrap();
     let s = SledBackend::open_tree(&db, "vec_sled_test").unwrap();
     let mut ss = SnapshotableStorage::new(v, s).unwrap();
 
@@ -24,7 +24,7 @@ fn sled_vec_test() -> Result<()> {
 
 fn sled_map_test() -> Result<()> {
     let m = Map::default();
-    let db = sled_db_open(false).unwrap();
+    let db = sled_db_open(false,None).unwrap();
     let s = SledBackend::open_tree(&db, "map_sled_test").unwrap();
     let mut ss = SnapshotableStorage::new(m, s).unwrap();
 
@@ -43,7 +43,7 @@ fn sled_map_test() -> Result<()> {
 
 fn sled_doublekeymap_test() -> Result<()> {
     let m = DoubleKeyMap::default();
-    let db = sled_db_open(false).unwrap();
+    let db = sled_db_open(false,None).unwrap();
     let s = SledBackend::open_tree(&db, "map_sled_test").unwrap();
     let mut ss = SnapshotableStorage::new(m, s).unwrap();
 
@@ -62,7 +62,7 @@ fn sled_doublekeymap_test() -> Result<()> {
 
 fn sled_value_test() -> Result<()> {
     let v = Value::default();
-    let db = sled_db_open(false).unwrap();
+    let db = sled_db_open(false,None).unwrap();
     let s = SledBackend::open_tree(&db, "value_sled_test").unwrap();
     let mut ss = SnapshotableStorage::new(v, s).unwrap();
 
@@ -78,7 +78,7 @@ fn sled_value_test() -> Result<()> {
 
 fn tx_sled_value_test() -> Result<()> {
     let v = Value::default();
-    let db = sled_db_open(false).unwrap();
+    let db = sled_db_open(false,None).unwrap();
     let s = SledBackend::open_tree(&db, "value_sled_test").unwrap();
     let ss = SnapshotableStorage::new(v, s).unwrap();
     let mut tx = Transaction::new(&ss);
@@ -93,7 +93,7 @@ fn tx_sled_value_test() -> Result<()> {
 
 fn tx_sled_map_test() -> Result<()> {
     let m = Map::default();
-    let db = sled_db_open(false).unwrap();
+    let db = sled_db_open(false,None).unwrap();
     let s = SledBackend::open_tree(&db, "map_sled_test").unwrap();
     let ss = SnapshotableStorage::new(m, s).unwrap();
     let mut tx = Transaction::new(&ss);
@@ -110,7 +110,7 @@ fn tx_sled_map_test() -> Result<()> {
 
 fn tx_sled_doublekeymap_test() -> Result<()> {
     let m = DoubleKeyMap::default();
-    let db = sled_db_open(false).unwrap();
+    let db = sled_db_open(false,None).unwrap();
     let s = SledBackend::open_tree(&db, "map_sled_test").unwrap();
     let ss = SnapshotableStorage::new(m, s).unwrap();
     let mut tx = Transaction::new(&ss);
@@ -127,7 +127,7 @@ fn tx_sled_doublekeymap_test() -> Result<()> {
 
 fn tx_sled_vec_test() -> Result<()> {
     let v = Vec::default();
-    let db = sled_db_open(false).unwrap();
+    let db = sled_db_open(false,None).unwrap();
     let s = SledBackend::open_tree(&db, "vec_sled_test").unwrap();
     let ss = SnapshotableStorage::new(v, s).unwrap();
     let mut tx = Transaction::new(&ss);

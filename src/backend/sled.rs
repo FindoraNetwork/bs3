@@ -10,6 +10,7 @@ use crate::{CowBytes, Error, Result};
 
 use super::Store;
 use core::ops::{Bound, RangeBounds};
+use alloc::string::ToString;
 
 ///
 /// use sled tree
@@ -37,11 +38,17 @@ pub fn tmp_dir() -> std::path::PathBuf {
 
 /// create sled db
 /// feat Compression
-pub fn sled_db_open(is_tmp: bool) -> Result<sled::Db> {
-    let path = tmp_dir();
+pub fn sled_db_open(is_tmp: bool, path: Option<&str>) -> Result<sled::Db> {
+
+    let path = if let Some(path) = path {
+        path.to_string()
+    } else {
+        let path = tmp_dir().to_str().unwrap().to_string();
+        path
+    };
 
     let mut cfg = sled::Config::default()
-        .path(path.to_str().unwrap())
+        .path(path)
         .mode(sled::Mode::HighThroughput)
         .cache_capacity(20_000_000)
         .flush_every_ms(Some(3000));
