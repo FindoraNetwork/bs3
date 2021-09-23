@@ -180,7 +180,7 @@ where
     /// rollback to point height, target_height must less than current height.
     pub fn rollback(&mut self, target_height: i64) -> Result<()> {
         if target_height > self.height {
-            log::error!("Target height must less than current height");
+            log::error!("Target height {} must less than current height {}", target_height, self.height);
             Err(Error::HeightError)
         } else {
             self.write_height(target_height, None)
