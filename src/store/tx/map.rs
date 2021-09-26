@@ -23,7 +23,7 @@ where
     }
 
     fn get_mut(&mut self, key: &K) -> crate::Result<Option<&mut V>> {
-        if let Operation::Update(value) = self.value.value.get_mut(key).unwrap() {
+        if let Some(Operation::Update(value)) = self.value.value.get_mut(key) {
             Ok(Some(value))
         } else {
             Ok(None)
