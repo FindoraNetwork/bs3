@@ -27,6 +27,16 @@ pub enum Error {
 
     #[cfg(feature = "sled-backend")]
     SledError(sled::Error),
+
+    #[cfg(feature = "sled-backend")]
+    StdIoError(std::io::Error)
+}
+
+#[cfg(feature = "sled-backend")]
+impl From<std::io::Error> for Error {
+    fn from(e: std::io::Error) -> Self {
+        self::Error::StdIoError(e)
+    }
 }
 
 #[cfg(feature = "cbor")]

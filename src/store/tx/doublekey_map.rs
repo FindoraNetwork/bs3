@@ -26,7 +26,7 @@ impl<'a, S, K1, K2, V> DoubleKeyMapStore<K1, K2, V> for Transaction<'a, S, Doubl
 
     fn get_mut(&mut self, key1: &K1, key2: &K2) -> crate::Result<Option<&mut V>> {
         let key = &(key1.clone(), key2.clone());
-        if let Operation::Update(value) = self.value.value.value.get_mut(key).unwrap() {
+        if let Some(Operation::Update(value)) = self.value.value.value.get_mut(key) {
             Ok(Some(value))
         } else {
             Ok(None)
