@@ -31,7 +31,6 @@ pub fn tmp_dir() -> Result<std::path::PathBuf> {
     let base_dir = std::env::temp_dir();
     let name = std::format!("{}_{}", "bs3_tmp", rand::random::<u64>());
     let path = base_dir.join(name);
-    std::fs::remove_dir_all(&path)?;
     std::fs::create_dir(&path)?;
     Ok(path)
 }
@@ -45,9 +44,12 @@ pub fn sled_db_open(path: Option<&str>) -> Result<sled::Db> {
     let path = if let Some(path) = path {
         path.to_string()
     } else {
-        let path = tmp_dir()?.to_str().to_string();
-        is_tmp = true;
-        path
+        if let Some(path) = tmp_dir()?.to_str() {
+            is_tmp = true;
+            path.to_string()
+        } else {
+            return Err(Error::StoreError(Box::new("tmp_dir is none")));
+        }
     };
 
     let mut cfg = sled::Config::default()

@@ -3,6 +3,7 @@ use core::fmt::Debug;
 use crate::model::Vec;
 use crate::{Cow, Operation, Store, Transaction, VecStore};
 use serde::{Deserialize, Serialize};
+use crate::store::utils::vec_utils;
 
 impl<'a, S, T> VecStore<T> for Transaction<'a, S, Vec<T>>
 where
@@ -10,20 +11,41 @@ where
     S: Store,
 {
     fn get(&self, index: usize) -> crate::Result<Option<Cow<'_, T>>> {
-        if let Some(operation) = self.value.value.get(&index) {
-            match operation {
-                Operation::Update(v) => Ok(Some(Cow::Borrowed(v))),
-                Operation::Delete => Ok(None),
+        let self_value = self.value.value.get(&index);
+
+        Ok(match self_value {
+            Some(Operation::Update(v)) => Some(Cow::Borrowed(v)),
+            Some(Operation::Delete) => None,
+            None => {
+                let lower_value = self.store.value.value.get(&index);
+                match lower_value {
+                    Some(Operation::Update(v)) => Some(Cow::Borrowed(v)),
+                    Some(Operation::Delete) => None,
+                    None => None
+                }
             }
-        } else {
-            Ok(None)
-        }
+        })
     }
 
     fn get_mut(&mut self, index: usize) -> crate::Result<Option<&mut T>> {
-        if let Some(Operation::Update(value)) = self.value.value.get_mut(&index) {
-            Ok(Some(value))
+
+        if let Some(Operation::Delete) = self.value.value.get(&index) {
+            return Ok(None);
+        }
+
+        if !self.value.value.contains_key(&index) {
+            if let Some(operation) = vec_utils::get_inner_operation(self.store, index)? {
+                self.value.value.insert(index, operation);
+            } else {
+                return Ok(None);
+            }
+        }
+
+        // I'm ensure here has value.
+        if let Some(Operation::Update(v)) = self.value.value.get_mut(&index) {
+            Ok(Some(v))
         } else {
+            // So this branch will never enter.
             Ok(None)
         }
     }
