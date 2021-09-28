@@ -70,13 +70,21 @@ where
     }
 
     fn remove(&mut self, key: &K) -> Result<Option<V>> {
-        return if let Some(op) = self.value.value.remove(key) {
+        let res = if let Some(op) = self.value.value.remove(key) {
             match op {
-                Operation::Update(v) => Ok(Some(v)),
-                Operation::Delete => Ok(None),
+                Operation::Update(v) => Some(v),
+                Operation::Delete => None,
             }
         } else {
-            Ok(None)
+            if let Some(v) = map_utils::get_inner_value(self, key)? {
+                Some(v)
+            } else {
+                None
+            }
         };
+
+        self.value.value.insert(key.clone(), Operation::Delete);
+
+        Ok(res)
     }
 }
