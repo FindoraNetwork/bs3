@@ -149,7 +149,7 @@ impl Store for SledBackend {
         let inner = &mut self.tree;
         log::debug!("Write {} record", batch.len());
         for (key, value) in batch {
-            log::debug!(target: "bs3-sled", "Insert key is : {:?", key);
+            log::debug!(target: "bs3-sled", "Insert key is : {:?}", key);
             log::debug!(target: "bs3-sled", "Insert value is : {:?}", value);
             let _ = inner.insert(key, value);
         }
