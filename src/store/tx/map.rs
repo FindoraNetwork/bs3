@@ -12,20 +12,43 @@ where
     S: Store,
 {
     fn get(&self, key: &K) -> crate::Result<Option<Cow<'_, V>>> {
-        return if let Some(operation) = self.value.value.get(key) {
-            match operation {
-                Operation::Update(v) => Ok(Some(Cow::Borrowed(v))),
-                Operation::Delete => Ok(None),
+        let self_value = self.value.value.get(key);
+
+        Ok(match self_value {
+            Some(Operation::Update(v)) => Some(Cow::Borrowed(v)),
+            Some(Operation::Delete) => None,
+            None => {
+                let lower_value = self.store.value.value.get(key);
+                match lower_value {
+                    Some(Operation::Update(v)) => Some(Cow::Borrowed(v)),
+                    Some(Operation::Delete) => None,
+                    None => None
+                }
             }
-        } else {
-            Ok(None)
-        };
+        })
     }
 
     fn get_mut(&mut self, key: &K) -> crate::Result<Option<&mut V>> {
-        if let Some(Operation::Update(value)) = self.value.value.get_mut(key) {
-            Ok(Some(value))
+
+        if let Some(Operation::Delete) = self.value.value.get(key) {
+            return Ok(None);
+        } 
+
+        if !self.value.value.contains_key(key) {
+            let lower_value = self.store.get(key)?;
+            if let Some(v) = lower_value {
+                let value = v.clone();
+                self.value.value.insert(key.clone(), Operation::Update(value));
+            } else {
+                return Ok(None);
+            }
+        }
+
+        // I'm ensure here has value.
+        if let Some(Operation::Update(v)) = self.value.value.get_mut(key) {
+            Ok(Some(v))
         } else {
+            // So this branch will never enter.
             Ok(None)
         }
     }
