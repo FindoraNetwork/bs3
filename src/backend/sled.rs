@@ -147,6 +147,7 @@ impl Store for SledBackend {
     /// Batch insert
     fn execute(&mut self, batch: Vec<(Vec<u8>, Vec<u8>)>) -> Result<()> {
         let inner = &mut self.tree;
+        log::debug("Write {} record", batch.len());
         for (key, value) in batch {
             let _ = inner.insert(key, value);
         }

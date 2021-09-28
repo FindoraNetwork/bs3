@@ -205,7 +205,7 @@ where
         // exchange cache.
         // let mut cache = mem::replace(&mut self.value, M::default());
 
-        log::debug!("Snapshot Cache: {:#?}", self.value);
+        log::debug!("Snapshot Cache: {:?}", self.value);
 
         for (k, v) in self.value.operations()? {
             let key_bytes = self.storage_key(&k);
@@ -235,7 +235,7 @@ where
 
     /// Consume transaction to apply.
     pub fn execute(&mut self, val: M) {
-        log::debug!("Transaction Cache: {:#?}", val);
+        log::debug!("Transaction Cache: {:?}", val);
         self.value.merge(val)
     }
 }
