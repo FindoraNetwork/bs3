@@ -41,19 +41,24 @@ where
     }
 
     fn del(&mut self) -> Result<Option<T>> {
-        // let pre_value = self.value.value;
-        // self.value.value = Some(Operation::Delete);
-        return if let Some(operation) = self.value.value.as_ref() {
+        let res = if let Some(operation) = self.value.value.as_ref() {
             match operation {
                 Operation::Update(v) => {
                     let v2 = v.clone();
-                    self.value.value = Some(Operation::Delete);
-                    Ok(Some(v2))
+                    Some(v2)
                 }
-                Operation::Delete => Ok(None),
+                Operation::Delete => None,
             }
         } else {
-            Ok(None)
+            if let Some(v) = value_utils::get_inner_value(self)?{
+                Some(v)
+            } else {
+                None
+            }
         };
+
+        self.value.value = Some(Operation::Delete);
+
+        Ok(res)
     }
 }
