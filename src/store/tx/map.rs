@@ -22,23 +22,24 @@ where
                 match lower_value {
                     Some(Operation::Update(v)) => Some(Cow::Borrowed(v)),
                     Some(Operation::Delete) => None,
-                    None => None
+                    None => None,
                 }
             }
         })
     }
 
     fn get_mut(&mut self, key: &K) -> crate::Result<Option<&mut V>> {
-
         if let Some(Operation::Delete) = self.value.value.get(key) {
             return Ok(None);
-        } 
+        }
 
         if !self.value.value.contains_key(key) {
             let lower_value = self.store.get(key)?;
             if let Some(v) = lower_value {
                 let value = v.clone();
-                self.value.value.insert(key.clone(), Operation::Update(value));
+                self.value
+                    .value
+                    .insert(key.clone(), Operation::Update(value));
             } else {
                 return Ok(None);
             }

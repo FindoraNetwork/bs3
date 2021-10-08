@@ -6,11 +6,11 @@ use core::fmt::Debug;
 use serde::{Deserialize, Serialize};
 
 impl<'a, S, K1, K2, V> DoubleKeyMapStore<K1, K2, V> for Transaction<'a, S, DoubleKeyMap<K1, K2, V>>
-    where
-        K1: Clone + PartialEq + Eq + Serialize + for<'de> Deserialize<'de> + Ord + PartialOrd + Debug,
-        K2: Clone + PartialEq + Eq + Serialize + for<'de> Deserialize<'de> + Ord + PartialOrd + Debug,
-        V: Clone + Serialize + for<'de> Deserialize<'de> + Debug,
-        S: Store,
+where
+    K1: Clone + PartialEq + Eq + Serialize + for<'de> Deserialize<'de> + Ord + PartialOrd + Debug,
+    K2: Clone + PartialEq + Eq + Serialize + for<'de> Deserialize<'de> + Ord + PartialOrd + Debug,
+    V: Clone + Serialize + for<'de> Deserialize<'de> + Debug,
+    S: Store,
 {
     fn get(&self, key1: &K1, key2: &K2) -> crate::Result<Option<Cow<'_, V>>> {
         let key = &(key1.clone(), key2.clone());
@@ -34,7 +34,7 @@ impl<'a, S, K1, K2, V> DoubleKeyMapStore<K1, K2, V> for Transaction<'a, S, Doubl
     }
 
     fn insert(&mut self, key1: K1, key2: K2, value: V) -> crate::Result<Option<V>> {
-        let key = (key1,key2);
+        let key = (key1, key2);
         let operation = Operation::Update(value.clone());
         let mut pre_val = None;
         if let Some(operation) = self.value.value.value.get_mut(&key) {

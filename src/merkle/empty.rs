@@ -13,7 +13,7 @@ pub struct EmptyMerkle<D: Digest> {
 impl<D: Digest> Merkle for EmptyMerkle<D> {
     type Digest = D;
 
-    fn insert(&mut self, _key: &[u8], _value: &[u8]) -> Result<()> {
+    fn insert(&mut self, _batch: &[(&[u8], &[u8])]) -> Result<()> {
         Ok(())
     }
 
@@ -21,4 +21,3 @@ impl<D: Digest> Merkle for EmptyMerkle<D> {
         Ok(Default::default())
     }
 }
-

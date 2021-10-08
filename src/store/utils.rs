@@ -7,7 +7,7 @@ use core::fmt::Debug;
 use crate::snapshot::{FromStoreBytes, StoreValue};
 use crate::utils::cbor_encode;
 use crate::{
-    model::{Map, Value, Vec, DoubleKeyMap},
+    model::{DoubleKeyMap, Map, Value, Vec},
     Operation, Result, SnapshotableStorage, Store,
 };
 #[cfg(feature = "cbor")]
@@ -81,11 +81,25 @@ pub(crate) mod doublekeymap_utils {
         vss: &SnapshotableStorage<S, DoubleKeyMap<K1, K2, V>>,
         key: &(K1, K2),
     ) -> Result<Option<Operation<V>>>
-        where
-            K1: Clone + PartialEq + Eq + Serialize + for<'de> Deserialize<'de> + Ord + PartialOrd + Debug,
-            K2: Clone + PartialEq + Eq + Serialize + for<'de> Deserialize<'de> + Ord + PartialOrd + Debug,
-            V: Clone + Serialize + for<'de> Deserialize<'de> + Debug,
-            S: Store,
+    where
+        K1: Clone
+            + PartialEq
+            + Eq
+            + Serialize
+            + for<'de> Deserialize<'de>
+            + Ord
+            + PartialOrd
+            + Debug,
+        K2: Clone
+            + PartialEq
+            + Eq
+            + Serialize
+            + for<'de> Deserialize<'de>
+            + Ord
+            + PartialOrd
+            + Debug,
+        V: Clone + Serialize + for<'de> Deserialize<'de> + Debug,
+        S: Store,
     {
         let key_bytes = cbor_encode(key)?;
         let store_key = vss.storage_tuple_key(&key_bytes);
@@ -105,11 +119,25 @@ pub(crate) mod doublekeymap_utils {
         vss: &SnapshotableStorage<S, DoubleKeyMap<K1, K2, V>>,
         key: &(K1, K2),
     ) -> Result<Option<V>>
-        where
-            K1: Clone + PartialEq + Eq + Serialize + for<'de> Deserialize<'de> + Ord + PartialOrd + Debug,
-            K2: Clone + PartialEq + Eq + Serialize + for<'de> Deserialize<'de> + Ord + PartialOrd + Debug,
-            V: Clone + Serialize + for<'de> Deserialize<'de> + Debug,
-            S: Store,
+    where
+        K1: Clone
+            + PartialEq
+            + Eq
+            + Serialize
+            + for<'de> Deserialize<'de>
+            + Ord
+            + PartialOrd
+            + Debug,
+        K2: Clone
+            + PartialEq
+            + Eq
+            + Serialize
+            + for<'de> Deserialize<'de>
+            + Ord
+            + PartialOrd
+            + Debug,
+        V: Clone + Serialize + for<'de> Deserialize<'de> + Debug,
+        S: Store,
     {
         let operation = get_inner_operation(vss, key)?;
         if let Some(operation) = operation {
@@ -199,5 +227,3 @@ pub(crate) mod value_utils {
         }
     }
 }
-
-

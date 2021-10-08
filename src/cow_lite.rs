@@ -27,7 +27,7 @@ impl<'a, T> AsRef<T> for Cow<'a, T> {
     fn as_ref(&self) -> &T {
         match self {
             Cow::Owned(t) => &t,
-            Cow::Borrowed(t) => *t
+            Cow::Borrowed(t) => *t,
         }
     }
 }
