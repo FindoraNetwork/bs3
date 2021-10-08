@@ -111,7 +111,7 @@ where
 mod tests {
     use alloc::string::String;
 
-    use crate::{backend::MemoryBackend, SnapshotableStorage, Store, ValueStore};
+    use crate::{backend::MemoryBackend, SnapshotableStorage};
 
     use super::Value;
 
