@@ -90,5 +90,4 @@ pub use store::{MapStore, ValueStore, VecStore, DoubleKeyMapStore};
 
 mod utils;
 
-mod merkle;
-pub use merkle::Merkle;
+pub mod merkle;
