@@ -1,5 +1,5 @@
 use super::utils::vec_utils;
-use crate::{model::Vec, Cow, Operation, Result, SnapshotableStorage, Store};
+use crate::{Cow, Operation, Result, SnapshotableStorage, Store, merkle::Merkle, model::Vec};
 use core::fmt::Debug;
 use serde::{Deserialize, Serialize};
 
@@ -16,10 +16,11 @@ where
     fn remove(&mut self, index: usize) -> Result<Option<T>>;
 }
 
-impl<S, T> VecStore<T> for SnapshotableStorage<S, Vec<T>>
+impl<S, M, T> VecStore<T> for SnapshotableStorage<S, M, Vec<T>>
 where
     T: Clone + Debug + Serialize + for<'de> Deserialize<'de>,
     S: Store,
+    M: Merkle,
 {
     fn get(&self, index: usize) -> Result<Option<Cow<'_, T>>> {
         if let Some(operation) = self.value.value.get(&index) {

@@ -10,6 +10,14 @@ pub struct EmptyMerkle<D: Digest> {
     marker: PhantomData<D>,
 }
 
+impl<D: Digest> Default for EmptyMerkle<D> {
+    fn default() -> Self {
+        Self {
+            marker: PhantomData,
+        }
+    }
+}
+
 impl<D: Digest> Merkle for EmptyMerkle<D> {
     type Digest = D;
 

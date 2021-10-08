@@ -14,10 +14,12 @@ use crate::{
 use serde::{Deserialize, Serialize};
 
 pub(crate) mod map_utils {
+    use crate::merkle::Merkle;
+
     use super::*;
 
-    pub fn get_inner_operation<S, K, V>(
-        vss: &SnapshotableStorage<S, Map<K, V>>,
+    pub fn get_inner_operation<S, M, K, V>(
+        vss: &SnapshotableStorage<S, M, Map<K, V>>,
         key: &K,
     ) -> Result<Option<Operation<V>>>
     where
@@ -31,6 +33,7 @@ pub(crate) mod map_utils {
             + Debug,
         V: Clone + Serialize + for<'de> Deserialize<'de> + Debug,
         S: Store,
+        M: Merkle,
     {
         let key_bytes = cbor_encode(key)?;
         let store_key = vss.storage_tuple_key(&key_bytes);
@@ -46,8 +49,8 @@ pub(crate) mod map_utils {
         }
     }
 
-    pub fn get_inner_value<S, K, V>(
-        vss: &SnapshotableStorage<S, Map<K, V>>,
+    pub fn get_inner_value<S, M, K, V>(
+        vss: &SnapshotableStorage<S, M, Map<K, V>>,
         key: &K,
     ) -> Result<Option<V>>
     where
@@ -61,6 +64,7 @@ pub(crate) mod map_utils {
             + Debug,
         V: Clone + Serialize + for<'de> Deserialize<'de> + Debug,
         S: Store,
+        M: Merkle,
     {
         let operation = get_inner_operation(vss, key)?;
         if let Some(operation) = operation {
@@ -75,10 +79,12 @@ pub(crate) mod map_utils {
 }
 
 pub(crate) mod doublekeymap_utils {
+    use crate::merkle::Merkle;
+
     use super::*;
 
-    pub fn get_inner_operation<S, K1, K2, V>(
-        vss: &SnapshotableStorage<S, DoubleKeyMap<K1, K2, V>>,
+    pub fn get_inner_operation<S, M, K1, K2, V>(
+        vss: &SnapshotableStorage<S, M, DoubleKeyMap<K1, K2, V>>,
         key: &(K1, K2),
     ) -> Result<Option<Operation<V>>>
     where
@@ -100,6 +106,7 @@ pub(crate) mod doublekeymap_utils {
             + Debug,
         V: Clone + Serialize + for<'de> Deserialize<'de> + Debug,
         S: Store,
+        M: Merkle,
     {
         let key_bytes = cbor_encode(key)?;
         let store_key = vss.storage_tuple_key(&key_bytes);
@@ -115,8 +122,8 @@ pub(crate) mod doublekeymap_utils {
         }
     }
 
-    pub fn get_inner_value<S, K1, K2, V>(
-        vss: &SnapshotableStorage<S, DoubleKeyMap<K1, K2, V>>,
+    pub fn get_inner_value<S, M, K1, K2, V>(
+        vss: &SnapshotableStorage<S, M, DoubleKeyMap<K1, K2, V>>,
         key: &(K1, K2),
     ) -> Result<Option<V>>
     where
@@ -138,6 +145,7 @@ pub(crate) mod doublekeymap_utils {
             + Debug,
         V: Clone + Serialize + for<'de> Deserialize<'de> + Debug,
         S: Store,
+        M: Merkle,
     {
         let operation = get_inner_operation(vss, key)?;
         if let Some(operation) = operation {
@@ -152,15 +160,18 @@ pub(crate) mod doublekeymap_utils {
 }
 
 pub(crate) mod vec_utils {
+    use crate::merkle::Merkle;
+
     use super::*;
 
-    pub fn get_inner_value<S, T>(
-        vss: &SnapshotableStorage<S, Vec<T>>,
+    pub fn get_inner_value<S, M, T>(
+        vss: &SnapshotableStorage<S, M, Vec<T>>,
         index: usize,
     ) -> Result<Option<T>>
     where
         T: Clone + Debug + Serialize + for<'de> Deserialize<'de>,
         S: Store,
+        M: Merkle,
     {
         let operation = get_inner_operation(vss, index)?;
         if let Some(operation) = operation {
@@ -173,13 +184,14 @@ pub(crate) mod vec_utils {
         }
     }
 
-    pub fn get_inner_operation<S, T>(
-        vss: &SnapshotableStorage<S, Vec<T>>,
+    pub fn get_inner_operation<S, M, T>(
+        vss: &SnapshotableStorage<S, M, Vec<T>>,
         key: usize,
     ) -> Result<Option<Operation<T>>>
     where
         T: Clone + Debug + Serialize + for<'de> Deserialize<'de>,
         S: Store,
+        M: Merkle,
     {
         let key_bytes = cbor_encode(key)?;
         let store_key = vss.storage_tuple_key(&key_bytes);
@@ -195,23 +207,27 @@ pub(crate) mod vec_utils {
 }
 
 pub(crate) mod value_utils {
+    use crate::merkle::Merkle;
+
     use super::*;
 
-    pub fn storage_key<S, T>(
-        vss: &SnapshotableStorage<S, Value<T>>,
+    pub fn storage_key<S, M, T>(
+        vss: &SnapshotableStorage<S, M, Value<T>>,
     ) -> (alloc_vec<u8>, alloc_vec<u8>)
     where
         T: Clone + Debug + Serialize + for<'de> Deserialize<'de>,
         S: Store,
+        M: Merkle,
     {
         let inner_key = alloc_vec::new();
         vss.storage_tuple_key(&inner_key)
     }
 
-    pub fn get_inner_value<S, T>(vss: &SnapshotableStorage<S, Value<T>>) -> Result<Option<T>>
+    pub fn get_inner_value<S, M, T>(vss: &SnapshotableStorage<S, M, Value<T>>) -> Result<Option<T>>
     where
         T: Clone + Debug + Serialize + for<'de> Deserialize<'de>,
         S: Store,
+        M: Merkle,
     {
         let store_key = storage_key(vss);
         match vss.store.get_ge2((&store_key.0, &store_key.1))? {

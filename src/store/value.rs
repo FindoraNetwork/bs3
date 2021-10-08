@@ -3,7 +3,7 @@ use core::fmt::Debug;
 use serde::{Deserialize, Serialize};
 
 use super::utils::value_utils;
-use crate::{model::Value, Cow, Operation, Result, SnapshotableStorage, Store};
+use crate::{Cow, Operation, Result, SnapshotableStorage, Store, merkle::Merkle, model::Value};
 
 pub trait ValueStore<T>
 where
@@ -16,10 +16,11 @@ where
     fn del(&mut self) -> Result<Option<T>>;
 }
 
-impl<T, S> ValueStore<T> for SnapshotableStorage<S, Value<T>>
+impl<S, M, T> ValueStore<T> for SnapshotableStorage<S, M, Value<T>>
 where
     T: Clone + Debug + Serialize + for<'de> Deserialize<'de>,
     S: Store,
+    M: Merkle,
 {
     fn get(&self) -> Result<Option<Cow<'_, T>>> {
         Ok(match &self.value.value {
