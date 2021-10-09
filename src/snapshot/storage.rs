@@ -212,9 +212,6 @@ where
     pub fn commit(&mut self) -> Result<i64> {
         let mut operations = Vec::new();
 
-        // exchange cache.
-        // let mut cache = mem::replace(&mut self.value, M::default());
-
         log::debug!("Snapshot Cache: {:?}", self.value);
 
         for (k, v) in self.value.operations()? {
@@ -223,12 +220,19 @@ where
             operations.push((key_bytes, store_value.to_bytes()?));
         }
 
+        log::debug!("Start Compute merkle");
+        self.merkle.insert(&mut self.store, &operations)?;
+
         // incr current height
         self.write_height(self.height + 1, Some(operations))?;
 
         log::debug!("Sync snapshot success in height: {}", self.height);
 
         Ok(self.height)
+    }
+
+    pub fn root(&self) -> Result<digest::Output<M::Digest>> {
+        self.merkle.root(&self.store)
     }
 }
 

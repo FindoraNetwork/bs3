@@ -79,8 +79,9 @@ where
 #[cfg(test)]
 mod tests {
     use alloc::string::String;
+    use sha3::Sha3_512;
 
-    use crate::{backend::MemoryBackend, SnapshotableStorage};
+    use crate::{SnapshotableStorage, backend::MemoryBackend, merkle::empty::EmptyMerkle};
 
     use super::Value;
 
@@ -89,7 +90,7 @@ mod tests {
         env_logger::init();
         let value = Value::new(String::from("aaaaaa"));
         let store = MemoryBackend::new();
-        let mut storage = SnapshotableStorage::new(value, store).unwrap();
+        let mut storage = SnapshotableStorage::<_, EmptyMerkle<Sha3_512>, _>::new(value, store).unwrap();
 
         storage.commit().unwrap();
         storage.commit().unwrap();

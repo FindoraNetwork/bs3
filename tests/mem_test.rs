@@ -1,12 +1,14 @@
 use bs3::backend::MemoryBackend;
+use bs3::merkle::empty::EmptyMerkle;
 use bs3::model::{DoubleKeyMap, Map, Value, Vec};
 use bs3::{Cow, DoubleKeyMapStore, MapStore, Result, ValueStore, VecStore};
 use bs3::{SnapshotableStorage, Transaction};
+use sha3::Sha3_512;
 
 fn map_mem_test() -> Result<()> {
     let m = Map::default();
     let s = MemoryBackend::new();
-    let mut ss = SnapshotableStorage::new(m, s)?;
+    let mut ss = SnapshotableStorage::<_, EmptyMerkle<Sha3_512>, _>::new(m, s)?;
 
     assert_eq!(ss.insert(1, 1)?, None);
     assert_eq!(ss.insert(2, 2)?, None);
@@ -24,7 +26,7 @@ fn map_mem_test() -> Result<()> {
 fn value_mem_test() -> Result<()> {
     let v = Value::default();
     let s = MemoryBackend::new();
-    let mut ss = SnapshotableStorage::new(v, s).unwrap();
+    let mut ss = SnapshotableStorage::<_, EmptyMerkle<Sha3_512>, _>::new(v, s).unwrap();
 
     assert_eq!(ss.set(1)?, None);
     assert_eq!(ss.commit()?, 1);
@@ -39,7 +41,7 @@ fn value_mem_test() -> Result<()> {
 fn vec_mem_test() -> Result<()> {
     let v = Vec::default();
     let s = MemoryBackend::new();
-    let mut ss = SnapshotableStorage::new(v, s).unwrap();
+    let mut ss = SnapshotableStorage::<_, EmptyMerkle<Sha3_512>, _>::new(v, s).unwrap();
 
     assert_eq!(ss.insert(1)?, None);
     assert_eq!(ss.insert(2)?, None);
@@ -57,7 +59,7 @@ fn vec_mem_test() -> Result<()> {
 fn doublekeymap_mem_test() -> Result<()> {
     let m = DoubleKeyMap::default();
     let s = MemoryBackend::new();
-    let mut ss = SnapshotableStorage::new(m, s)?;
+    let mut ss = SnapshotableStorage::<_, EmptyMerkle<Sha3_512>, _>::new(m, s)?;
 
     assert_eq!(ss.insert(1, 1, 1)?, None);
     assert_eq!(ss.insert(2, 2, 2)?, None);
@@ -75,7 +77,7 @@ fn doublekeymap_mem_test() -> Result<()> {
 fn tx_map_mem_test() -> Result<()> {
     let m = Map::default();
     let s = MemoryBackend::new();
-    let ss = SnapshotableStorage::new(m, s)?;
+    let ss = SnapshotableStorage::<_, EmptyMerkle<Sha3_512>, _>::new(m, s)?;
     let mut tx = Transaction::new(&ss);
 
     assert_eq!(tx.insert(1, 1)?, None);
@@ -91,7 +93,7 @@ fn tx_map_mem_test() -> Result<()> {
 fn tx_doublekeymap_mem_test() -> Result<()> {
     let m = DoubleKeyMap::default();
     let s = MemoryBackend::new();
-    let ss = SnapshotableStorage::new(m, s)?;
+    let ss = SnapshotableStorage::<_, EmptyMerkle<Sha3_512>, _>::new(m, s)?;
     let mut tx = Transaction::new(&ss);
 
     assert_eq!(tx.insert(1, 1, 1)?, None);
@@ -107,7 +109,7 @@ fn tx_doublekeymap_mem_test() -> Result<()> {
 fn tx_value_mem_test() -> Result<()> {
     let v = Value::default();
     let s = MemoryBackend::new();
-    let ss = SnapshotableStorage::new(v, s).unwrap();
+    let ss = SnapshotableStorage::<_, EmptyMerkle<Sha3_512>, _>::new(v, s).unwrap();
     let mut tx = Transaction::new(&ss);
 
     assert_eq!(tx.set(1)?, None);
@@ -121,7 +123,7 @@ fn tx_value_mem_test() -> Result<()> {
 fn tx_vec_mem_test() -> Result<()> {
     let v = Vec::default();
     let s = MemoryBackend::new();
-    let ss = SnapshotableStorage::new(v, s).unwrap();
+    let ss = SnapshotableStorage::<_, EmptyMerkle<Sha3_512>, _>::new(v, s).unwrap();
     let mut tx = Transaction::new(&ss);
 
     assert_eq!(tx.insert(1)?, None);

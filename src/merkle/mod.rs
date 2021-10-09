@@ -1,13 +1,14 @@
+use alloc::vec::Vec;
 use digest::{Digest, Output};
 
-use crate::Result;
+use crate::{Result, Store};
 
 pub mod empty;
 
 pub trait Merkle: Default {
     type Digest: Digest;
 
-    fn insert(&mut self, batch: &[(&[u8], &[u8])]) -> Result<()>;
+    fn insert<S: Store>(&mut self, store: &mut S, batch: &[(Vec<u8>, Vec<u8>)]) -> Result<()>;
 
-    fn root(&mut self) -> Result<Output<Self::Digest>>;
+    fn root<S: Store>(&self, store: &S) -> Result<Output<Self::Digest>>;
 }

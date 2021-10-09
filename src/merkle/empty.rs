@@ -1,8 +1,9 @@
 use core::marker::PhantomData;
 
+use alloc::vec::Vec;
 use digest::{Digest, Output};
 
-use crate::Result;
+use crate::{Result, Store};
 
 use super::Merkle;
 
@@ -21,11 +22,11 @@ impl<D: Digest> Default for EmptyMerkle<D> {
 impl<D: Digest> Merkle for EmptyMerkle<D> {
     type Digest = D;
 
-    fn insert(&mut self, _batch: &[(&[u8], &[u8])]) -> Result<()> {
+    fn insert<S: Store>(&mut self, _store: &mut S, _batch: &[(Vec<u8>, Vec<u8>)]) -> Result<()> {
         Ok(())
     }
 
-    fn root(&mut self) -> Result<Output<D>> {
+    fn root<S: Store>(&self, _store: &S) -> Result<Output<D>> {
         Ok(Default::default())
     }
 }
