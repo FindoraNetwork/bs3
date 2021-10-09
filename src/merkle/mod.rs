@@ -4,6 +4,8 @@ use digest::{Digest, Output};
 use crate::{OperationBytes, Result, Store};
 
 pub mod empty;
+pub mod append_only;
+pub mod sparse_merkle_tree;
 
 pub trait Merkle: Default {
     type Digest: Digest;
