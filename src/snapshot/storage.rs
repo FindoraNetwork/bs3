@@ -212,16 +212,19 @@ where
     pub fn commit(&mut self) -> Result<i64> {
         let mut operations = Vec::new();
 
+        let mut merkle_operations = Vec::new();
+
         log::debug!("Snapshot Cache: {:?}", self.value);
 
         for (k, v) in self.value.operations()? {
             let key_bytes = self.storage_key(&k);
-            let store_value = StoreValue { operation: v };
+            let store_value = StoreValue { operation: v.clone() };
             operations.push((key_bytes, store_value.to_bytes()?));
+            merkle_operations.push((k, v));
         }
 
         log::debug!("Start Compute merkle");
-        self.merkle.insert(&mut self.store, &operations)?;
+        self.merkle.insert(&mut self.store, &merkle_operations)?;
 
         // incr current height
         self.write_height(self.height + 1, Some(operations))?;

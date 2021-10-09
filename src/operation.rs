@@ -15,23 +15,7 @@ use crate::{utils::cbor_encode, Error, Result};
 use alloc::string::ToString;
 use ciborium::de::from_reader;
 
-// #[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
-// pub enum Operation<'a> {
-//     // Read(u64),
-//     Update(&'a [u8]),
-//     Delete,
-// }
-//
-// impl<'a> Operation<'a> {
-//     pub fn to_operation_owned(self) -> OperationOwned {
-//         match self {
-//             Operation::Update(v) => OperationOwned::Update(Vec::from(v)),
-//             Operation::Delete => OperationOwned::Delete,
-//         }
-//     }
-// }
-//
-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Operation<T> {
     Update(T),
     Delete,
