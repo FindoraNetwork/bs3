@@ -58,7 +58,7 @@ impl<S, K1, K2, V> DoubleKeyMapStore<K1, K2, V> for SnapshotableStorage<S, Doubl
             }
         }
 
-        if let Operation::Update(value) = self.value.value.value.get_mut(key).unwrap() {
+        if let Some(Operation::Update(value)) = self.value.value.value.get_mut(key) {
             Ok(Some(value))
         } else {
             Ok(None)
