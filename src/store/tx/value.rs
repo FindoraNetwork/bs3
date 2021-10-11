@@ -13,11 +13,16 @@ where
 {
     fn get(&self) -> Result<Option<Cow<'_, T>>> {
         Ok(match &self.value.value {
-            Some(v) => match v {
-                Operation::Update(iv) => Some(Cow::Borrowed(iv)),
-                Operation::Delete => None,
+            Some(Operation::Update(v)) => Some(Cow::Borrowed(v)),
+            Some(Operation::Delete) => None,
+            None => {
+                let lower_value = &self.store.value.value;
+                match lower_value {
+                    Some(Operation::Update(v)) => Some(Cow::Borrowed(v)),
+                    Some(Operation::Delete) => None,
+                    None => None,
+                }
             },
-            None => None,
         })
     }
 

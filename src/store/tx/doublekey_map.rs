@@ -28,7 +28,7 @@ where
 
     fn get_mut(&mut self, key1: &K1, key2: &K2) -> Result<Option<&mut V>> {
         let key = &(key1.clone(), key2.clone());
-        if let Operation::Update(value) = self.value.value.value.get_mut(key).unwrap() {
+        if let Some(Operation::Update(value)) = self.value.value.value.get_mut(key) {
             Ok(Some(value))
         } else {
             Ok(None)

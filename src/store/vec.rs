@@ -49,7 +49,7 @@ where
             }
         }
 
-        if let Operation::Update(value) = self.value.value.get_mut(&index).unwrap() {
+        if let Some(Operation::Update(value)) = self.value.value.get_mut(&index) {
             Ok(Some(value))
         } else {
             Ok(None)
