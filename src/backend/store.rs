@@ -36,6 +36,8 @@ pub trait Store: Send + Sync {
         })
     }
 
+    /// This is the upgraded version of get_ge
+    /// The main thing is that the start index is not a fixed empty vec
     #[cfg(feature = "nightly")]
     fn get_ge2(&self, keys: (&[u8], &[u8])) -> Result<Option<CowBytes<'_>>> {
         let mut value = self.range(keys.0, keys.1)?;

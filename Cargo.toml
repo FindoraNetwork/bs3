@@ -11,6 +11,7 @@ log = "0.4.14"
 ciborium = { version = "0.1.0", default-features = false, optional = true }
 serde = { version = "1.0.130", features = ["derive", "alloc"], optional = true }
 rand = "0.8"
+sha3 = "0.9.1"
 
 # dependency for seld.
 sled = { version = "0.34", features = ["compression"], optional = true }
@@ -41,3 +42,6 @@ required-features = ["sled-backend"]
 name = "mem_test"
 required-features = ["default"]
 
+[[test]]
+name = "merkle_test"
+required-features = ["default","std"]
