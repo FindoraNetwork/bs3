@@ -1,6 +1,6 @@
 use core::fmt::Debug;
 
-use crate::{model::Map, Cow, Operation, Result, SnapshotableStorage, Store};
+use crate::{Cow, Operation, Result, SnapshotableStorage, Store, merkle::Merkle, model::Map};
 
 use super::utils::map_utils;
 #[cfg(feature = "cbor")]
@@ -22,11 +22,12 @@ where
 }
 
 /// Implementing the middle and cache layers is the behavior of map
-impl<S, K, V> MapStore<K, V> for SnapshotableStorage<S, Map<K, V>>
+impl<S, M, K, V> MapStore<K, V> for SnapshotableStorage<S, M, Map<K, V>>
 where
     K: Clone + PartialEq + Eq + Serialize + for<'de> Deserialize<'de> + Ord + PartialOrd + Debug,
     V: Clone + Serialize + for<'de> Deserialize<'de> + Debug,
     S: Store,
+    M: Merkle,
 {
     fn get(&self, key: &K) -> Result<Option<Cow<'_, V>>> {
         return if let Some(operation) = self.value.value.get(key) {

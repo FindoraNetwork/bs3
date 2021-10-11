@@ -1,40 +1,44 @@
 use alloc::{string::String, vec::Vec};
 
-use crate::{backend::Store, model::Model, snapshot::StoreValue, Error, Result};
+use crate::{Error, Result, backend::Store, merkle::Merkle, model::Model, snapshot::StoreValue};
 
 use super::{utils, value::StoreType, FromStoreBytes, StoreHeight, ToStoreBytes, Transaction};
 use crate::snapshot::utils::storage_key;
 
 /// Snapshotable Storage
-pub struct SnapshotableStorage<S, M>
+pub struct SnapshotableStorage<S, M, V>
 where
     S: Store,
-    M: Model,
+    M: Merkle,
+    V: Model,
 {
     pub(crate) store: S,
     pub height: i64,
-    pub(crate) value: M,
+    pub(crate) value: V,
     pub(crate) namespace: String,
+    pub(crate) merkle: M,
 }
 
 /// Methods for create storage.
-impl<S, M> SnapshotableStorage<S, M>
+impl<S, M, V> SnapshotableStorage<S, M, V>
 where
     S: Store,
-    M: Model,
+    M: Merkle,
+    V: Model,
 {
     /// Create a `SnapshotableStorage` from store with empty namespace.
-    pub fn new(value: M, store: S) -> Result<Self> {
+    pub fn new(value: V, store: S) -> Result<Self> {
         Self::new_with_name(value, String::new(), store)
     }
 
     /// Create a `SnapshotableStorage` from store.
-    pub fn new_with_name(value: M, name: String, store: S) -> Result<Self> {
+    pub fn new_with_name(value: V, name: String, store: S) -> Result<Self> {
         let mut s = Self {
             store,
             height: 0,
             namespace: name,
             value,
+            merkle: M::default(),
         };
 
         if !s.init_or_load()? {
@@ -54,7 +58,7 @@ where
     /// Create a `SnapshotableStorage` from store for point height with empty namespace.
     ///
     /// If height is 0, equal to init a store.
-    pub fn new_with_height(value: M, height: i64, store: S) -> Result<Self> {
+    pub fn new_with_height(value: V, height: i64, store: S) -> Result<Self> {
         Self::new_with_height_namespace(value, height, String::new(), store)
     }
 
@@ -62,7 +66,7 @@ where
     ///
     /// If height is 0, equal to init a store.
     pub fn new_with_height_namespace(
-        value: M,
+        value: V,
         height: i64,
         namespace: String,
         store: S,
@@ -72,6 +76,7 @@ where
             height,
             value,
             namespace,
+            merkle: M::default(),
         };
 
         if height == 0 {
@@ -133,10 +138,11 @@ where
 }
 
 /// Methods for snapshot.
-impl<S, M> SnapshotableStorage<S, M>
+impl<S, M, V> SnapshotableStorage<S, M, V>
 where
     S: Store,
-    M: Model,
+    M: Merkle,
+    V: Model,
 {
     /// Read current height in store.
     fn read_height(&self) -> Result<i64> {
@@ -180,7 +186,11 @@ where
     /// rollback to point height, target_height must less than current height.
     pub fn rollback(&mut self, target_height: i64) -> Result<()> {
         if target_height > self.height {
-            log::error!("Target height {} must less than current height {}", target_height, self.height);
+            log::error!(
+                "Target height {} must less than current height {}",
+                target_height,
+                self.height
+            );
             Err(Error::HeightError)
         } else {
             self.write_height(target_height, None)
@@ -202,16 +212,19 @@ where
     pub fn commit(&mut self) -> Result<i64> {
         let mut operations = Vec::new();
 
-        // exchange cache.
-        // let mut cache = mem::replace(&mut self.value, M::default());
+        let mut merkle_operations = Vec::new();
 
         log::debug!("Snapshot Cache: {:?}", self.value);
 
         for (k, v) in self.value.operations()? {
             let key_bytes = self.storage_key(&k);
-            let store_value = StoreValue { operation: v };
+            let store_value = StoreValue { operation: v.clone() };
             operations.push((key_bytes, store_value.to_bytes()?));
+            merkle_operations.push((k, v));
         }
+
+        log::debug!("Start Compute merkle");
+        self.merkle.insert(&mut self.store, &merkle_operations)?;
 
         // incr current height
         self.write_height(self.height + 1, Some(operations))?;
@@ -220,112 +233,28 @@ where
 
         Ok(self.height)
     }
+
+    pub fn root(&self) -> Result<digest::Output<M::Digest>> {
+        self.merkle.root(&self.store)
+    }
 }
 
 /// Methods for transaction
-impl<S, M> SnapshotableStorage<S, M>
+impl<S, M, V> SnapshotableStorage<S, M, V>
 where
     S: Store,
-    M: Model,
+    M: Merkle,
+    V: Model,
 {
     /// Generate transaction for this Bs3 db.
-    pub fn transaction(&self) -> Transaction<'_, S, M> {
+    pub fn transaction(&self) -> Transaction<'_, S, M, V> {
         Transaction::new(self)
     }
 
     /// Consume transaction to apply.
-    pub fn execute(&mut self, val: M) {
+    pub fn execute(&mut self, val: V) {
         log::debug!("Transaction Cache: {:?}", val);
         self.value.merge(val)
     }
 }
 
-// /// Methods for internal helper
-// impl<S, D> SnapshotableStorage<S, D>
-// where
-//     D: Digest,
-//     S: Store,
-// {
-//
-//    fn raw_insert(&mut self, key: &Output<D>, value: OperationOwned) -> Result<Option<Vec<u8>>> {
-//         Ok(match self.cache.insert(key.clone(), value) {
-//             Some(OperationOwned::Update(v)) => Some(v),
-//             Some(OperationOwned::Delete) => None,
-//             None => match self.raw_get_lt(key, self.height)? {
-//                 Some(bytes) => {
-//                     let r = StoreValue::from_bytes(&bytes)?;
-//                     match r.operation {
-//                         Operation::Update(v) => Some(Vec::from(v)),
-//                         Operation::Delete => None,
-//                     }
-//                 }
-//                 None => None,
-//             },
-//         })
-//     }
-// }
-//
-// impl<S, D> Tree<D> for SnapshotableStorage<S, D>
-// where
-//     D: Digest,
-//     S: Store,
-// {
-//     fn get(&self, key: &Output<D>) -> Result<Option<BytesRef<'_>>> {
-//         let cache_result = self.cache.get(key);
-//         match cache_result {
-//             Some(OperationOwned::Update(v)) => Ok(Some(BytesRef::Borrow(v.as_slice()))),
-//             Some(OperationOwned::Delete) => Ok(None),
-//             None => match self.raw_get_lt(key, self.height)? {
-//                 // I can't write result to cache.
-//                 // If want cache to speed up, in lower `Store`.
-//                 Some(bytes) => {
-//                     let r = StoreValue::from_bytes(&bytes)?;
-//                     match r.operation {
-//                         // this need optine, beacuse this cause copy
-//                         Operation::Update(v) => Ok(Some(BytesRef::Owned(Vec::from(v)))),
-//                         Operation::Delete => Ok(None),
-//                     }
-//                 }
-//                 None => Ok(None),
-//             },
-//         }
-//     }
-// }
-//
-// impl<S, D> TreeMut<D> for SnapshotableStorage<S, D>
-// where
-//     D: Digest,
-//     S: Store,
-// {
-//     fn get_mut(&mut self, key: &Output<D>) -> Result<Option<&mut [u8]>> {
-//         if let Some(OperationOwned::Delete) = self.cache.get(key) {
-//             return Ok(None);
-//         }
-//         if self.cache.contains_key(key) {
-//             match self.raw_get_lt(key, self.height)? {
-//                 Some(bytes) => {
-//                     let r = StoreValue::from_bytes(&bytes)?;
-//                     // this assign to prevent #[warn(mutable_borrow_reservation_conflict)]
-//                     let operation_owned = r.operation.to_operation_owned();
-//                     self.cache.insert(key.clone(), operation_owned);
-//                 }
-//                 None => return Ok(None),
-//             }
-//         }
-//
-//         // I'm sure this value exists.
-//         if let OperationOwned::Update(value) = self.cache.get_mut(key).unwrap() {
-//             Ok(Some(value))
-//         } else {
-//             Ok(None)
-//         }
-//     }
-//
-//     fn insert(&mut self, key: Output<D>, value: Vec<u8>) -> Result<Option<Vec<u8>>> {
-//         self.raw_insert(&key, OperationOwned::Update(value))
-//     }
-//
-//     fn remove(&mut self, key: &Output<D>) -> Result<Option<Vec<u8>>> {
-//         self.raw_insert(key, OperationOwned::Delete)
-//     }
-// }

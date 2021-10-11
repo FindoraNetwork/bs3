@@ -34,37 +34,6 @@ where
     }
 }
 
-// pub trait ValueAccess<T> {
-//     fn get(&self) -> &Option<Operation<T>>;
-//
-//     fn set(&mut self, value: T);
-//
-//     fn del(&mut self);
-//
-//     fn storage_key(&self) -> Vec<u8>;
-// }
-//
-// impl<T> ValueAccess<T> for Value<T>
-// where
-//     T: Debug + Serialize + for<'de> Deserialize<'de>,
-// {
-//     fn get(&self) -> &Option<Operation<T>> {
-//         &self.value
-//     }
-//
-//     fn set(&mut self, value: T) {
-//         self.value = Some(Operation::Update(value))
-//     }
-//
-//     fn del(&mut self) {
-//         self.value = Some(Operation::Delete)
-//     }
-//
-//     fn storage_key(&self) -> Vec<u8> {
-//         Vec::new()
-//     }
-// }
-
 impl<T> Default for Value<T>
 where
     T: Clone + Debug + Serialize + for<'de> Deserialize<'de>,
@@ -110,8 +79,9 @@ where
 #[cfg(test)]
 mod tests {
     use alloc::string::String;
+    use sha3::Sha3_512;
 
-    use crate::{backend::MemoryBackend, SnapshotableStorage, Store, ValueStore};
+    use crate::{SnapshotableStorage, backend::MemoryBackend, merkle::empty::EmptyMerkle};
 
     use super::Value;
 
@@ -120,7 +90,7 @@ mod tests {
         env_logger::init();
         let value = Value::new(String::from("aaaaaa"));
         let store = MemoryBackend::new();
-        let mut storage = SnapshotableStorage::new(value, store).unwrap();
+        let mut storage = SnapshotableStorage::<_, EmptyMerkle<Sha3_512>, _>::new(value, store).unwrap();
 
         storage.commit().unwrap();
         storage.commit().unwrap();

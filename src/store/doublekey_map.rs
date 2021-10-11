@@ -1,16 +1,16 @@
 use core::fmt::Debug;
 
-use crate::{model::DoubleKeyMap, Cow, Operation, Result, SnapshotableStorage, Store};
+use crate::{Cow, Operation, Result, SnapshotableStorage, Store, merkle::Merkle, model::DoubleKeyMap};
 
 use super::utils::doublekeymap_utils;
 #[cfg(feature = "cbor")]
 use serde::{Deserialize, Serialize};
 
 pub trait DoubleKeyMapStore<K1, K2, V>
-    where
-        K1: Clone + PartialEq + Eq + Serialize + for<'de> Deserialize<'de> + Ord + PartialOrd + Debug,
-        K2: Clone + PartialEq + Eq + Serialize + for<'de> Deserialize<'de> + Ord + PartialOrd + Debug,
-        V: Clone + Serialize + for<'de> Deserialize<'de> + Debug,
+where
+    K1: Clone + PartialEq + Eq + Serialize + for<'de> Deserialize<'de> + Ord + PartialOrd + Debug,
+    K2: Clone + PartialEq + Eq + Serialize + for<'de> Deserialize<'de> + Ord + PartialOrd + Debug,
+    V: Clone + Serialize + for<'de> Deserialize<'de> + Debug,
 {
     fn get(&self, key1: &K1, key2: &K2) -> Result<Option<Cow<'_, V>>>;
 
@@ -21,12 +21,13 @@ pub trait DoubleKeyMapStore<K1, K2, V>
     fn remove(&mut self, key1: &K1, key2: &K2) -> Result<Option<V>>;
 }
 
-impl<S, K1, K2, V> DoubleKeyMapStore<K1, K2, V> for SnapshotableStorage<S, DoubleKeyMap<K1, K2, V>>
-    where
-        K1: Clone + PartialEq + Eq + Serialize + for<'de> Deserialize<'de> + Ord + PartialOrd + Debug,
-        K2: Clone + PartialEq + Eq + Serialize + for<'de> Deserialize<'de> + Ord + PartialOrd + Debug,
-        V: Clone + Serialize + for<'de> Deserialize<'de> + Debug,
-        S: Store,
+impl<S, M, K1, K2, V> DoubleKeyMapStore<K1, K2, V> for SnapshotableStorage<S, M, DoubleKeyMap<K1, K2, V>>
+where
+    K1: Clone + PartialEq + Eq + Serialize + for<'de> Deserialize<'de> + Ord + PartialOrd + Debug,
+    K2: Clone + PartialEq + Eq + Serialize + for<'de> Deserialize<'de> + Ord + PartialOrd + Debug,
+    V: Clone + Serialize + for<'de> Deserialize<'de> + Debug,
+    S: Store,
+    M: Merkle,
 {
     fn get(&self, key1: &K1, key2: &K2) -> Result<Option<Cow<'_, V>>> {
         let key = &(key1.clone(), key2.clone());

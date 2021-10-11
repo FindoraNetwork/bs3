@@ -2,26 +2,28 @@
 //! Transaction Middleware
 //!
 
-use crate::{backend::Store, model::Model, SnapshotableStorage};
+use crate::{SnapshotableStorage, backend::Store, merkle::Merkle, model::Model};
 
-pub struct Transaction<'a, S, M>
+pub struct Transaction<'a, S, M, V>
 where
     S: Store,
-    M: Model,
+    M: Merkle,
+    V: Model,
 {
-    pub store: &'a SnapshotableStorage<S, M>,
-    pub value: M,
+    pub store: &'a SnapshotableStorage<S, M, V>,
+    pub value: V,
 }
 
-impl<'a, S, M> Transaction<'a, S, M>
+impl<'a, S, M, V> Transaction<'a, S, M, V>
 where
     S: Store,
-    M: Model,
+    M: Merkle,
+    V: Model,
 {
-    pub fn new(store: &'a SnapshotableStorage<S, M>) -> Self {
+    pub fn new(store: &'a SnapshotableStorage<S, M, V>) -> Self {
         Transaction {
             store,
-            value: M::default(),
+            value: V::default(),
         }
     }
 }

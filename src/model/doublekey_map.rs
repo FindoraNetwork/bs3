@@ -5,39 +5,38 @@ use alloc::vec::Vec;
 #[cfg(feature = "cbor")]
 use serde::{Deserialize, Serialize};
 
+use crate::model::{Map, Model};
 use crate::{OperationBytes, Result};
-use crate::model::{Model, Map};
 
 #[derive(Debug)]
 pub struct DoubleKeyMap<K1, K2, V>
-    where
-        K1: Clone + PartialEq + Eq + Serialize + for<'de> Deserialize<'de> + Ord + PartialOrd + Debug,
-        K2: Clone + PartialEq + Eq + Serialize + for<'de> Deserialize<'de> + Ord + PartialOrd + Debug,
-        V: Clone + Serialize + for<'de> Deserialize<'de> + Debug,
+where
+    K1: Clone + PartialEq + Eq + Serialize + for<'de> Deserialize<'de> + Ord + PartialOrd + Debug,
+    K2: Clone + PartialEq + Eq + Serialize + for<'de> Deserialize<'de> + Ord + PartialOrd + Debug,
+    V: Clone + Serialize + for<'de> Deserialize<'de> + Debug,
 {
-    pub(crate) value: Map<(K1,K2),V>,
+    pub(crate) value: Map<(K1, K2), V>,
 }
 
 impl<K1, K2, V> Default for DoubleKeyMap<K1, K2, V>
-    where
-        K1: Clone + PartialEq + Eq + Serialize + for<'de> Deserialize<'de> + Ord + PartialOrd + Debug,
-        K2: Clone + PartialEq + Eq + Serialize + for<'de> Deserialize<'de> + Ord + PartialOrd + Debug,
-        V: Clone + Serialize + for<'de> Deserialize<'de> + Debug,
+where
+    K1: Clone + PartialEq + Eq + Serialize + for<'de> Deserialize<'de> + Ord + PartialOrd + Debug,
+    K2: Clone + PartialEq + Eq + Serialize + for<'de> Deserialize<'de> + Ord + PartialOrd + Debug,
+    V: Clone + Serialize + for<'de> Deserialize<'de> + Debug,
 {
     fn default() -> Self {
         Self {
-            value:Map::default(),
+            value: Map::default(),
         }
     }
 }
 
 impl<K1, K2, V> Model for DoubleKeyMap<K1, K2, V>
-    where
-        K1: Clone + PartialEq + Eq + Serialize + for<'de> Deserialize<'de> + Ord + PartialOrd + Debug,
-        K2: Clone + PartialEq + Eq + Serialize + for<'de> Deserialize<'de> + Ord + PartialOrd + Debug,
-        V: Clone + Serialize + for<'de> Deserialize<'de> + Debug,
+where
+    K1: Clone + PartialEq + Eq + Serialize + for<'de> Deserialize<'de> + Ord + PartialOrd + Debug,
+    K2: Clone + PartialEq + Eq + Serialize + for<'de> Deserialize<'de> + Ord + PartialOrd + Debug,
+    V: Clone + Serialize + for<'de> Deserialize<'de> + Debug,
 {
-
     fn operations(&mut self) -> Result<Vec<(Vec<u8>, OperationBytes)>> {
         use crate::utils::cbor_encode;
 

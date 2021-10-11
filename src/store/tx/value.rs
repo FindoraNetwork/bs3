@@ -1,15 +1,17 @@
 use core::fmt::Debug;
 
+use crate::merkle::Merkle;
 use crate::model::Value;
-use crate::{Cow, Operation, Store, Transaction, ValueStore};
+use crate::{Cow, Operation, Result, Store, Transaction, ValueStore};
 use serde::{Deserialize, Serialize};
 
-impl<'a, S, T> ValueStore<T> for Transaction<'a, S, Value<T>>
+impl<'a, S, M, T> ValueStore<T> for Transaction<'a, S, M, Value<T>>
 where
     T: Clone + Debug + Serialize + for<'de> Deserialize<'de>,
     S: Store,
+    M: Merkle,
 {
-    fn get(&self) -> crate::Result<Option<Cow<'_, T>>> {
+    fn get(&self) -> Result<Option<Cow<'_, T>>> {
         Ok(match &self.value.value {
             Some(Operation::Update(v)) => Some(Cow::Borrowed(v)),
             Some(Operation::Delete) => None,
@@ -24,7 +26,7 @@ where
         })
     }
 
-    fn set(&mut self, value: T) -> crate::Result<Option<T>> {
+    fn set(&mut self, value: T) -> Result<Option<T>> {
         return if let Some(operation) = self.value.value.as_ref() {
             match operation {
                 Operation::Update(v) => {
@@ -40,7 +42,7 @@ where
         };
     }
 
-    fn del(&mut self) -> crate::Result<Option<T>> {
+    fn del(&mut self) -> Result<Option<T>> {
         return if let Some(operation) = self.value.value.as_ref() {
             match operation {
                 Operation::Update(v) => {

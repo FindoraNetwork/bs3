@@ -9,8 +9,8 @@ use sled::{Db, Iter, Tree};
 use crate::{CowBytes, Error, Result};
 
 use super::Store;
-use core::ops::{Bound, RangeBounds};
 use alloc::string::ToString;
+use core::ops::{Bound, RangeBounds};
 
 ///
 /// use sled tree
@@ -38,7 +38,6 @@ pub fn tmp_dir() -> Result<std::path::PathBuf> {
 /// create sled db
 /// feat Compression
 pub fn sled_db_open(path: Option<&str>) -> Result<sled::Db> {
-
     let mut is_tmp = false;
 
     let path = if let Some(path) = path {

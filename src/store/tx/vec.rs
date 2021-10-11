@@ -1,15 +1,18 @@
 use core::fmt::Debug;
 
+use crate::merkle::Merkle;
 use crate::model::Vec;
-use crate::{Cow, Operation, Store, Transaction, VecStore};
+use crate::{Cow, Operation, Result, Store, Transaction, VecStore};
 use serde::{Deserialize, Serialize};
 use crate::store::utils::vec_utils;
 
-impl<'a, S, T> VecStore<T> for Transaction<'a, S, Vec<T>>
+impl<'a, S, M, T> VecStore<T> for Transaction<'a, S, M, Vec<T>>
 where
     T: Clone + Debug + Serialize + for<'de> Deserialize<'de>,
     S: Store,
+    M: Merkle,
 {
+
     fn get(&self, index: usize) -> crate::Result<Option<Cow<'_, T>>> {
         let self_value = self.value.value.get(&index);
 
@@ -26,6 +29,7 @@ where
             }
         })
     }
+
 
     fn get_mut(&mut self, index: usize) -> crate::Result<Option<&mut T>> {
 
@@ -50,7 +54,7 @@ where
         }
     }
 
-    fn insert(&mut self, value: T) -> crate::Result<Option<T>> {
+    fn insert(&mut self, value: T) -> Result<Option<T>> {
         let operation = Operation::Update(value.clone());
         let index = self.value.value.len();
         let mut pre_val = None;
@@ -66,7 +70,7 @@ where
         Ok(pre_val)
     }
 
-    fn remove(&mut self, index: usize) -> crate::Result<Option<T>> {
+    fn remove(&mut self, index: usize) -> Result<Option<T>> {
         return if let Some(op) = self.value.value.remove(&index) {
             match op {
                 Operation::Update(v) => Ok(Some(v)),

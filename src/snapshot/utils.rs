@@ -21,3 +21,8 @@ pub fn type_key(namespace: &String) -> Vec<u8> {
     // TODO: use binary key to optimization performance
     format!("{}-ty", namespace).into_bytes()
 }
+
+// pub fn merkle_root() -> Vec<u8> {
+//     Vec::new()
+// }
+//
