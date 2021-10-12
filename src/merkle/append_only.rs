@@ -3,7 +3,7 @@ use alloc::string::{String, ToString};
 use alloc::vec::Vec;
 use digest::generic_array::GenericArray;
 use digest::Output;
-use sha3::Digest;
+use digest::Digest;
 use crate::snapshot::utils::merkle_key;
 
 use crate::{OperationBytes, Result, Store, Error, Operation};
