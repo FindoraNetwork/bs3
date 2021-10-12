@@ -166,7 +166,7 @@ pub(crate) mod vec_utils {
 
     pub fn get_inner_value<S, M, T>(
         vss: &SnapshotableStorage<S, M, Vec<T>>,
-        index: usize,
+        index: u64,
     ) -> Result<Option<T>>
     where
         T: Clone + Debug + Serialize + for<'de> Deserialize<'de>,
@@ -186,7 +186,7 @@ pub(crate) mod vec_utils {
 
     pub fn get_inner_operation<S, M, T>(
         vss: &SnapshotableStorage<S, M, Vec<T>>,
-        key: usize,
+        key: u64,
     ) -> Result<Option<Operation<T>>>
     where
         T: Clone + Debug + Serialize + for<'de> Deserialize<'de>,

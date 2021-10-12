@@ -7,13 +7,13 @@ pub trait VecStore<T>
 where
     T: Clone + Debug + Serialize + for<'de> Deserialize<'de>,
 {
-    fn get(&self, index: usize) -> Result<Option<Cow<'_, T>>>;
+    fn get(&self, index: u64) -> Result<Option<Cow<'_, T>>>;
 
-    fn get_mut(&mut self, index: usize) -> Result<Option<&mut T>>;
+    fn get_mut(&mut self, index: u64) -> Result<Option<&mut T>>;
 
     fn insert(&mut self, value: T) -> Result<Option<T>>;
 
-    fn remove(&mut self, index: usize) -> Result<Option<T>>;
+    fn remove(&mut self, index: u64) -> Result<Option<T>>;
 }
 
 impl<S, M, T> VecStore<T> for SnapshotableStorage<S, M, Vec<T>>
@@ -22,7 +22,7 @@ where
     S: Store,
     M: Merkle,
 {
-    fn get(&self, index: usize) -> Result<Option<Cow<'_, T>>> {
+    fn get(&self, index: u64) -> Result<Option<Cow<'_, T>>> {
         if let Some(operation) = self.value.value.get(&index) {
             match operation {
                 Operation::Update(v) => Ok(Some(Cow::Borrowed(v))),
@@ -36,7 +36,7 @@ where
         }
     }
 
-    fn get_mut(&mut self, index: usize) -> Result<Option<&mut T>> {
+    fn get_mut(&mut self, index: u64) -> Result<Option<&mut T>> {
         if let Some(Operation::Delete) = self.value.value.get(&index) {
             return Ok(None);
         }
@@ -58,12 +58,12 @@ where
 
     fn insert(&mut self, value: T) -> Result<Option<T>> {
         let operation = Operation::Update(value.clone());
-        let index = self.value.value.len();
+        let index = self.value.value.len() as u64;
         self.value.value.insert(index, operation);
         vec_utils::get_inner_value(self, index)
     }
 
-    fn remove(&mut self, index: usize) -> Result<Option<T>> {
+    fn remove(&mut self, index: u64) -> Result<Option<T>> {
         let res = if let Some(op) = self.value.value.remove(&index) {
             match op {
                 Operation::Update(v) => Some(v),
