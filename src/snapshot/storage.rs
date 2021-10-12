@@ -208,10 +208,6 @@ where
         )
     }
 
-    pub(crate) fn merkle_key(&self, height:i64) -> Vec<u8> {
-        utils::merkle_key(&self.namespace, height)
-    }
-
     /// Commit this snapshot.
     pub fn commit(&mut self) -> Result<i64> {
         let mut operations = Vec::new();
@@ -231,10 +227,7 @@ where
         self.write_height(self.height + 1, Some(operations))?;
 
         log::debug!("Start Compute merkle");
-        self.merkle.insert(self.merkle_key(self.height - 1),
-                           self.merkle_key(self.height),
-                           &mut self.store,
-                           &merkle_operations)?;
+        self.merkle.insert(&mut self.store, &merkle_operations)?;
 
 
         log::debug!("Sync snapshot success in height: {}", self.height);
@@ -243,7 +236,7 @@ where
     }
 
     pub fn root(&self) -> Result<Option<digest::Output<M::Digest>>> {
-        self.merkle.root(self.merkle_key(self.height), &self.store)
+        self.merkle.root(&self.store)
     }
 }
 

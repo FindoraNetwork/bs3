@@ -79,7 +79,7 @@ pub mod model;
 pub mod prelude;
 
 mod snapshot;
-pub use snapshot::{SnapshotableStorage, Transaction, utils::merkle_key};
+pub use snapshot::{SnapshotableStorage, Transaction};
 
 pub mod backend;
 pub use backend::Store;

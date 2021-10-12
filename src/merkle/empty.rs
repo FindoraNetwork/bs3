@@ -22,11 +22,19 @@ impl<D: Digest> Default for EmptyMerkle<D> {
 impl<D: Digest> Merkle for EmptyMerkle<D> {
     type Digest = D;
 
-    fn insert<S: Store>(&mut self, _prev_key: Vec<u8>, _cur_key:Vec<u8>, _store: &mut S, _batch: &[(Vec<u8>, OperationBytes)]) -> Result<()> {
+    fn rollback(&mut self, _target_height: i64) -> Result<()> {
         Ok(())
     }
 
-    fn root<S: Store>(&self, _key:Vec<u8>, _store: &S) -> Result<Option<Output<D>>> {
+    fn new(_namespace: &str, _height: i64) -> Self {
+        EmptyMerkle::default()
+    }
+
+    fn insert<S: Store>(&mut self, _store: &mut S, _batch: &[(Vec<u8>, OperationBytes)]) -> Result<()> {
+        Ok(())
+    }
+
+    fn root<S: Store>(&self, _store: &S) -> Result<Option<Output<D>>> {
         Ok(None)
     }
 }

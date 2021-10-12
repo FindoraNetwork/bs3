@@ -1,24 +1,31 @@
 use alloc::boxed::Box;
+use alloc::string::{String, ToString};
 use core::marker::PhantomData;
 use alloc::vec::Vec;
 use digest::generic_array::GenericArray;
 use digest::Output;
 use sha3::Digest;
+use crate::snapshot::utils::merkle_key;
 
 use crate::{OperationBytes, Result, Store, Error, Operation};
-use crate::snapshot::{FromStoreBytes, StoreValue, ToStoreBytes};
+use crate::merkle::value::MerkleValue;
+use crate::snapshot::{FromStoreBytes, ToStoreBytes};
 
 use super::Merkle;
 use super::min;
 
 pub struct AppendOnlyMerkle<D: Digest> {
     marker: PhantomData<D>,
+    namespace: String,
+    height: i64,
 }
 
 impl<D: Digest> Default for AppendOnlyMerkle<D> {
     fn default() -> Self {
         Self {
             marker: PhantomData,
+            namespace: String::default(),
+            height: 0,
         }
     }
 }
@@ -26,15 +33,40 @@ impl<D: Digest> Default for AppendOnlyMerkle<D> {
 impl<D: Digest> Merkle for AppendOnlyMerkle<D> {
     type Digest = D;
 
-    fn insert<S: Store>(&mut self,
-                        prev_key: Vec<u8>,
-                        cur_key: Vec<u8>,
-                        store: &mut S,
-                        batch: &[(Vec<u8>, OperationBytes)])
+    fn rollback(&mut self, target_height: i64) -> Result<()> {
+        if target_height > self.height {
+            log::error!(
+                "Target height {} must less than current height {}",
+                target_height,
+                self.height
+            );
+            Err(Error::HeightError)
+        } else {
+            self.height = target_height;
+            Ok(())
+        }
+    }
+
+    fn new(namespace: &str, height: i64) -> Self {
+        AppendOnlyMerkle{
+            marker: PhantomData,
+            namespace: namespace.to_string(),
+            height
+        }
+    }
+
+    fn insert<S: Store>(&mut self, store: &mut S, batch: &[(Vec<u8>, OperationBytes)])
         -> Result<()> {
 
         let mut hashs = Vec::new();
         let mut hasher = D::new();
+
+        if let Some(output) = self.root(store)? {
+            let prev_root = output[..].to_vec();
+            hashs.push(prev_root);
+        } else {
+            log::debug!("get prev root is none, height:{}",self.height);
+        }
 
         for (key,value) in batch.iter() {
             hasher.update(key);
@@ -44,13 +76,6 @@ impl<D: Digest> Merkle for AppendOnlyMerkle<D> {
             };
             let hash = hasher.finalize_reset()[..].to_vec();
             hashs.push(hash);
-        }
-
-        if let Some(output) = self.root(prev_key, store)? {
-            let prev_root = output[..].to_vec();
-            hashs.push(prev_root);
-        } else {
-            log::debug!("get prev root is none.");
         }
 
         if hashs.len()%2 != 0 {
@@ -77,15 +102,19 @@ impl<D: Digest> Merkle for AppendOnlyMerkle<D> {
             num_of_layers = (num_of_layers + 1)/2;
         }
         let operation = Operation::Update(hashs);
-        let value = StoreValue{ operation:operation.to_bytes()? };
+        let value = MerkleValue{ operation:operation.to_bytes()? };
+
+        self.height += 1;
+        let cur_key = merkle_key(&*self.namespace, self.height);
         store.insert(cur_key, value.to_bytes()?)?;
 
         Ok(())
     }
 
-    fn root<S: Store>(&self, key: Vec<u8>, store: &S) -> Result<Option<Output<D>>> {
+    fn root<S: Store>(&self, store: &S) -> Result<Option<Output<D>>> {
+        let key = merkle_key(&*self.namespace, self.height);
         if let Some(bytes) = store.get_ge(key.as_slice())? {
-            let value = StoreValue::from_bytes(&bytes)?;
+            let value = MerkleValue::from_bytes(&bytes)?;
             if let Operation::Update(hashs) =
                 Operation::<Vec<Vec<u8>>>::from_bytes(&value.operation)? {
                 if let Some(root) = hashs.last() {
