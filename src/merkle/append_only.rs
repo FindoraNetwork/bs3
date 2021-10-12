@@ -15,7 +15,7 @@ use super::Merkle;
 use super::min;
 
 pub struct AppendOnlyMerkle<D: Digest> {
-    marker: PhantomData<D>,
+    hasher: D,
     namespace: String,
     height: i64,
 }
@@ -23,7 +23,7 @@ pub struct AppendOnlyMerkle<D: Digest> {
 impl<D: Digest> Default for AppendOnlyMerkle<D> {
     fn default() -> Self {
         Self {
-            marker: PhantomData,
+            hasher: D::new(),
             namespace: String::default(),
             height: 0,
         }
@@ -49,7 +49,7 @@ impl<D: Digest> Merkle for AppendOnlyMerkle<D> {
 
     fn new(namespace: &str, height: i64) -> Self {
         AppendOnlyMerkle{
-            marker: PhantomData,
+            hasher: D::new(),
             namespace: namespace.to_string(),
             height
         }
@@ -59,7 +59,6 @@ impl<D: Digest> Merkle for AppendOnlyMerkle<D> {
         -> Result<()> {
 
         let mut hashs = Vec::new();
-        let mut hasher = D::new();
 
         if let Some(output) = self.root(store)? {
             let prev_root = output[..].to_vec();
@@ -69,12 +68,12 @@ impl<D: Digest> Merkle for AppendOnlyMerkle<D> {
         }
 
         for (key,value) in batch.iter() {
-            hasher.update(key);
+            self.hasher.update(key);
             match value {
-                OperationBytes::Update(v) => {hasher.update(v);}
-                OperationBytes::Delete => {hasher.update(Vec::new());}
+                OperationBytes::Update(v) => {self.hasher.update(v);}
+                OperationBytes::Delete => {self.hasher.update(Vec::new());}
             };
-            let hash = hasher.finalize_reset()[..].to_vec();
+            let hash = self.hasher.finalize_reset()[..].to_vec();
             hashs.push(hash);
         }
 
@@ -91,9 +90,9 @@ impl<D: Digest> Merkle for AppendOnlyMerkle<D> {
                 let right = min(left + 1,num_of_layers - 1);
                 let left_hash = hashs.get(offset + left).unwrap();
                 let right_hash = hashs.get(offset + right).unwrap();
-                hasher.update(left_hash);
-                hasher.update(right_hash);
-                let hash = hasher.finalize_reset()[..].to_vec();
+                self.hasher.update(left_hash);
+                self.hasher.update(right_hash);
+                let hash = self.hasher.finalize_reset()[..].to_vec();
                 hashs.push(hash);
 
                 left += 2;
