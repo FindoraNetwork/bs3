@@ -22,6 +22,14 @@ impl<D: Digest> Default for EmptyMerkle<D> {
 impl<D: Digest> Merkle for EmptyMerkle<D> {
     type Digest = D;
 
+    fn rollback(&mut self, _target_height: i64) -> Result<()> {
+        Ok(())
+    }
+
+    fn new(_namespace: &str, _height: i64) -> Self {
+        EmptyMerkle::default()
+    }
+
     fn insert<S: Store>(&mut self, _store: &mut S, _batch: &[(Vec<u8>, OperationBytes)]) -> Result<()> {
         Ok(())
     }

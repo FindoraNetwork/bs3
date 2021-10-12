@@ -223,11 +223,12 @@ where
             merkle_operations.push((k, v));
         }
 
+        // incr current height
+        self.write_height(self.height + 1, Some(operations))?;
+
         log::debug!("Start Compute merkle");
         self.merkle.insert(&mut self.store, &merkle_operations)?;
 
-        // incr current height
-        self.write_height(self.height + 1, Some(operations))?;
 
         log::debug!("Sync snapshot success in height: {}", self.height);
 

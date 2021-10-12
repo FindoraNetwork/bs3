@@ -75,13 +75,21 @@ where
 
     fn remove(&mut self, key1: &K1, key2: &K2) -> Result<Option<V>> {
         let key = &(key1.clone(), key2.clone());
-        return if let Some(op) = self.value.value.value.remove(key) {
+        let res = if let Some(op) = self.value.value.value.remove(key) {
             match op {
-                Operation::Update(v) => Ok(Some(v)),
-                Operation::Delete => Ok(None),
+                Operation::Update(v) => Some(v),
+                Operation::Delete => None,
             }
         } else {
-            Ok(None)
+            if let Some(v) = self.get(key1, key2)? {
+                Some(v.clone())
+            } else {
+                None
+            }
         };
+
+        self.value.value.value.insert(key.clone(), Operation::Delete);
+
+        Ok(res)
     }
 }

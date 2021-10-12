@@ -64,13 +64,21 @@ where
     }
 
     fn remove(&mut self, index: usize) -> Result<Option<T>> {
-        return if let Some(op) = self.value.value.remove(&index) {
+        let res = if let Some(op) = self.value.value.remove(&index) {
             match op {
-                Operation::Update(v) => Ok(Some(v)),
-                Operation::Delete => Ok(None),
+                Operation::Update(v) => Some(v),
+                Operation::Delete => None,
             }
         } else {
-            Ok(None)
+            if let Some(v) = vec_utils::get_inner_value(self, index)? {
+                Some(v)
+            } else {
+                None
+            }
         };
+
+        self.value.value.insert(index, Operation::Delete);
+
+        Ok(res)
     }
 }

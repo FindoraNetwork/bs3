@@ -22,7 +22,8 @@ pub fn type_key(namespace: &String) -> Vec<u8> {
     format!("{}-ty", namespace).into_bytes()
 }
 
-// pub fn merkle_root() -> Vec<u8> {
-//     Vec::new()
-// }
+/// build merkle root key
+pub fn merkle_key(namespace: &str, height: i64) -> Vec<u8> {
+    format!("{}-mr-{:020}", namespace, height).into_bytes()
+}
 //

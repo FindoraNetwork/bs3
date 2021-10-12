@@ -38,6 +38,5 @@ name = "sled_test"
 required-features = ["sled-backend"]
 
 [[test]]
-name = "mem_test"
-required-features = ["default"]
-
+name = "merkle_test"
+required-features = ["std"]
