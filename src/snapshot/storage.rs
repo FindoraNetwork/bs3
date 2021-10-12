@@ -235,7 +235,7 @@ where
         Ok(self.height)
     }
 
-    pub fn root(&self) -> Result<Option<digest::Output<M::Digest>>> {
+    pub fn root(&self) -> Result<digest::Output<M::Digest>> {
         self.merkle.root(&self.store)
     }
 }

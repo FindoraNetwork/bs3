@@ -1,6 +1,5 @@
 use alloc::boxed::Box;
 use alloc::string::{String, ToString};
-use core::marker::PhantomData;
 use alloc::vec::Vec;
 use digest::generic_array::GenericArray;
 use digest::Output;
@@ -60,11 +59,10 @@ impl<D: Digest> Merkle for AppendOnlyMerkle<D> {
 
         let mut hashs = Vec::new();
 
-        if let Some(output) = self.root(store)? {
+        let output = self.root(store)?;
+        if !output.eq(&Output::<D>::default()){
             let prev_root = output[..].to_vec();
             hashs.push(prev_root);
-        } else {
-            log::debug!("get prev root is none, height:{}",self.height);
         }
 
         for (key,value) in batch.iter() {
@@ -110,7 +108,7 @@ impl<D: Digest> Merkle for AppendOnlyMerkle<D> {
         Ok(())
     }
 
-    fn root<S: Store>(&self, store: &S) -> Result<Option<Output<D>>> {
+    fn root<S: Store>(&self, store: &S) -> Result<Output<D>> {
         let key = merkle_key(&*self.namespace, self.height);
         if let Some(bytes) = store.get_ge(key.as_slice())? {
             let value = MerkleValue::from_bytes(&bytes)?;
@@ -118,7 +116,7 @@ impl<D: Digest> Merkle for AppendOnlyMerkle<D> {
                 Operation::<Vec<Vec<u8>>>::from_bytes(&value.operation)? {
                 if let Some(root) = hashs.last() {
                     let array = GenericArray::<u8,D::OutputSize>::from_slice(root.as_slice());
-                    Ok(Some(array.clone()))
+                    Ok(array.clone())
                 } else {
                     Err(Error::StoreError(Box::new("this merkle size is 0")))
                 }
@@ -128,7 +126,7 @@ impl<D: Digest> Merkle for AppendOnlyMerkle<D> {
             }
 
         } else {
-            Ok(None)
+            Ok(Default::default())
         }
     }
 }

@@ -34,7 +34,7 @@ impl<D: Digest> Merkle for EmptyMerkle<D> {
         Ok(())
     }
 
-    fn root<S: Store>(&self, _store: &S) -> Result<Option<Output<D>>> {
-        Ok(None)
+    fn root<S: Store>(&self, _store: &S) -> Result<Output<D>> {
+        Ok(Default::default())
     }
 }

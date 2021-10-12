@@ -20,5 +20,5 @@ pub trait Merkle: Default {
 
     fn insert<S: Store>(&mut self, store: &mut S, batch: &[(Vec<u8>, OperationBytes)]) -> Result<()>;
 
-    fn root<S: Store>(&self, store: &S) -> Result<Option<Output<Self::Digest>>>;
+    fn root<S: Store>(&self, store: &S) -> Result<Output<Self::Digest>>;
 }
