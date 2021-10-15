@@ -16,7 +16,7 @@ pub struct Vec<V>
 where
     V: Clone + Serialize + for<'de> Deserialize<'de> + Debug,
 {
-    pub(crate) value: BTreeMap<usize, Operation<V>>,
+    pub(crate) value: BTreeMap<u64, Operation<V>>,
 }
 
 impl<V> Default for Vec<V>

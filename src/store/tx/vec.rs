@@ -13,7 +13,7 @@ where
     M: Merkle,
 {
 
-    fn get(&self, index: usize) -> crate::Result<Option<Cow<'_, T>>> {
+    fn get(&self, index: u64) -> crate::Result<Option<Cow<'_, T>>> {
         let self_value = self.value.value.get(&index);
 
         Ok(match self_value {
@@ -31,7 +31,7 @@ where
     }
 
 
-    fn get_mut(&mut self, index: usize) -> crate::Result<Option<&mut T>> {
+    fn get_mut(&mut self, index: u64) -> crate::Result<Option<&mut T>> {
 
         if let Some(Operation::Delete) = self.value.value.get(&index) {
             return Ok(None);
@@ -56,7 +56,7 @@ where
 
     fn insert(&mut self, value: T) -> Result<Option<T>> {
         let operation = Operation::Update(value.clone());
-        let index = self.value.value.len();
+        let index = self.value.value.len() as u64;
         let mut pre_val = None;
         if let Some(operation) = self.value.value.get_mut(&index) {
             match operation {
@@ -70,7 +70,7 @@ where
         Ok(pre_val)
     }
 
-    fn remove(&mut self, index: usize) -> Result<Option<T>> {
+    fn remove(&mut self, index: u64) -> Result<Option<T>> {
         return if let Some(op) = self.value.value.remove(&index) {
             match op {
                 Operation::Update(v) => Ok(Some(v)),
