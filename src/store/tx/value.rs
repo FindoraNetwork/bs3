@@ -22,7 +22,7 @@ where
                     Some(Operation::Delete) => None,
                     None => None,
                 }
-            },
+            }
         })
     }
 

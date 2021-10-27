@@ -29,7 +29,7 @@ pub enum Error {
     SledError(sled::Error),
 
     #[cfg(feature = "sled-backend")]
-    StdIoError(std::io::Error)
+    StdIoError(std::io::Error),
 }
 
 #[cfg(feature = "sled-backend")]

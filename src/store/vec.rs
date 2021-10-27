@@ -1,5 +1,5 @@
 use super::utils::vec_utils;
-use crate::{Cow, Operation, Result, SnapshotableStorage, Store, merkle::Merkle, model::Vec};
+use crate::{merkle::Merkle, model::Vec, Cow, Operation, Result, SnapshotableStorage, Store};
 use core::fmt::Debug;
 use serde::{Deserialize, Serialize};
 

@@ -30,7 +30,11 @@ impl<D: Digest> Merkle for EmptyMerkle<D> {
         EmptyMerkle::default()
     }
 
-    fn insert<S: Store>(&mut self, _store: &mut S, _batch: &[(Vec<u8>, OperationBytes)]) -> Result<()> {
+    fn insert<S: Store>(
+        &mut self,
+        _store: &mut S,
+        _batch: &[(Vec<u8>, OperationBytes)],
+    ) -> Result<()> {
         Ok(())
     }
 

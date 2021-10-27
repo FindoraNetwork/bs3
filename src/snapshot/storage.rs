@@ -1,6 +1,6 @@
 use alloc::{string::String, vec::Vec};
 
-use crate::{Error, Result, backend::Store, merkle::Merkle, model::Model, snapshot::StoreValue};
+use crate::{backend::Store, merkle::Merkle, model::Model, snapshot::StoreValue, Error, Result};
 
 use super::{utils, value::StoreType, FromStoreBytes, StoreHeight, ToStoreBytes, Transaction};
 use crate::snapshot::utils::storage_key;
@@ -218,7 +218,9 @@ where
 
         for (k, v) in self.value.operations()? {
             let key_bytes = self.storage_key(&k);
-            let store_value = StoreValue { operation: v.clone() };
+            let store_value = StoreValue {
+                operation: v.clone(),
+            };
             operations.push((key_bytes, store_value.to_bytes()?));
             merkle_operations.push((k, v));
         }
@@ -228,7 +230,6 @@ where
 
         log::debug!("Start Compute merkle");
         self.merkle.insert(&mut self.store, &merkle_operations)?;
-
 
         log::debug!("Sync snapshot success in height: {}", self.height);
 
@@ -258,4 +259,3 @@ where
         self.value.merge(val)
     }
 }
-

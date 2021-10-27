@@ -145,7 +145,7 @@ fn tx_sled_vec_test() -> Result<()> {
     Ok(())
 }
 
-fn sled_vec_test_reload_and_callback(is_rollback:bool) -> Result<()> {
+fn sled_vec_test_reload_and_callback(is_rollback: bool) -> Result<()> {
     let v = Vec::default();
     let db = sled_db_open(Some("/tmp/bs3_test/vec_test")).unwrap();
     let s = SledBackend::open_tree(&db, "vec_sled_test").unwrap();
@@ -172,7 +172,7 @@ fn sled_vec_test_reload_and_callback(is_rollback:bool) -> Result<()> {
     Ok(())
 }
 
-fn sled_map_test_reload_and_callback(is_rollback:bool) -> Result<()> {
+fn sled_map_test_reload_and_callback(is_rollback: bool) -> Result<()> {
     let m = Map::default();
     let db = sled_db_open(Some("/tmp/bs3_test/map_test")).unwrap();
     let s = SledBackend::open_tree(&db, "map_sled_test").unwrap();
@@ -198,7 +198,7 @@ fn sled_map_test_reload_and_callback(is_rollback:bool) -> Result<()> {
     Ok(())
 }
 
-fn sled_value_test_reload_and_callback(is_rollback:bool) -> Result<()> {
+fn sled_value_test_reload_and_callback(is_rollback: bool) -> Result<()> {
     let v = Value::default();
     let db = sled_db_open(Some("/tmp/bs3_test/value_test")).unwrap();
     let s = SledBackend::open_tree(&db, "value_sled_test").unwrap();
@@ -220,7 +220,7 @@ fn sled_value_test_reload_and_callback(is_rollback:bool) -> Result<()> {
     Ok(())
 }
 
-fn sled_doublekeymap_test_reload_and_callback(is_rollback:bool) -> Result<()> {
+fn sled_doublekeymap_test_reload_and_callback(is_rollback: bool) -> Result<()> {
     let m = DoubleKeyMap::default();
     let db = sled_db_open(Some("/tmp/bs3_test/doublekeymap_test")).unwrap();
     let s = SledBackend::open_tree(&db, "map_sled_test").unwrap();
@@ -269,4 +269,3 @@ fn main() {
     let _ = tx_sled_vec_test();
     let _ = tx_sled_doublekeymap_test();
 }
-
