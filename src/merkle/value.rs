@@ -1,8 +1,8 @@
+use crate::snapshot::{FromStoreBytes, ToStoreBytes};
+use crate::{utils::cbor_encode, Error, OperationBytes, Result};
 use alloc::string::ToString;
 use alloc::vec::Vec;
 use ciborium::de::from_reader;
-use crate::{utils::cbor_encode, Error, OperationBytes, Result};
-use crate::snapshot::{FromStoreBytes, ToStoreBytes};
 
 #[cfg(feature = "cbor")]
 use serde::{Deserialize, Serialize};

@@ -2,7 +2,7 @@
 //! Transaction Middleware
 //!
 
-use crate::{SnapshotableStorage, backend::Store, merkle::Merkle, model::Model};
+use crate::{backend::Store, merkle::Merkle, model::Model, SnapshotableStorage};
 
 pub struct Transaction<'a, S, M, V>
 where

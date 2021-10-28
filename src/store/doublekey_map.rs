@@ -1,6 +1,8 @@
 use core::fmt::Debug;
 
-use crate::{Cow, Operation, Result, SnapshotableStorage, Store, merkle::Merkle, model::DoubleKeyMap};
+use crate::{
+    merkle::Merkle, model::DoubleKeyMap, Cow, Operation, Result, SnapshotableStorage, Store,
+};
 
 use super::utils::doublekeymap_utils;
 #[cfg(feature = "cbor")]
@@ -21,7 +23,8 @@ where
     fn remove(&mut self, key1: &K1, key2: &K2) -> Result<Option<V>>;
 }
 
-impl<S, M, K1, K2, V> DoubleKeyMapStore<K1, K2, V> for SnapshotableStorage<S, M, DoubleKeyMap<K1, K2, V>>
+impl<S, M, K1, K2, V> DoubleKeyMapStore<K1, K2, V>
+    for SnapshotableStorage<S, M, DoubleKeyMap<K1, K2, V>>
 where
     K1: Clone + PartialEq + Eq + Serialize + for<'de> Deserialize<'de> + Ord + PartialOrd + Debug,
     K2: Clone + PartialEq + Eq + Serialize + for<'de> Deserialize<'de> + Ord + PartialOrd + Debug,
@@ -88,7 +91,10 @@ where
             }
         };
 
-        self.value.value.value.insert(key.clone(), Operation::Delete);
+        self.value
+            .value
+            .value
+            .insert(key.clone(), Operation::Delete);
 
         Ok(res)
     }

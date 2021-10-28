@@ -2,12 +2,13 @@ use crate::merkle::Merkle;
 use crate::model::DoubleKeyMap;
 use crate::{Cow, DoubleKeyMapStore, Operation, Result, Store, Transaction};
 
+use crate::store::utils::doublekeymap_utils;
 use core::fmt::Debug;
 #[cfg(feature = "cbor")]
 use serde::{Deserialize, Serialize};
-use crate::store::utils::doublekeymap_utils;
 
-impl<'a, S, M, K1, K2, V> DoubleKeyMapStore<K1, K2, V> for Transaction<'a, S, M, DoubleKeyMap<K1, K2, V>>
+impl<'a, S, M, K1, K2, V> DoubleKeyMapStore<K1, K2, V>
+    for Transaction<'a, S, M, DoubleKeyMap<K1, K2, V>>
 where
     K1: Clone + PartialEq + Eq + Serialize + for<'de> Deserialize<'de> + Ord + PartialOrd + Debug,
     K2: Clone + PartialEq + Eq + Serialize + for<'de> Deserialize<'de> + Ord + PartialOrd + Debug,
@@ -27,7 +28,7 @@ where
                 match lower_value {
                     Some(Operation::Update(v)) => Some(Cow::Borrowed(v)),
                     Some(Operation::Delete) => None,
-                    None => None
+                    None => None,
                 }
             }
         })
@@ -85,7 +86,10 @@ where
             }
         };
 
-        self.value.value.value.insert(key.clone(), Operation::Delete);
+        self.value
+            .value
+            .value
+            .insert(key.clone(), Operation::Delete);
 
         Ok(res)
     }

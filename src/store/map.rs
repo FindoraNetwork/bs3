@@ -1,6 +1,6 @@
 use core::fmt::Debug;
 
-use crate::{Cow, Operation, Result, SnapshotableStorage, Store, merkle::Merkle, model::Map};
+use crate::{merkle::Merkle, model::Map, Cow, Operation, Result, SnapshotableStorage, Store};
 
 use super::utils::map_utils;
 #[cfg(feature = "cbor")]

@@ -3,7 +3,7 @@ use core::fmt::Debug;
 use serde::{Deserialize, Serialize};
 
 use super::utils::value_utils;
-use crate::{Cow, Operation, Result, SnapshotableStorage, Store, merkle::Merkle, model::Value};
+use crate::{merkle::Merkle, model::Value, Cow, Operation, Result, SnapshotableStorage, Store};
 
 pub trait ValueStore<T>
 where
@@ -50,7 +50,7 @@ where
                 Operation::Delete => None,
             }
         } else {
-            if let Some(v) = value_utils::get_inner_value(self)?{
+            if let Some(v) = value_utils::get_inner_value(self)? {
                 Some(v)
             } else {
                 None
