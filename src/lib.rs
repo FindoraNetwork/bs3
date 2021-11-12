@@ -23,7 +23,7 @@
 //!
 //! Data is recorded by block height, For example:
 //! bytes():Indicates that the data is of type bytes
-//!
+//! ```json
 //! insert {1:1},{2:2},{3:3}; /*height=0*/
 //! commit; /*height=1,cache is nil*/
 //! {
@@ -55,6 +55,7 @@
 //!     bytes({name_space}-ch): bytes(StoreHeight(3)),
 //!     bytes({name_space}-kw-{hex(4)}-{:00000000000000000003}): bytes(Operation::Update(4)),
 //! }
+//! ```
 
 #![feature(generic_associated_types)]
 #![no_std]
