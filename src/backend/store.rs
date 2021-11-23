@@ -34,7 +34,7 @@ pub trait Store: Send + Sync {
             Some((k, v)) => {
                 log::debug!("get_ge key:{:?}, value:{:?}", k, v);
                 Some(v)
-            },
+            }
             None => None,
         })
     }
@@ -48,7 +48,7 @@ pub trait Store: Send + Sync {
             Some((k, v)) => {
                 log::debug!("get_ge2 key:{:?}, value:{:?}", k, v);
                 Some(v)
-            },
+            }
             None => None,
         })
     }
