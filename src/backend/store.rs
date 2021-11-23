@@ -31,7 +31,10 @@ pub trait Store: Send + Sync {
     fn get_ge(&self, key: &[u8]) -> Result<Option<CowBytes<'_>>> {
         let mut value = self.range(&Vec::new(), key)?;
         Ok(match value.next_back() {
-            Some((_, v)) => Some(v),
+            Some((k, v)) => {
+                log::debug!("get_ge key:{:?}, value:{:?}", k, v);
+                Some(v)
+            }
             None => None,
         })
     }
@@ -42,7 +45,10 @@ pub trait Store: Send + Sync {
     fn get_ge2(&self, keys: (&[u8], &[u8])) -> Result<Option<CowBytes<'_>>> {
         let mut value = self.range(keys.0, keys.1)?;
         Ok(match value.next_back() {
-            Some((_, v)) => Some(v),
+            Some((k, v)) => {
+                log::debug!("get_ge2 key:{:?}, value:{:?}", k, v);
+                Some(v)
+            }
             None => None,
         })
     }
