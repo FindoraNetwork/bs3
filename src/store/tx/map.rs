@@ -22,6 +22,7 @@ where
             Some(Operation::Delete) => None,
             None => {
                 let lower_value = self.store.value.value.get(key);
+                log::debug!("map get lower value:{:?}",self_value);
                 match lower_value {
                     Some(Operation::Update(v)) => Some(Cow::Borrowed(v)),
                     Some(Operation::Delete) => None,
