@@ -122,6 +122,8 @@ impl<D: Digest> Merkle for AppendOnlyMerkle<D> {
 
         // if get last hash not exist that return default
         if let Some(bytes) = store.get_ge(key.as_slice())? {
+            log::debug!("merkle get root value:{:?}",bytes);
+
             let value = MerkleValue::from_bytes(&bytes)?;
             if let Operation::Update(hashs) =
                 Operation::<Vec<Vec<u8>>>::from_bytes(&value.operation)?
