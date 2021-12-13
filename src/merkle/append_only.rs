@@ -61,6 +61,7 @@ impl<D: Digest> Merkle for AppendOnlyMerkle<D> {
     ) -> Result<()> {
         let mut hashs = Vec::new();
 
+        // get last hash
         let output = self.root(store)?;
         if !output.eq(&Output::<D>::default()) {
             let prev_root = output[..].to_vec();
@@ -117,6 +118,9 @@ impl<D: Digest> Merkle for AppendOnlyMerkle<D> {
 
     fn root<S: Store>(&self, store: &S) -> Result<Output<D>> {
         let key = merkle_key(&*self.namespace, self.height);
+        log::debug!("merkle get root key:{:?}",key);
+
+        // if get last hash not exist that return default
         if let Some(bytes) = store.get_ge(key.as_slice())? {
             let value = MerkleValue::from_bytes(&bytes)?;
             if let Operation::Update(hashs) =
