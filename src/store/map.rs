@@ -30,13 +30,17 @@ where
     M: Merkle,
 {
     fn get(&self, key: &K) -> Result<Option<Cow<'_, V>>> {
+        log::debug!("map get key:{:?}",key);
         return if let Some(operation) = self.value.value.get(key) {
+            log::debug!("map get value:{:?}",operation);
             match operation {
                 Operation::Update(v) => Ok(Some(Cow::Borrowed(v))),
                 Operation::Delete => Ok(None),
             }
         } else {
+            log::debug!("map get value not exist cache");
             if let Some(v) = map_utils::get_inner_value(self, key)? {
+                log::debug!("map get value in inner:{:?}",v);
                 Ok(Some(Cow::Owned(v)))
             } else {
                 Ok(None)
