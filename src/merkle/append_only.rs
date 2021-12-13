@@ -117,6 +117,10 @@ impl<D: Digest> Merkle for AppendOnlyMerkle<D> {
     }
 
     fn root<S: Store>(&self, store: &S) -> Result<Output<D>> {
+        if self.height == 0 {
+            return Ok(Default::default());
+        }
+
         let key = merkle_key(&*self.namespace, self.height);
         log::debug!("merkle get root key:{:?}",key);
 
