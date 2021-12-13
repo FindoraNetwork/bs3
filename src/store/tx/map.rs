@@ -15,7 +15,6 @@ where
 {
     fn get(&self, key: &K) -> crate::Result<Option<Cow<'_, V>>> {
         let self_value = self.value.value.get(key);
-
         Ok(match self_value {
             Some(Operation::Update(v)) => Some(Cow::Borrowed(v)),
             Some(Operation::Delete) => None,
@@ -24,7 +23,13 @@ where
                 match lower_value {
                     Some(Operation::Update(v)) => Some(Cow::Borrowed(v)),
                     Some(Operation::Delete) => None,
-                    None => None,
+                    None => {
+                        let store_inner_value = self.store.get(key)?;
+                        match store_inner_value {
+                            None => None,
+                            Some(v) => Some(v),
+                        }
+                    }
                 }
             }
         })
