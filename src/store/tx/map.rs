@@ -21,20 +21,22 @@ where
             Some(Operation::Update(v)) => Some(Cow::Borrowed(v)),
             Some(Operation::Delete) => None,
             None => {
-                // let lower_value = self.store.value.value.get(key);
-                // log::debug!("map get lower value:{:?}",self_value);
-                // match lower_value {
-                //     Some(Operation::Update(v)) => Some(Cow::Borrowed(v)),
-                //     Some(Operation::Delete) => None,
-                //     None => None,
-                // }
-
-                let lower_value = self.store.get(key)?;
-                log::debug!("map get lower value2:{:?}",self_value);
+                let lower_value = self.store.value.value.get(key);
+                log::debug!("map get lower value:{:?}",self_value);
                 match lower_value {
-                    None => {None}
-                    Some(v) => {Some(v)}
+                    Some(Operation::Update(v)) => Some(Cow::Borrowed(v)),
+                    Some(Operation::Delete) => None,
+                    None => {
+                        let store_inner_value = self.store.get(key)?;
+                        log::debug!("map get lower value2:{:?}",store_inner_value);
+                        match store_inner_value {
+                            None => {None}
+                            Some(v) => {Some(v)}
+                        }
+                    },
                 }
+
+
             }
         })
     }
