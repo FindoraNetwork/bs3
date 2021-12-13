@@ -14,8 +14,9 @@ where
     M: Merkle,
 {
     fn get(&self, key: &K) -> crate::Result<Option<Cow<'_, V>>> {
+        log::debug!("map get key:{:?}",key);
         let self_value = self.value.value.get(key);
-
+        log::debug!("map get value:{:?}",self_value);
         Ok(match self_value {
             Some(Operation::Update(v)) => Some(Cow::Borrowed(v)),
             Some(Operation::Delete) => None,
