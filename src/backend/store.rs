@@ -9,7 +9,9 @@ use alloc::vec::Vec;
 
 pub trait Store: Send + Sync {
     #[cfg(feature = "nightly")]
-    type Range<'a>: DoubleEndedIterator<Item = (CowBytes<'a>, CowBytes<'a>)>;
+    type Range<'a>: DoubleEndedIterator<Item = (CowBytes<'a>, CowBytes<'a>)>
+    where
+        Self: 'a;
 
     #[cfg(feature = "nightly")]
     /// Provide this method to range key.
