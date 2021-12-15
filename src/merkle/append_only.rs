@@ -13,6 +13,7 @@ use crate::{Error, Operation, OperationBytes, Result, Store};
 use super::min;
 use super::Merkle;
 
+#[derive(Clone)]
 pub struct AppendOnlyMerkle<D: Digest> {
     hasher: D,
     namespace: String,
@@ -29,7 +30,7 @@ impl<D: Digest> Default for AppendOnlyMerkle<D> {
     }
 }
 
-impl<D: Digest> Merkle for AppendOnlyMerkle<D> {
+impl<D: Digest + Clone> Merkle for AppendOnlyMerkle<D> {
     type Digest = D;
 
     fn rollback(&mut self, target_height: i64) -> Result<()> {

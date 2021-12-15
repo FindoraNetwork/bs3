@@ -14,6 +14,7 @@ use core::ops::{Bound, RangeBounds};
 
 ///
 /// use sled tree
+#[derive(Clone)]
 pub struct SledBackend {
     tree: Tree,
 }

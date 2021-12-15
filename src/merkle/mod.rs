@@ -11,7 +11,7 @@ mod value;
 
 pub use utils::min;
 
-pub trait Merkle: Default {
+pub trait Merkle: Default + Clone {
     type Digest: Digest;
 
     fn rollback(&mut self, target_height: i64) -> Result<()>;

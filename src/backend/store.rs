@@ -7,7 +7,7 @@
 use crate::{CowBytes, Result};
 use alloc::vec::Vec;
 
-pub trait Store: Send + Sync {
+pub trait Store: Send + Sync + Clone {
     #[cfg(feature = "nightly")]
     type Range<'a>: DoubleEndedIterator<Item = (CowBytes<'a>, CowBytes<'a>)>
     where

@@ -2,9 +2,7 @@ use bs3::backend::{sled_db_open, SledBackend};
 use bs3::merkle::empty::EmptyMerkle;
 use bs3::model::{DoubleKeyMap, Map, Value, Vec};
 use bs3::prelude::Tree;
-use bs3::{
-    Cow, DoubleKeyMapStore, MapStore, Operation, OperationBytes, Result, ValueStore, VecStore,
-};
+use bs3::{Cow, DoubleKeyMapStore, MapStore, Result, ValueStore, VecStore};
 use bs3::{SnapshotableStorage, Transaction};
 use sha3::Sha3_512;
 
@@ -24,10 +22,10 @@ fn sled_vec_test() -> Result<()> {
     assert_eq!(ss.get(1)?, Some(Cow::Owned(2)));
     assert_eq!(ss.get(2)?, Some(Cow::Owned(3)));
 
-    assert_eq!(
-        ss.tree_get(&2_u8.to_be_bytes().to_vec(), 2)?,
-        3_u8.to_be_bytes().to_vec()
-    );
+    ss.rollback(2)?;
+    let key = serde_json::value::Number::from(2);
+    let key = serde_json::to_vec(&key).unwrap();
+    assert_eq!(ss.tree_get(&key, 2)?, 51_u8.to_be_bytes().to_vec());
 
     Ok(())
 }
@@ -47,10 +45,13 @@ fn sled_map_test() -> Result<()> {
     assert_eq!(ss.commit()?, 3);
     assert_eq!(ss.get(&1)?, None);
     assert_eq!(ss.get_mut(&2)?, Some(&mut 2_i32));
-    assert_eq!(
-        ss.tree_get(&2_u8.to_be_bytes().to_vec(), 1)?,
-        2_u8.to_be_bytes().to_vec()
-    );
+
+    ss.rollback(1)?;
+
+    let key = serde_json::value::Number::from(2);
+    let key = serde_json::to_vec(&key).unwrap();
+
+    assert_eq!(ss.tree_get(&key, 1)?, 50_u8.to_be_bytes().to_vec());
 
     Ok(())
 }
@@ -71,9 +72,11 @@ fn sled_doublekeymap_test() -> Result<()> {
     assert_eq!(ss.get(&1, &1)?, None);
     assert_eq!(ss.get_mut(&2, &2)?, Some(&mut 2_i32));
 
-    let mut bytes = std::vec::Vec::new();
-    ciborium::ser::into_writer(&(2_u8, 2_u8), &mut bytes)?;
-    assert_eq!(ss.tree_get(&bytes, 1)?, 2_u8.to_be_bytes().to_vec());
+    ss.rollback(1)?;
+
+    let key = serde_json::to_vec(&(2, 2)).unwrap();
+
+    assert_eq!(ss.tree_get(&key, 1)?, 50_u8.to_be_bytes().to_vec());
     Ok(())
 }
 
@@ -90,7 +93,9 @@ fn sled_value_test() -> Result<()> {
     assert_eq!(ss.commit()?, 2);
     assert_eq!(ss.get()?, Some(Cow::Owned(2)));
 
-    assert_eq!(ss.tree_get(&vec![], 2)?, 2_u8.to_be_bytes().to_vec());
+    ss.rollback(2)?;
+
+    assert_eq!(ss.tree_get(&vec![], 2)?, 50_u8.to_be_bytes().to_vec());
 
     Ok(())
 }
