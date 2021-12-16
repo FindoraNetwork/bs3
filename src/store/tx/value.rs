@@ -20,7 +20,13 @@ where
                 match lower_value {
                     Some(Operation::Update(v)) => Some(Cow::Borrowed(v)),
                     Some(Operation::Delete) => None,
-                    None => None,
+                    None => {
+                        let store_inner_value = self.store.get()?;
+                        match store_inner_value {
+                            None => None,
+                            Some(v) => Some(v),
+                        }
+                    }
                 }
             }
         })

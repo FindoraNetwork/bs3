@@ -61,10 +61,16 @@ impl<D: Digest> Merkle for AppendOnlyMerkle<D> {
     ) -> Result<()> {
         let mut hashs = Vec::new();
 
+        // get last hash
         let output = self.root(store)?;
         if !output.eq(&Output::<D>::default()) {
             let prev_root = output[..].to_vec();
             hashs.push(prev_root);
+        } else {
+            // start
+            if self.height == 0 {
+                hashs.push(output[..].to_vec());
+            }
         }
 
         for (key, value) in batch.iter() {
@@ -116,8 +122,17 @@ impl<D: Digest> Merkle for AppendOnlyMerkle<D> {
     }
 
     fn root<S: Store>(&self, store: &S) -> Result<Output<D>> {
+        if self.height == 0 {
+            return Ok(Default::default());
+        }
+
         let key = merkle_key(&*self.namespace, self.height);
+        log::debug!("merkle get root key:{:?}", key);
+
+        // if get last hash not exist that return default
         if let Some(bytes) = store.get_ge(key.as_slice())? {
+            log::debug!("merkle get root value:{:?}", bytes);
+
             let value = MerkleValue::from_bytes(&bytes)?;
             if let Operation::Update(hashs) =
                 Operation::<Vec<Vec<u8>>>::from_bytes(&value.operation)?
@@ -132,6 +147,7 @@ impl<D: Digest> Merkle for AppendOnlyMerkle<D> {
                 Err(Error::StoreError(Box::new("this operation is delete")))
             }
         } else {
+            log::debug!("merkle get root value not exist");
             Ok(Default::default())
         }
     }
