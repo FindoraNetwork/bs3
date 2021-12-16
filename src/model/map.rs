@@ -17,7 +17,7 @@ use super::Model;
 /// use BTree
 ///     key:K
 ///     value:Operation<V>
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Map<K, V>
 where
     K: Clone + PartialEq + Eq + Serialize + for<'de> Deserialize<'de> + Ord + PartialOrd + Debug,

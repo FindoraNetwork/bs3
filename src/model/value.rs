@@ -14,7 +14,7 @@ use crate::{Operation, OperationBytes, Result};
 use super::Model;
 
 /// define value
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Value<T>
 where
     T: Clone + Debug + Serialize + for<'de> Deserialize<'de>,
