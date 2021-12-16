@@ -208,6 +208,17 @@ where
         )
     }
 
+    pub(crate) fn storage_tuple_key_with_height(
+        &self,
+        key: &Vec<u8>,
+        height: i64,
+    ) -> (Vec<u8>, Vec<u8>) {
+        (
+            utils::storage_key(&self.namespace, &key, 0),
+            utils::storage_key(&self.namespace, &key, height),
+        )
+    }
+
     /// Commit this snapshot.
     pub fn commit(&mut self) -> Result<i64> {
         let mut operations = Vec::new();
