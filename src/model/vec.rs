@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 
 /// define vec,inner value is btree
 ///     key : usize
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Vec<V>
 where
     V: Clone + Serialize + for<'de> Deserialize<'de> + Debug,
