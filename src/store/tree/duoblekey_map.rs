@@ -1,3 +1,4 @@
+
 use crate::prelude::Tree;
 use alloc::vec::Vec;
 
@@ -17,8 +18,12 @@ where
     S: Store,
     M: Merkle,
 {
-    fn tree_get(&self, key: &Vec<u8>, height: i64) -> Result<Option<Vec<u8>>> {
-        let (k1, k2) = self.storage_tuple_key_with_height(key, height);
+    fn tree_get(&self, key: &Vec<u8>, height: i64) -> Result<Vec<u8>> {
+        let key:K1 = serde_json::from_slice::<K1>(key)?;
+
+        let key_bytes = cbor_encode(key)?;
+
+        let (k1, k2) = self.storage_tuple_key_with_height(&key_bytes, height);
         let bytes = self.store.get_ge2((&k1, &k2))?;
         if let Some(bytes) = bytes {
             let value = StoreValue::from_bytes(&bytes)?;
@@ -27,12 +32,12 @@ where
                 Operation::Update(v) => {
                     log::debug!("tree get value:{:?}", v);
                     let bytes = cbor_encode(v)?;
-                    Ok(Some(bytes))
+                    Ok(bytes)
                 }
-                Operation::Delete => Ok(None),
+                Operation::Delete => Ok(Vec::new()),
             }
         } else {
-            Ok(None)
+            Ok(Vec::new())
         }
     }
 }
