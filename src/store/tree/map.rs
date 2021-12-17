@@ -18,12 +18,12 @@ where
     M: Merkle,
 {
     fn tree_get(&self, key: &Vec<u8>, height: i64) -> Result<Vec<u8>> {
-
+        log::debug!("!!!!!!!!!!!!!!!!!!!!!>>>>>>>>>>>bs3-key1:{:?}",key);
         let key:K = ciborium::de::from_reader::<K,&[u8]>(key.as_slice())
             .map_err(|e|Error::CborDeIoError(e.to_string()))?;
-
+        log::debug!("!!!!!!!!!!!!!!!!!!!!!>>>>>>>>>>>bs3-key2:{:?}",key);
         let key_bytes = cbor_encode(key)?;
-
+        log::debug!("!!!!!!!!!!!!!!!!!!!!!>>>>>>>>>>>bs3-key_bytes:{:?}",key_bytes);
         let (k1, k2) = self.storage_tuple_key_with_height(&key_bytes, height);
         let bytes = self.store.get_ge2((&k1, &k2))?;
         if let Some(bytes) = bytes {
