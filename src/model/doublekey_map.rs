@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use crate::model::{Map, Model};
 use crate::{OperationBytes, Result};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct DoubleKeyMap<K1, K2, V>
 where
     K1: Clone + PartialEq + Eq + Serialize + for<'de> Deserialize<'de> + Ord + PartialOrd + Debug,
