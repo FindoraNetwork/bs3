@@ -26,7 +26,7 @@ fn sled_vec_test() -> Result<()> {
 
     assert_eq!(
         ss.tree_get(&2_u8.to_be_bytes().to_vec(), 2)?,
-        Some(3_u8.to_be_bytes().to_vec())
+        3_u8.to_be_bytes().to_vec()
     );
 
     Ok(())
@@ -49,7 +49,7 @@ fn sled_map_test() -> Result<()> {
     assert_eq!(ss.get_mut(&2)?, Some(&mut 2_i32));
     assert_eq!(
         ss.tree_get(&2_u8.to_be_bytes().to_vec(), 1)?,
-        Some(2_u8.to_be_bytes().to_vec())
+        2_u8.to_be_bytes().to_vec()
     );
 
     Ok(())
@@ -73,7 +73,7 @@ fn sled_doublekeymap_test() -> Result<()> {
 
     let mut bytes = std::vec::Vec::new();
     ciborium::ser::into_writer(&(2_u8, 2_u8), &mut bytes)?;
-    assert_eq!(ss.tree_get(&bytes, 1)?, Some(2_u8.to_be_bytes().to_vec()));
+    assert_eq!(ss.tree_get(&bytes, 1)?, 2_u8.to_be_bytes().to_vec());
     Ok(())
 }
 
@@ -90,7 +90,7 @@ fn sled_value_test() -> Result<()> {
     assert_eq!(ss.commit()?, 2);
     assert_eq!(ss.get()?, Some(Cow::Owned(2)));
 
-    assert_eq!(ss.tree_get(&vec![], 2)?, Some(2_u8.to_be_bytes().to_vec()));
+    assert_eq!(ss.tree_get(&vec![], 2)?, 2_u8.to_be_bytes().to_vec());
 
     Ok(())
 }

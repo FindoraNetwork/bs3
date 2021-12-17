@@ -1,8 +1,8 @@
-use alloc::string::ToString;
+
 use crate::prelude::Tree;
 use alloc::vec::Vec;
 
-use crate::{Error, merkle::Merkle, model::Vec as model_vec, Operation, Result, SnapshotableStorage, Store};
+use crate::{merkle::Merkle, model::Vec as model_vec, Operation, Result, SnapshotableStorage, Store};
 
 use crate::snapshot::{FromStoreBytes, StoreValue};
 use crate::utils::cbor_encode;
@@ -18,8 +18,7 @@ where
 {
     fn tree_get(&self, key: &Vec<u8>, height: i64) -> Result<Vec<u8>> {
 
-        let key:u64 = ciborium::de::from_reader::<u64,&[u8]>(key.as_slice())
-            .map_err(|e|Error::CborDeIoError(e.to_string()))?;
+        let key:u64 = serde_json::from_slice::<u64>(key)?;
 
         let key_bytes = cbor_encode(key)?;
 
