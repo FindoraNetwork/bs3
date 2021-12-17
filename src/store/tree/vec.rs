@@ -1,9 +1,8 @@
+use alloc::string::ToString;
 use crate::prelude::Tree;
 use alloc::vec::Vec;
 
-use crate::{
-    merkle::Merkle, model::Vec as model_vec, Operation, Result, SnapshotableStorage, Store,
-};
+use crate::{Error, merkle::Merkle, model::Vec as model_vec, Operation, Result, SnapshotableStorage, Store};
 
 use crate::snapshot::{FromStoreBytes, StoreValue};
 use crate::utils::cbor_encode;
@@ -18,7 +17,13 @@ where
     M: Merkle,
 {
     fn tree_get(&self, key: &Vec<u8>, height: i64) -> Result<Vec<u8>> {
-        let (k1, k2) = self.storage_tuple_key_with_height(key, height);
+
+        let key:u64 = ciborium::de::from_reader::<u64,&[u8]>(key.as_slice())
+            .map_err(|e|Error::CborDeIoError(e.to_string()))?;
+
+        let key_bytes = cbor_encode(key)?;
+
+        let (k1, k2) = self.storage_tuple_key_with_height(&key_bytes, height);
         let bytes = self.store.get_ge2((&k1, &k2))?;
         if let Some(bytes) = bytes {
             let value = StoreValue::from_bytes(&bytes)?;
