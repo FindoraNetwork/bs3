@@ -1,4 +1,3 @@
-
 use crate::prelude::Tree;
 use alloc::vec::Vec;
 
@@ -19,7 +18,7 @@ where
     M: Merkle,
 {
     fn tree_get(&self, key: &Vec<u8>, height: i64) -> Result<Vec<u8>> {
-        let key:K1 = serde_json::from_slice::<K1>(key)?;
+        let key: K1 = serde_json::from_slice::<K1>(key)?;
 
         let key_bytes = cbor_encode(key)?;
 

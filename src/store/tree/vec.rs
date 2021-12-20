@@ -1,8 +1,9 @@
-
 use crate::prelude::Tree;
 use alloc::vec::Vec;
 
-use crate::{merkle::Merkle, model::Vec as model_vec, Operation, Result, SnapshotableStorage, Store};
+use crate::{
+    merkle::Merkle, model::Vec as model_vec, Operation, Result, SnapshotableStorage, Store,
+};
 
 use crate::snapshot::{FromStoreBytes, StoreValue};
 use crate::utils::cbor_encode;
@@ -17,8 +18,7 @@ where
     M: Merkle,
 {
     fn tree_get(&self, key: &Vec<u8>, height: i64) -> Result<Vec<u8>> {
-
-        let key:u64 = serde_json::from_slice::<u64>(key)?;
+        let key: u64 = serde_json::from_slice::<u64>(key)?;
 
         let key_bytes = cbor_encode(key)?;
 
