@@ -20,7 +20,7 @@ pub use vec::Vec;
 mod doublekey_map;
 pub use doublekey_map::DoubleKeyMap;
 
-pub trait Model: Default + Debug {
+pub trait Model: Default + Debug + Clone {
     /// Get operations for this value.
     ///
     /// Don't forget clean this value to default.
