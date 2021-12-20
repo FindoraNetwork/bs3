@@ -7,6 +7,7 @@ use crate::{OperationBytes, Result, Store};
 
 use super::Merkle;
 
+#[derive(Clone)]
 pub struct EmptyMerkle<D: Digest> {
     marker: PhantomData<D>,
 }
@@ -19,7 +20,7 @@ impl<D: Digest> Default for EmptyMerkle<D> {
     }
 }
 
-impl<D: Digest> Merkle for EmptyMerkle<D> {
+impl<D: Digest + Clone> Merkle for EmptyMerkle<D> {
     type Digest = D;
 
     fn rollback(&mut self, _target_height: i64) -> Result<()> {
