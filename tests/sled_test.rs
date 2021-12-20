@@ -25,7 +25,7 @@ fn sled_vec_test() -> Result<()> {
     ss.rollback(2)?;
     let key = serde_json::value::Number::from(2);
     let key = serde_json::to_vec(&key).unwrap();
-    assert_eq!(ss.tree_get(&key, 2)?, 51_u8.to_be_bytes().to_vec());
+    assert_eq!(ss.tree_get(&key)?, 51_u8.to_be_bytes().to_vec());
 
     Ok(())
 }
@@ -51,7 +51,7 @@ fn sled_map_test() -> Result<()> {
     let key = serde_json::value::Number::from(2);
     let key = serde_json::to_vec(&key).unwrap();
 
-    assert_eq!(ss.tree_get(&key, 1)?, 50_u8.to_be_bytes().to_vec());
+    assert_eq!(ss.tree_get(&key)?, 50_u8.to_be_bytes().to_vec());
 
     Ok(())
 }
@@ -76,7 +76,7 @@ fn sled_doublekeymap_test() -> Result<()> {
 
     let key = serde_json::to_vec(&(2, 2)).unwrap();
 
-    assert_eq!(ss.tree_get(&key, 1)?, 50_u8.to_be_bytes().to_vec());
+    assert_eq!(ss.tree_get(&key)?, 50_u8.to_be_bytes().to_vec());
     Ok(())
 }
 
@@ -95,7 +95,7 @@ fn sled_value_test() -> Result<()> {
 
     ss.rollback(2)?;
 
-    assert_eq!(ss.tree_get(&vec![], 2)?, 50_u8.to_be_bytes().to_vec());
+    assert_eq!(ss.tree_get(&vec![])?, 50_u8.to_be_bytes().to_vec());
 
     Ok(())
 }
