@@ -1,10 +1,8 @@
 use crate::prelude::Tree;
 use alloc::vec::Vec;
 
-use crate::{merkle::Merkle, model::Map, Operation, Result, SnapshotableStorage, Store};
+use crate::{merkle::Merkle, model::Map, MapStore, Result, SnapshotableStorage, Store};
 
-use crate::snapshot::{FromStoreBytes, StoreValue};
-use crate::utils::cbor_encode;
 use core::fmt::Debug;
 #[cfg(feature = "cbor")]
 use serde::{Deserialize, Serialize};
@@ -16,22 +14,13 @@ where
     S: Store,
     M: Merkle,
 {
-    fn tree_get(&self, key: &Vec<u8>, height: i64) -> Result<Vec<u8>> {
+    fn tree_get(&self, key: &Vec<u8>, _height: i64) -> Result<Vec<u8>> {
         let key: K = serde_json::from_slice::<K>(key)?;
-        let key_bytes = cbor_encode(key)?;
-        let (k1, k2) = self.storage_tuple_key_with_height(&key_bytes, height);
-        let bytes = self.store.get_ge2((&k1, &k2))?;
-        if let Some(bytes) = bytes {
-            let value = StoreValue::from_bytes(&bytes)?;
-            let operation = Operation::<V>::from_bytes(&value.operation)?;
-            match operation {
-                Operation::Update(v) => {
-                    log::debug!("tree get value:{:?}", v);
-                    let bytes = cbor_encode(v)?;
-                    Ok(bytes)
-                }
-                Operation::Delete => Ok(Vec::new()),
-            }
+
+        let value = self.get(&key)?;
+        if let Some(val) = value {
+            let bytes = serde_json::to_vec(val.as_ref())?;
+            Ok(bytes)
         } else {
             Ok(Vec::new())
         }

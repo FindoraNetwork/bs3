@@ -24,6 +24,7 @@ use super::Store;
 ///         bytes(Operation::Update(1))
 ///         Bytes(Operation::Remove)
 ///
+#[derive(Clone)]
 pub struct MemoryBackend {
     pub cache: BTreeMap<Vec<u8>, Vec<u8>>,
 }

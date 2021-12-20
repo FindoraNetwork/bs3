@@ -6,6 +6,7 @@ use super::{utils, value::StoreType, FromStoreBytes, StoreHeight, ToStoreBytes, 
 use crate::snapshot::utils::storage_key;
 
 /// Snapshotable Storage
+#[derive(Clone)]
 pub struct SnapshotableStorage<S, M, V>
 where
     S: Store,
@@ -205,17 +206,6 @@ where
         (
             utils::storage_key(&self.namespace, &key, 0),
             utils::storage_key(&self.namespace, &key, self.height),
-        )
-    }
-
-    pub(crate) fn storage_tuple_key_with_height(
-        &self,
-        key: &Vec<u8>,
-        height: i64,
-    ) -> (Vec<u8>, Vec<u8>) {
-        (
-            utils::storage_key(&self.namespace, &key, 0),
-            utils::storage_key(&self.namespace, &key, height),
         )
     }
 
