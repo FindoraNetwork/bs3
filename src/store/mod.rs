@@ -12,4 +12,6 @@ mod vec;
 pub use vec::VecStore;
 
 mod doublekey_map;
+mod tree;
+
 pub use doublekey_map::DoubleKeyMapStore;

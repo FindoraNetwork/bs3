@@ -30,6 +30,8 @@ pub enum Error {
 
     #[cfg(feature = "sled-backend")]
     StdIoError(std::io::Error),
+
+    JsonError(serde_json::Error),
 }
 
 #[cfg(feature = "sled-backend")]
@@ -50,6 +52,12 @@ impl From<ciborium::de::Error<core::convert::Infallible>> for Error {
 impl From<ciborium::ser::Error<core::convert::Infallible>> for Error {
     fn from(e: ciborium::ser::Error<core::convert::Infallible>) -> Self {
         self::Error::CborSerError(e)
+    }
+}
+
+impl From<serde_json::Error> for Error {
+    fn from(e: serde_json::Error) -> Self {
+        Error::JsonError(e)
     }
 }
 
