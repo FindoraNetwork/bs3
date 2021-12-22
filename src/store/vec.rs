@@ -63,6 +63,7 @@ where
         vec_utils::get_inner_value(self, index)
     }
 
+    //
     fn remove(&mut self, index: u64) -> Result<Option<T>> {
         let res = if let Some(op) = self.value.value.remove(&index) {
             match op {

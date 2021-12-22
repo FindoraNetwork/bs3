@@ -80,22 +80,25 @@ fn sled_doublekeymap_test() -> Result<()> {
     Ok(())
 }
 
+#[test]
 fn sled_value_test() -> Result<()> {
-    let v = Value::default();
+    let v: Value<u64> = Value::default();
     let db = sled_db_open(None).unwrap();
     let s = SledBackend::open_tree(&db, "value_sled_test").unwrap();
     let mut ss = SnapshotableStorage::<_, EmptyMerkle<Sha3_512>, _>::new(v, s).unwrap();
 
     assert_eq!(ss.set(1)?, None);
+    *ss.get_mut().unwrap().unwrap() = 2;
     assert_eq!(ss.commit()?, 1);
-    assert_eq!(ss.get()?, Some(Cow::Owned(1)));
-    assert_eq!(ss.set(2)?, Some(1));
-    assert_eq!(ss.commit()?, 2);
     assert_eq!(ss.get()?, Some(Cow::Owned(2)));
+    assert_eq!(ss.set(3)?, Some(2));
+    *ss.get_mut().unwrap().unwrap() += 1;
+    assert_eq!(ss.commit()?, 2);
+    assert_eq!(ss.get()?, Some(Cow::Owned(4)));
 
     ss.rollback(2)?;
 
-    assert_eq!(ss.tree_get(&vec![])?, 50_u8.to_be_bytes().to_vec());
+    assert_eq!(ss.tree_get(&vec![])?, 52_u8.to_be_bytes().to_vec());
 
     Ok(())
 }

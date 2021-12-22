@@ -23,17 +23,20 @@ fn map_mem_test() -> Result<()> {
     Ok(())
 }
 
+#[test]
 fn value_mem_test() -> Result<()> {
     let v = Value::default();
     let s = MemoryBackend::new();
     let mut ss = SnapshotableStorage::<_, EmptyMerkle<Sha3_512>, _>::new(v, s).unwrap();
 
     assert_eq!(ss.set(1)?, None);
+    *ss.get_mut()?.unwrap() += 1;
     assert_eq!(ss.commit()?, 1);
-    assert_eq!(ss.get()?, Some(Cow::Owned(1)));
-    assert_eq!(ss.set(2)?, Some(1));
-    assert_eq!(ss.commit()?, 2);
     assert_eq!(ss.get()?, Some(Cow::Owned(2)));
+    assert_eq!(ss.set(2)?, Some(2));
+    *ss.get_mut()?.unwrap() = 20;
+    assert_eq!(ss.commit()?, 2);
+    assert_eq!(ss.get()?, Some(Cow::Owned(20)));
 
     Ok(())
 }
@@ -106,6 +109,7 @@ fn tx_doublekeymap_mem_test() -> Result<()> {
     Ok(())
 }
 
+#[test]
 fn tx_value_mem_test() -> Result<()> {
     let v: Value<u64> = Value::default();
     let s = MemoryBackend::new();
