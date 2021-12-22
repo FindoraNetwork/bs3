@@ -107,7 +107,7 @@ fn tx_doublekeymap_mem_test() -> Result<()> {
 }
 
 fn tx_value_mem_test() -> Result<()> {
-    let v = Value::default();
+    let v: Value<u64> = Value::default();
     let s = MemoryBackend::new();
     let ss = SnapshotableStorage::<_, EmptyMerkle<Sha3_512>, _>::new(v, s).unwrap();
     let mut tx = Transaction::new(&ss);
@@ -116,6 +116,12 @@ fn tx_value_mem_test() -> Result<()> {
     assert_eq!(tx.get()?, Some(Cow::Borrowed(&1)));
     assert_eq!(tx.set(2)?, Some(1));
     assert_eq!(tx.get()?, Some(Cow::Borrowed(&2)));
+
+    *tx.get_mut()?.unwrap() += 1;
+    assert_eq!(tx.get()?, Some(Cow::Borrowed(&3)));
+    *tx.get_mut()?.unwrap() = 10;
+    assert_eq!(tx.get()?, Some(Cow::Borrowed(&10)));
+    assert_eq!(tx.get_mut()?, Some(&mut 10));
 
     Ok(())
 }

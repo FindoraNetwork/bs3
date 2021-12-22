@@ -11,6 +11,8 @@ where
 {
     fn get(&self) -> Result<Option<Cow<'_, T>>>;
 
+    fn get_mut(&mut self) -> Result<Option<&mut T>>;
+
     fn set(&mut self, value: T) -> Result<Option<T>>;
 
     fn del(&mut self) -> Result<Option<T>>;
@@ -32,6 +34,28 @@ where
                 Some(v) => Some(Cow::Owned(v)),
                 None => None,
             },
+        })
+    }
+
+    fn get_mut(&mut self) -> Result<Option<&mut T>> {
+        Ok(match self.value.value {
+            Some(ref mut v) => match v {
+                Operation::Update(ref mut t) => Some(t),
+                Operation::Delete => None,
+            },
+            None => {
+                let v = value_utils::get_inner_value(self)?;
+                match v {
+                    None => None,
+                    Some(v) => {
+                        self.value.value = Some(Operation::Update(v));
+                        match self.value.value.as_mut().unwrap() {
+                            Operation::Update(ref mut v) => Some(v),
+                            _ => unreachable!(),
+                        }
+                    }
+                }
+            }
         })
     }
 
