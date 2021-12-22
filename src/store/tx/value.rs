@@ -15,18 +15,24 @@ where
         Ok(match &self.value.value {
             Some(Operation::Update(v)) => Some(Cow::Borrowed(v)),
             Some(Operation::Delete) => None,
+            None => self.store.get()?,
+        })
+    }
+
+    fn get_mut(&mut self) -> Result<Option<&mut T>> {
+        Ok(match self.value.value {
+            Some(Operation::Update(ref mut v)) => Some(v),
+            Some(Operation::Delete) => None,
             None => {
-                let lower_value = &self.store.value.value;
-                match lower_value {
-                    Some(Operation::Update(v)) => Some(Cow::Borrowed(v)),
-                    Some(Operation::Delete) => None,
-                    None => {
-                        let store_inner_value = self.store.get()?;
-                        match store_inner_value {
-                            None => None,
-                            Some(v) => Some(v),
-                        }
-                    }
+                let t = self
+                    .store
+                    .get()?
+                    .map(Cow::into_owned)
+                    .map(Operation::Update);
+                self.value.value = t;
+                match self.value.value {
+                    Some(Operation::Update(ref mut v)) => Some(v),
+                    _ => None,
                 }
             }
         })

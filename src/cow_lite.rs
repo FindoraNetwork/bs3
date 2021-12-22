@@ -12,6 +12,15 @@ pub enum Cow<'a, T> {
     Borrowed(&'a T),
 }
 
+impl<'a, T: Clone> Cow<'a, T> {
+    pub fn into_owned(self) -> T {
+        match self {
+            Cow::Owned(t) => t,
+            Cow::Borrowed(t) => t.clone(),
+        }
+    }
+}
+
 impl<'a, T> Deref for Cow<'a, T> {
     type Target = T;
 
