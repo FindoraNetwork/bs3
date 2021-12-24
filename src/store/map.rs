@@ -37,7 +37,7 @@ where
                     Ok(Some(Cow::Borrowed(v)))
                 },
                 Operation::Delete => {
-                    log::debug!("map get cache delete :{:?}",v);
+                    log::debug!("map get cache delete");
                     Ok(None)
                 },
             }
@@ -46,7 +46,7 @@ where
                 log::debug!("map get inner value :{:?}",v);
                 Ok(Some(Cow::Owned(v)))
             } else {
-                log::debug!("map get inner none :{:?}",v);
+                log::debug!("map get inner none");
                 Ok(None)
             }
         };
