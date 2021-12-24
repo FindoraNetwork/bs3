@@ -32,13 +32,21 @@ where
     fn get(&self, key: &K) -> Result<Option<Cow<'_, V>>> {
         return if let Some(operation) = self.value.value.get(key) {
             match operation {
-                Operation::Update(v) => Ok(Some(Cow::Borrowed(v))),
-                Operation::Delete => Ok(None),
+                Operation::Update(v) => {
+                    log::debug!("map get cache value :{:?}",v);
+                    Ok(Some(Cow::Borrowed(v)))
+                },
+                Operation::Delete => {
+                    log::debug!("map get cache delete :{:?}",v);
+                    Ok(None)
+                },
             }
         } else {
             if let Some(v) = map_utils::get_inner_value(self, key)? {
+                log::debug!("map get inner value :{:?}",v);
                 Ok(Some(Cow::Owned(v)))
             } else {
+                log::debug!("map get inner none :{:?}",v);
                 Ok(None)
             }
         };

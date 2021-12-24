@@ -37,9 +37,10 @@ pub(crate) mod map_utils {
     {
         let key_bytes = cbor_encode(key)?;
         let store_key = vss.storage_tuple_key(&key_bytes);
+        log::debug!("map get inner store_key:{:?}",store_key);
         let bytes = vss.store.get_ge2((&store_key.0, &store_key.1))?;
-        // let store_key = vss.storage_key(&key_bytes);
-        // let bytes = vss.store.get_ge(&*store_key)?;
+        log::debug!("map get gat_ge2:{:?}",bytes);
+
         if let Some(bytes) = bytes {
             let value = StoreValue::from_bytes(&bytes)?;
             let operation = Operation::from_bytes(&value.operation)?;
