@@ -3,11 +3,15 @@ use core::fmt::Debug;
 use serde::{Deserialize, Serialize};
 
 use super::utils::value_utils;
-use crate::{merkle::Merkle, model::Value, Cow, Operation, Result, SnapshotableStorage, Store};
+use crate::{
+    merkle::Merkle,
+    model::{Value, ValueType},
+    Cow, Operation, Result, SnapshotableStorage, Store,
+};
 
 pub trait ValueStore<T>
 where
-    T: Clone + Debug + Serialize + for<'de> Deserialize<'de>,
+    T: ValueType,
 {
     fn get(&self) -> Result<Option<Cow<'_, T>>>;
 
@@ -20,12 +24,12 @@ where
 
 impl<S, M, T> ValueStore<T> for SnapshotableStorage<S, M, Value<T>>
 where
-    T: Clone + Debug + Serialize + for<'de> Deserialize<'de>,
+    T: ValueType,
     S: Store,
     M: Merkle,
 {
     fn get(&self) -> Result<Option<Cow<'_, T>>> {
-        Ok(match &self.value.value {
+        Ok(match self.value.as_ref() {
             Some(v) => match v {
                 Operation::Update(iv) => Some(Cow::Borrowed(iv)),
                 Operation::Delete => None,
@@ -38,21 +42,20 @@ where
     }
 
     fn get_mut(&mut self) -> Result<Option<&mut T>> {
-        Ok(match self.value.value {
-            Some(ref mut v) => match v {
-                Operation::Update(ref mut t) => Some(t),
+        Ok(if self.value.is_some() {
+            match self.value.as_mut().unwrap() {
+                Operation::Update(t) => Some(t),
                 Operation::Delete => None,
-            },
-            None => {
-                let v = value_utils::get_inner_value(self)?;
-                match v {
-                    None => None,
-                    Some(v) => {
-                        self.value.value = Some(Operation::Update(v));
-                        match self.value.value.as_mut().unwrap() {
-                            Operation::Update(ref mut v) => Some(v),
-                            _ => unreachable!(),
-                        }
+            }
+        } else {
+            let v = value_utils::get_inner_value(self)?;
+            match v {
+                None => None,
+                Some(v) => {
+                    self.value.store(v);
+                    match self.value.as_mut() {
+                        Some(Operation::Update(v)) => Some(v),
+                        _ => unreachable!(),
                     }
                 }
             }
@@ -60,29 +63,17 @@ where
     }
 
     fn set(&mut self, value: T) -> Result<Option<T>> {
-        self.value.value = Some(Operation::Update(value));
+        self.value.store(value);
         value_utils::get_inner_value(self)
     }
 
     fn del(&mut self) -> Result<Option<T>> {
-        let res = if let Some(operation) = self.value.value.as_ref() {
-            match operation {
-                Operation::Update(v) => {
-                    let v2 = v.clone();
-                    Some(v2)
-                }
+        Ok(match self.value.del() {
+            Some(operation) => match operation {
+                Operation::Update(t) => Some(t),
                 Operation::Delete => None,
-            }
-        } else {
-            if let Some(v) = value_utils::get_inner_value(self)? {
-                Some(v)
-            } else {
-                None
-            }
-        };
-
-        self.value.value = Some(Operation::Delete);
-
-        Ok(res)
+            },
+            None => return value_utils::get_inner_value(self),
+        })
     }
 }

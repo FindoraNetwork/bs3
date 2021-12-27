@@ -7,7 +7,7 @@ use core::fmt::Debug;
 use crate::snapshot::{FromStoreBytes, StoreValue};
 use crate::utils::cbor_encode;
 use crate::{
-    model::{DoubleKeyMap, Map, Value, Vec},
+    model::{DoubleKeyMap, Map, Value, ValueType, Vec, INDEX_VEC_LEN},
     Operation, Result, SnapshotableStorage, Store,
 };
 #[cfg(feature = "cbor")]
@@ -169,7 +169,7 @@ pub(crate) mod vec_utils {
         index: u64,
     ) -> Result<Option<T>>
     where
-        T: Clone + Debug + Serialize + for<'de> Deserialize<'de>,
+        T: ValueType,
         S: Store,
         M: Merkle,
     {
@@ -189,7 +189,7 @@ pub(crate) mod vec_utils {
         key: u64,
     ) -> Result<Option<Operation<T>>>
     where
-        T: Clone + Debug + Serialize + for<'de> Deserialize<'de>,
+        T: ValueType,
         S: Store,
         M: Merkle,
     {
@@ -204,6 +204,28 @@ pub(crate) mod vec_utils {
             Ok(None)
         }
     }
+
+    pub fn get_len<S, M, T>(vss: &SnapshotableStorage<S, M, Vec<T>>) -> Result<u64>
+    where
+        T: ValueType,
+        S: Store,
+        M: Merkle,
+    {
+        let key_bytes = cbor_encode(INDEX_VEC_LEN)?;
+        let store_key = vss.storage_tuple_key(&key_bytes);
+
+        match vss.store.get_ge2((&store_key.0, &store_key.1))? {
+            Some(bytes) => {
+                let value = StoreValue::from_bytes(&bytes)?;
+                let operation = Operation::from_bytes(&value.operation)?;
+                match operation {
+                    Operation::Update(t) => Ok(t),
+                    _ => panic!("maybee a impl bug, unreachable, `len` always set"),
+                }
+            }
+            None => Ok(0),
+        }
+    }
 }
 
 pub(crate) mod value_utils {
@@ -215,7 +237,7 @@ pub(crate) mod value_utils {
         vss: &SnapshotableStorage<S, M, Value<T>>,
     ) -> (alloc_vec<u8>, alloc_vec<u8>)
     where
-        T: Clone + Debug + Serialize + for<'de> Deserialize<'de>,
+        T: ValueType,
         S: Store,
         M: Merkle,
     {
@@ -225,7 +247,7 @@ pub(crate) mod value_utils {
 
     pub fn get_inner_value<S, M, T>(vss: &SnapshotableStorage<S, M, Value<T>>) -> Result<Option<T>>
     where
-        T: Clone + Debug + Serialize + for<'de> Deserialize<'de>,
+        T: ValueType,
         S: Store,
         M: Merkle,
     {

@@ -1,29 +1,82 @@
 use super::utils::vec_utils;
-use crate::{merkle::Merkle, model::Vec, Cow, Operation, Result, SnapshotableStorage, Store};
-use core::fmt::Debug;
+use crate::{
+    merkle::Merkle,
+    model::{ValueType, Vec, INDEX_VEC_LEN},
+    Cow, Error, Operation, Result, SnapshotableStorage, Store,
+};
 use serde::{Deserialize, Serialize};
 
-pub trait VecStore<T>
-where
-    T: Clone + Debug + Serialize + for<'de> Deserialize<'de>,
-{
+pub trait VecStore<T: ValueType> {
     fn get(&self, index: u64) -> Result<Option<Cow<'_, T>>>;
 
     fn get_mut(&mut self, index: u64) -> Result<Option<&mut T>>;
 
-    fn insert(&mut self, value: T) -> Result<Option<T>>;
+    fn push(&mut self, value: T) -> Result<()>;
 
-    fn remove(&mut self, index: u64) -> Result<Option<T>>;
+    fn pop(&mut self) -> Result<Option<T>>;
+
+    fn remove(&mut self, index: u64) -> Result<Option<T>> {
+        let len = self.len()?;
+        if index >= len {
+            return Err(Error::OutOffIndex);
+        }
+
+        // len will > 1 here.
+        let mut poped = alloc::vec::Vec::with_capacity(64);
+        while self.len()? > index {
+            poped.push(self.pop()?)
+        }
+
+        let res = poped.pop().unwrap();
+
+        while let Some(Some(t)) = poped.pop() {
+            self.push(t)?;
+        }
+        Ok(res)
+    }
+
+    fn insert(&mut self, index: u64, value: T) -> Result<()> {
+        if index > self.len()? {
+            return Err(Error::OutOffIndex);
+        }
+
+        let mut poped = alloc::vec::Vec::with_capacity(64);
+
+        while self.len()? > index {
+            poped.push(self.pop()?)
+        }
+
+        self.push(value)?;
+        while let Some(Some(t)) = poped.pop() {
+            self.push(t)?;
+        }
+
+        Ok(())
+    }
+
+    fn len(&self) -> Result<u64>;
 }
 
 impl<S, M, T> VecStore<T> for SnapshotableStorage<S, M, Vec<T>>
 where
-    T: Clone + Debug + Serialize + for<'de> Deserialize<'de>,
+    T: ValueType,
     S: Store,
     M: Merkle,
 {
+    fn len(&self) -> Result<u64> {
+        if let Some(l) = self.value.len() {
+            return Ok(l);
+        }
+        Ok(vec_utils::get_len(self)?)
+    }
+
     fn get(&self, index: u64) -> Result<Option<Cow<'_, T>>> {
-        if let Some(operation) = self.value.value.get(&index) {
+        let len = self.len()?;
+        if index >= len || len == 0 {
+            return Ok(None);
+        }
+
+        if let Some(operation) = self.value.get(&index) {
             match operation {
                 Operation::Update(v) => Ok(Some(Cow::Borrowed(v))),
                 Operation::Delete => Ok(None),
@@ -37,49 +90,57 @@ where
     }
 
     fn get_mut(&mut self, index: u64) -> Result<Option<&mut T>> {
-        if let Some(Operation::Delete) = self.value.value.get(&index) {
+        let len = self.len()?;
+        if index >= len || len == 0 {
             return Ok(None);
         }
 
-        if !self.value.value.contains_key(&index) {
-            if let Some(operation) = vec_utils::get_inner_operation(self, index)? {
-                self.value.value.insert(index, operation);
-            } else {
-                return Ok(None);
-            }
-        }
-
-        if let Some(Operation::Update(value)) = self.value.value.get_mut(&index) {
-            Ok(Some(value))
-        } else {
-            Ok(None)
-        }
-    }
-
-    fn insert(&mut self, value: T) -> Result<Option<T>> {
-        let operation = Operation::Update(value.clone());
-        let index = self.value.value.len() as u64;
-        self.value.value.insert(index, operation);
-        vec_utils::get_inner_value(self, index)
-    }
-
-    //
-    fn remove(&mut self, index: u64) -> Result<Option<T>> {
-        let res = if let Some(op) = self.value.value.remove(&index) {
-            match op {
-                Operation::Update(v) => Some(v),
-                Operation::Delete => None,
+        if self.value.contains_key(&index) {
+            match self.value.get_mut(&index).unwrap() {
+                Operation::Delete => Ok(None),
+                Operation::Update(t) => Ok(Some(t)),
             }
         } else {
-            if let Some(v) = vec_utils::get_inner_value(self, index)? {
-                Some(v)
-            } else {
-                None
+            match vec_utils::get_inner_value(self, index)? {
+                Some(t) => {
+                    self.value.insert_operation(index, Operation::Update(t));
+                    match self.value.get_mut(&index).unwrap() {
+                        Operation::Update(t) => Ok(Some(t)),
+                        _ => unreachable!(),
+                    }
+                }
+                None => Ok(None),
             }
+        }
+    }
+    //HEAD
+    fn push(&mut self, value: T) -> Result<()> {
+        let len = self.len()?;
+        self.value.insert_operation(len, Operation::Update(value));
+        self.value.set_len(len + 1);
+        Ok(())
+    }
+
+    fn pop(&mut self) -> Result<Option<T>> {
+        let len = self.len()?;
+
+        if len == 0 {
+            return Ok(None);
+        }
+
+        self.value.set_len(len - 1);
+
+        match self.value.remove_operation(len - 1) {
+            Some(Operation::Update(t)) => {
+                return Ok(Some(t));
+            }
+            _ => (),
         };
 
-        self.value.value.insert(index, Operation::Delete);
-
-        Ok(res)
+        let res = vec_utils::get_inner_operation(self, len - 1)?;
+        match res {
+            Some(Operation::Update(t)) => Ok(Some(t)),
+            _ => unreachable!(),
+        }
     }
 }

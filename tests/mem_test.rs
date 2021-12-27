@@ -41,20 +41,47 @@ fn value_mem_test() -> Result<()> {
     Ok(())
 }
 
+#[test]
 fn vec_mem_test() -> Result<()> {
-    let v = Vec::default();
+    let v: Vec<i32> = Vec::default();
     let s = MemoryBackend::new();
     let mut ss = SnapshotableStorage::<_, EmptyMerkle<Sha3_512>, _>::new(v, s).unwrap();
+    assert_eq!(ss.len()?, 0);
+    ss.push(1)?;
+    ss.push(2)?;
+    assert_eq!(ss.len()?, 2);
+    assert_eq!(ss.get(1)?, Some(Cow::Borrowed(&2)));
 
-    assert_eq!(ss.insert(1)?, None);
-    assert_eq!(ss.insert(2)?, None);
-    assert_eq!(ss.insert(3)?, None);
     assert_eq!(ss.commit()?, 1);
-    assert_eq!(ss.remove(0)?, None); //remove invalid, because it has already been submitted
-    assert_eq!(ss.commit()?, 2);
-    assert_eq!(ss.get(0)?, Some(Cow::Owned(1)));
+    assert_eq!(ss.len()?, 2);
+
     assert_eq!(ss.get(1)?, Some(Cow::Owned(2)));
-    assert_eq!(ss.get(2)?, Some(Cow::Owned(3)));
+    ss.push(3)?;
+    assert_eq!(ss.len()?, 3);
+
+    assert_eq!(ss.commit()?, 2);
+
+    assert_eq!(ss.pop()?, Some(3));
+    assert_eq!(ss.pop()?, Some(2));
+    assert_eq!(ss.len()?, 1);
+    assert_eq!(ss.commit()?, 3);
+    assert_eq!(ss.pop()?, Some(1));
+    assert_eq!(ss.pop()?, None);
+
+    ss.push(1)?;
+    ss.push(2)?;
+    assert_eq!(ss.commit()?, 4);
+    ss.push(3)?;
+
+    assert_eq!(ss.remove(0)?, Some(1)); //remove invalid, because it has already been submitted
+
+    assert_eq!(ss.get(0)?, Some(Cow::Borrowed(&2)));
+    assert_eq!(ss.get(1)?, Some(Cow::Borrowed(&3)));
+
+    assert_eq!(ss.commit()?, 5);
+
+    assert_eq!(ss.get(1)?, Some(Cow::Owned(3)));
+    assert_eq!(ss.get(2)?, None);
 
     Ok(())
 }
@@ -130,31 +157,52 @@ fn tx_value_mem_test() -> Result<()> {
     Ok(())
 }
 
+#[test]
 fn tx_vec_mem_test() -> Result<()> {
-    let v = Vec::default();
+    let v: Vec<i32> = Vec::default();
     let s = MemoryBackend::new();
-    let ss = SnapshotableStorage::<_, EmptyMerkle<Sha3_512>, _>::new(v, s).unwrap();
+    let mut ss = SnapshotableStorage::<_, EmptyMerkle<Sha3_512>, _>::new(v, s).unwrap();
+
+    ss.push(1)?;
+    ss.push(2)?;
+    ss.push(3)?;
+
+    ss.commit()?;
+
     let mut tx = Transaction::new(&ss);
 
-    assert_eq!(tx.insert(1)?, None);
-    assert_eq!(tx.insert(2)?, None);
-    assert_eq!(tx.insert(3)?, None);
-    assert_eq!(tx.remove(0)?, Some(1));
-    assert_eq!(tx.get(0)?, None);
-    assert_eq!(tx.get(1)?, Some(Cow::Borrowed(&2)));
-    assert_eq!(tx.get(2)?, Some(Cow::Borrowed(&3)));
+    assert_eq!(tx.get(0)?, Some(Cow::Owned(1)));
+    assert_eq!(tx.get(1)?, Some(Cow::Owned(2)));
+    assert_eq!(tx.get(2)?, Some(Cow::Owned(3)));
 
+    tx.push(4)?;
+    tx.push(5)?;
+
+    assert_eq!(tx.get(3)?, Some(Cow::Borrowed(&4)));
+    assert_eq!(tx.get(4)?, Some(Cow::Borrowed(&5)));
+
+    assert_eq!(tx.remove(0)?, Some(1));
+    assert_eq!(tx.len()?, 4);
+
+    tx.insert(0, 10)?;
+    tx.insert(1, 20)?;
+
+    assert_eq!(tx.len()?, 6);
+
+    assert_eq!(tx.get(1)?, Some(Cow::Borrowed(&20)));
+    assert_eq!(tx.get(2)?, Some(Cow::Borrowed(&2)));
     Ok(())
 }
 
-fn main() {
-    let _ = map_mem_test();
-    let _ = value_mem_test();
-    let _ = vec_mem_test();
-    let _ = doublekeymap_mem_test();
+fn main() -> Result<()> {
+    map_mem_test()?;
+    value_mem_test()?;
+    vec_mem_test()?;
+    doublekeymap_mem_test()?;
 
-    let _ = tx_map_mem_test();
-    let _ = tx_value_mem_test();
-    let _ = tx_vec_mem_test();
-    let _ = tx_doublekeymap_mem_test();
+    tx_map_mem_test()?;
+    tx_value_mem_test()?;
+    tx_vec_mem_test()?;
+    tx_doublekeymap_mem_test()?;
+    Ok(())
 }

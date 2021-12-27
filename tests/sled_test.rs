@@ -12,9 +12,9 @@ fn sled_vec_test() -> Result<()> {
     let s = SledBackend::open_tree(&db, "vec_sled_test").unwrap();
     let mut ss = SnapshotableStorage::<_, EmptyMerkle<Sha3_512>, _>::new(v, s).unwrap();
 
-    assert_eq!(ss.insert(1)?, None);
-    assert_eq!(ss.insert(2)?, None);
-    assert_eq!(ss.insert(3)?, None);
+    assert_eq!(ss.push(1)?, None);
+    assert_eq!(ss.push(2)?, None);
+    assert_eq!(ss.push(3)?, None);
     assert_eq!(ss.commit()?, 1);
     assert_eq!(ss.remove(0)?, Some(1));
     assert_eq!(ss.commit()?, 2);
@@ -87,9 +87,9 @@ fn sled_value_test() -> Result<()> {
     let s = SledBackend::open_tree(&db, "value_sled_test").unwrap();
     let mut ss = SnapshotableStorage::<_, EmptyMerkle<Sha3_512>, _>::new(v, s).unwrap();
 
-    assert_eq!(ss.set(1)?, None);
+    assert_eq!(ss.set(9)?, None);
     *ss.get_mut().unwrap().unwrap() = 2;
-    assert_eq!(ss.commit()?, 1);
+    assert_eq!(ss.commit()?, 1); //?????
     assert_eq!(ss.get()?, Some(Cow::Owned(2)));
     assert_eq!(ss.set(3)?, Some(2));
     *ss.get_mut().unwrap().unwrap() += 1;
@@ -159,9 +159,9 @@ fn tx_sled_vec_test() -> Result<()> {
     let ss = SnapshotableStorage::<_, EmptyMerkle<Sha3_512>, _>::new(v, s).unwrap();
     let mut tx = Transaction::new(&ss);
 
-    assert_eq!(tx.insert(1)?, None);
-    assert_eq!(tx.insert(2)?, None);
-    assert_eq!(tx.insert(3)?, None);
+    assert_eq!(tx.push(1)?, None);
+    assert_eq!(tx.push(2)?, None);
+    assert_eq!(tx.push(3)?, None);
     assert_eq!(tx.remove(0)?, Some(1));
     assert_eq!(tx.get(0)?, None);
     assert_eq!(tx.get(1)?, Some(Cow::Borrowed(&2)));
@@ -183,9 +183,9 @@ fn sled_vec_test_reload_and_callback(is_rollback: bool) -> Result<()> {
         assert_eq!(ss.get(2)?, Some(Cow::Owned(3)));
         assert_eq!(ss.commit()?, 2);
     } else {
-        assert_eq!(ss.insert(1)?, None);
-        assert_eq!(ss.insert(2)?, None);
-        assert_eq!(ss.insert(3)?, None);
+        assert_eq!(ss.push(1)?, None);
+        assert_eq!(ss.push(2)?, None);
+        assert_eq!(ss.push(3)?, None);
         assert_eq!(ss.commit()?, 1);
         assert_eq!(ss.remove(0)?, None); //remove invalid, because it has already been submitted
         assert_eq!(ss.commit()?, 2);

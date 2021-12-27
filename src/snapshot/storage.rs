@@ -176,6 +176,7 @@ where
         let store_height = StoreHeight {
             height: self.height,
         };
+        //相当于head
         let height_key_bytes = utils::current_height_key(&self.namespace);
         let height_value_bytes = store_height.to_bytes()?;
         operations.push((height_key_bytes, height_value_bytes));

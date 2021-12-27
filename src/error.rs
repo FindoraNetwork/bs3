@@ -32,6 +32,8 @@ pub enum Error {
     StdIoError(std::io::Error),
 
     JsonError(serde_json::Error),
+
+    OutOffIndex,
 }
 
 #[cfg(feature = "sled-backend")]
