@@ -19,9 +19,8 @@ pub use vec::Vec;
 mod model;
 pub use model::Model;
 
-use crate::prelude::{ToBytes, FromBytes};
+use crate::prelude::{FromBytes, ToBytes};
 
 pub trait KeyT: Clone + PartialEq + Eq + FromBytes + ToBytes + PartialOrd + Ord + Debug {}
 
 pub trait ValueT: Clone + Debug + FromBytes + ToBytes {}
-

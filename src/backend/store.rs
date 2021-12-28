@@ -7,7 +7,7 @@
 use crate::{CowBytes, Result};
 use alloc::vec::Vec;
 
-pub trait Store: Send + Sync {
+pub trait Store: Send + Sync + Clone { 
     /// Provide this method to execute transaction.
     fn execute(&mut self, batch: Vec<(Vec<u8>, Vec<u8>)>) -> Result<()>;
 

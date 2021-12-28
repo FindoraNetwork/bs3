@@ -27,7 +27,8 @@ impl ToBytes for Vec<u8> {
 impl FromBytes for u64 {
     fn from_bytes(bytes: &[u8]) -> Result<Self>
     where
-            Self: Sized {
+        Self: Sized,
+    {
         let b: [u8; 8] = bytes.try_into()?;
 
         Ok(u64::from_be_bytes(b))

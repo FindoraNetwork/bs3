@@ -4,7 +4,7 @@
 use core::{fmt::Debug, mem};
 
 use crate::model::Model;
-use crate::prelude::{ToBytes};
+use crate::prelude::ToBytes;
 use crate::{Operation, OperationBytes};
 use alloc::{collections::BTreeMap, vec::Vec as AllocVec};
 

@@ -83,10 +83,13 @@ pub mod model;
 
 pub mod prelude;
 
-// pub use model::Value;
+mod storage;
+pub use storage::Storage;
 
-// pub mod prelude;
-//
+pub mod types;
+
+pub mod merkle;
+
 // mod snapshot;
 // pub use snapshot::{utils::merkle_key, SnapshotableStorage, Transaction};
 //
@@ -95,4 +98,3 @@ pub mod prelude;
 // pub use store::{DoubleKeyMapStore, MapStore, ValueStore, VecStore};
 //
 //
-// pub mod merkle;

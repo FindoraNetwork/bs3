@@ -7,7 +7,7 @@ use alloc::{collections::BTreeMap, vec::Vec};
 
 use crate::{Operation, OperationBytes, Result};
 
-use super::{Model, KeyT, ValueT};
+use super::{KeyT, Model, ValueT};
 
 /// define cache map
 /// use BTree

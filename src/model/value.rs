@@ -5,12 +5,9 @@ use core::{fmt::Debug, mem};
 
 use alloc::vec::Vec;
 
-use crate::{
-    Operation, OperationBytes, Result,
-};
+use crate::{Operation, OperationBytes, Result};
 
 use super::{Model, ValueT};
-
 
 /// define value
 #[derive(Debug, Clone)]
