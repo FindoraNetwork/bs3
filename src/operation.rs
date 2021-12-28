@@ -8,35 +8,31 @@
 
 use alloc::vec::Vec;
 
-#[cfg(feature = "cbor")]
-use serde::{Deserialize, Serialize};
+use crate::{
+    prelude::{FromBytes, ToBytes},
+    Result,
+};
 
-use crate::{utils::cbor_encode, Error, Result};
-use alloc::string::ToString;
-use ciborium::de::from_reader;
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub enum Operation<T> {
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Operation<T: FromBytes + ToBytes> {
     Update(T),
     Delete,
 }
 
 impl<T> Operation<T>
 where
-    T: Serialize + for<'de> Deserialize<'de>,
+    T: FromBytes + ToBytes,
 {
     pub fn to_bytes(&self) -> Result<OperationBytes> {
         Ok(match self {
-            Operation::Update(v) => OperationBytes::Update(cbor_encode(v)?),
+            Operation::Update(v) => OperationBytes::Update(v.to_bytes()?),
             Operation::Delete => OperationBytes::Delete,
         })
     }
 
     pub fn from_bytes(bytes: &OperationBytes) -> Result<Self> {
         Ok(match bytes {
-            Operation::Update(v) => Operation::Update(
-                from_reader(v.as_slice()).map_err(|e| Error::CborDeIoError(e.to_string()))?,
-            ),
+            Operation::Update(v) => Operation::Update(T::from_bytes(v)?),
             Operation::Delete => Operation::Delete,
         })
     }

@@ -5,14 +5,10 @@ use core::{fmt::Debug, mem};
 
 use alloc::{collections::BTreeMap, vec::Vec};
 
-#[cfg(feature = "cbor")]
-use serde::{Deserialize, Serialize};
-
 use crate::{Operation, OperationBytes, Result};
 
-use super::Model;
+use super::{Model, KeyT, ValueT};
 
-///
 /// define cache map
 /// use BTree
 ///     key:K
@@ -20,16 +16,16 @@ use super::Model;
 #[derive(Debug, Clone)]
 pub struct Map<K, V>
 where
-    K: Clone + PartialEq + Eq + Serialize + for<'de> Deserialize<'de> + Ord + PartialOrd + Debug,
-    V: Clone + Serialize + for<'de> Deserialize<'de> + Debug,
+    K: KeyT,
+    V: ValueT,
 {
     pub(crate) value: BTreeMap<K, Operation<V>>,
 }
 
 impl<K, V> Default for Map<K, V>
 where
-    K: Clone + PartialEq + Eq + Serialize + for<'de> Deserialize<'de> + Ord + PartialOrd + Debug,
-    V: Clone + Serialize + for<'de> Deserialize<'de> + Debug,
+    K: KeyT,
+    V: ValueT,
 {
     fn default() -> Self {
         Self {
@@ -38,12 +34,11 @@ where
     }
 }
 
-///
 /// impl Model
 impl<K, V> Model for Map<K, V>
 where
-    K: Clone + PartialEq + Eq + Serialize + for<'de> Deserialize<'de> + Ord + PartialOrd + Debug,
-    V: Clone + Serialize + for<'de> Deserialize<'de> + Debug,
+    K: KeyT,
+    V: ValueT,
 {
     ///define type 3
     fn type_code(&self) -> u32 {
@@ -52,16 +47,13 @@ where
 
     /// Consume the data in the cache
     /// Also convert key to vec<u8>
-    #[cfg(feature = "cbor")]
     fn operations(&mut self) -> Result<Vec<(Vec<u8>, OperationBytes)>> {
-        use crate::utils::cbor_encode;
-
         let mut map = Vec::new();
 
         let value = mem::replace(&mut self.value, BTreeMap::new());
 
         for (k, v) in value.into_iter() {
-            let key = cbor_encode(k)?;
+            let key = k.to_bytes()?;
             let value = v.to_bytes()?;
             map.push((key, value));
         }

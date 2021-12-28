@@ -4,27 +4,26 @@
 use core::{fmt::Debug, mem};
 
 use alloc::vec::Vec;
-// use serde::{Deserialize, Serialize};
 
-#[cfg(feature = "cbor")]
-use serde::{Deserialize, Serialize};
+use crate::{
+    Operation, OperationBytes, Result,
+};
 
-use crate::{Operation, OperationBytes, Result};
+use super::{Model, ValueT};
 
-use super::Model;
 
 /// define value
 #[derive(Debug, Clone)]
 pub struct Value<T>
 where
-    T: Clone + Debug + Serialize + for<'de> Deserialize<'de>,
+    T: ValueT,
 {
     pub(crate) value: Option<Operation<T>>,
 }
 
 impl<T> Value<T>
 where
-    T: Clone + Debug + Serialize + for<'de> Deserialize<'de>,
+    T: ValueT,
 {
     /// crate Value
     pub fn new(t: T) -> Self {
@@ -36,7 +35,7 @@ where
 
 impl<T> Default for Value<T>
 where
-    T: Clone + Debug + Serialize + for<'de> Deserialize<'de>,
+    T: ValueT,
 {
     fn default() -> Self {
         Self { value: None }
@@ -46,7 +45,7 @@ where
 /// impl Model
 impl<T> Model for Value<T>
 where
-    T: Clone + Debug + Serialize + for<'de> Deserialize<'de>,
+    T: ValueT,
 {
     /// define type 1
     fn type_code(&self) -> u32 {
@@ -78,23 +77,8 @@ where
 
 #[cfg(test)]
 mod tests {
-    use alloc::string::String;
-    use sha3::Sha3_512;
-
-    use crate::{backend::MemoryBackend, merkle::empty::EmptyMerkle, SnapshotableStorage};
-
-    use super::Value;
-
     #[test]
     fn test_value() {
         env_logger::init();
-        let value = Value::new(String::from("aaaaaa"));
-        let store = MemoryBackend::new();
-        let mut storage =
-            SnapshotableStorage::<_, EmptyMerkle<Sha3_512>, _>::new(value, store).unwrap();
-
-        storage.commit().unwrap();
-        storage.commit().unwrap();
-        std::println!("{:#?}", storage.store());
     }
 }

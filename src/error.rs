@@ -1,22 +1,10 @@
 use core::{cell, fmt::Debug};
 
 use alloc::boxed::Box;
-use alloc::string::String;
 
 #[derive(Debug)]
 pub enum Error {
     StoreError(Box<dyn Debug>),
-
-    #[cfg(feature = "cbor")]
-    CborDeError(ciborium::de::Error<core::convert::Infallible>),
-
-    #[cfg(feature = "cbor")]
-    CborSerError(ciborium::ser::Error<core::convert::Infallible>),
-
-    #[cfg(feature = "cbor")]
-    CborDeIoError(String),
-    #[cfg(feature = "cbor")]
-    CborSerIoError(String),
 
     HeightError,
     BorrowMutError(cell::BorrowMutError),
@@ -25,6 +13,8 @@ pub enum Error {
     /// When you load a store.
     TypeMissMatch,
 
+    TryFromSliceError(core::array::TryFromSliceError),
+
     #[cfg(feature = "sled-backend")]
     SledError(sled::Error),
 
@@ -32,24 +22,16 @@ pub enum Error {
     StdIoError(std::io::Error),
 }
 
+impl From<core::array::TryFromSliceError> for Error {
+    fn from(e: core::array::TryFromSliceError) -> Self {
+        Self::TryFromSliceError(e)
+    }
+}
+
 #[cfg(feature = "sled-backend")]
 impl From<std::io::Error> for Error {
     fn from(e: std::io::Error) -> Self {
         self::Error::StdIoError(e)
-    }
-}
-
-#[cfg(feature = "cbor")]
-impl From<ciborium::de::Error<core::convert::Infallible>> for Error {
-    fn from(e: ciborium::de::Error<core::convert::Infallible>) -> Self {
-        self::Error::CborDeError(e)
-    }
-}
-
-#[cfg(feature = "cbor")]
-impl From<ciborium::ser::Error<core::convert::Infallible>> for Error {
-    fn from(e: ciborium::ser::Error<core::convert::Infallible>) -> Self {
-        self::Error::CborSerError(e)
     }
 }
 

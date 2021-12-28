@@ -2,13 +2,9 @@
 //! Trait Model constrains the behavior of the cache layer
 //!
 
+mod value;
 use core::fmt::Debug;
 
-use alloc::vec::Vec as alloc_vec;
-
-use crate::{OperationBytes, Result};
-
-mod value;
 pub use value::Value;
 
 mod map;
@@ -17,18 +13,15 @@ pub use map::Map;
 mod vec;
 pub use vec::Vec;
 
-mod doublekey_map;
-pub use doublekey_map::DoubleKeyMap;
+// mod doublekey_map;
+// pub use doublekey_map::DoubleKeyMap;
 
-pub trait Model: Default + Debug + Clone {
-    /// Get operations for this value.
-    ///
-    /// Don't forget clean this value to default.
-    fn operations(&mut self) -> Result<alloc_vec<(alloc_vec<u8>, OperationBytes)>>;
+mod model;
+pub use model::Model;
 
-    /// Define this type's code.
-    fn type_code(&self) -> u32;
+use crate::prelude::{ToBytes, FromBytes};
 
-    /// Merge other value.
-    fn merge(&mut self, other: Self);
-}
+pub trait KeyT: Clone + PartialEq + Eq + FromBytes + ToBytes + PartialOrd + Ord + Debug {}
+
+pub trait ValueT: Clone + Debug + FromBytes + ToBytes {}
+

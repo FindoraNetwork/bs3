@@ -57,7 +57,7 @@
 //! }
 //! ```
 
-#![feature(generic_associated_types)]
+// #![feature(generic_associated_types)]
 #![no_std]
 
 /// For features and alloc.
@@ -74,20 +74,25 @@ pub use cow_lite::{Cow, CowBytes};
 mod error;
 pub use error::{Error, Result};
 
-pub mod model;
-// pub use model::Value;
-
-pub mod prelude;
-
-mod snapshot;
-pub use snapshot::{utils::merkle_key, SnapshotableStorage, Transaction};
-
 pub mod backend;
 pub use backend::Store;
 
-mod store;
-pub use store::{DoubleKeyMapStore, MapStore, ValueStore, VecStore};
-
 mod utils;
 
-pub mod merkle;
+pub mod model;
+
+pub mod prelude;
+
+// pub use model::Value;
+
+// pub mod prelude;
+//
+// mod snapshot;
+// pub use snapshot::{utils::merkle_key, SnapshotableStorage, Transaction};
+//
+
+// mod store;
+// pub use store::{DoubleKeyMapStore, MapStore, ValueStore, VecStore};
+//
+//
+// pub mod merkle;

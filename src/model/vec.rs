@@ -4,24 +4,25 @@
 use core::{fmt::Debug, mem};
 
 use crate::model::Model;
+use crate::prelude::{ToBytes};
 use crate::{Operation, OperationBytes};
-use alloc::{collections::BTreeMap, vec::Vec as alloc_vec};
-#[cfg(feature = "cbor")]
-use serde::{Deserialize, Serialize};
+use alloc::{collections::BTreeMap, vec::Vec as AllocVec};
+
+use super::ValueT;
 
 /// define vec,inner value is btree
 ///     key : usize
 #[derive(Debug, Clone)]
 pub struct Vec<V>
 where
-    V: Clone + Serialize + for<'de> Deserialize<'de> + Debug,
+    V: ValueT,
 {
     pub(crate) value: BTreeMap<u64, Operation<V>>,
 }
 
 impl<V> Default for Vec<V>
 where
-    V: Clone + Serialize + for<'de> Deserialize<'de> + Debug,
+    V: ValueT,
 {
     fn default() -> Self {
         Self {
@@ -33,19 +34,17 @@ where
 /// impl model
 impl<V> Model for Vec<V>
 where
-    V: Clone + Serialize + for<'de> Deserialize<'de> + Debug,
+    V: ValueT,
 {
     /// Consume the data in the cache
     /// Also convert key to vec<u8>
-    fn operations(&mut self) -> crate::Result<alloc_vec<(alloc_vec<u8>, OperationBytes)>> {
-        use crate::utils::cbor_encode;
-
-        let mut map = alloc_vec::new();
+    fn operations(&mut self) -> crate::Result<AllocVec<(AllocVec<u8>, OperationBytes)>> {
+        let mut map = AllocVec::new();
 
         let value = mem::replace(&mut self.value, BTreeMap::new());
 
         for (k, v) in value.into_iter() {
-            let key = cbor_encode(k)?;
+            let key = k.to_bytes()?;
             let value = v.to_bytes()?;
             map.push((key, value));
         }
