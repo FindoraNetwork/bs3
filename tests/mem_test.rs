@@ -159,18 +159,25 @@ fn tx_map_mem_test() -> Result<()> {
     Ok(())
 }
 
+#[test]
 fn tx_doublekeymap_mem_test() -> Result<()> {
-    let m = DoubleKeyMap::default();
+    let m: DoubleKeyMap<u32, String, i32> = DoubleKeyMap::default();
     let s = MemoryBackend::new();
     let ss = SnapshotableStorage::<_, EmptyMerkle<Sha3_512>, _>::new(m, s)?;
     let mut tx = Transaction::new(&ss);
 
-    assert_eq!(tx.insert(1, 1, 1)?, None);
-    assert_eq!(tx.insert(2, 2, 2)?, None);
-    assert_eq!(tx.insert(3, 3, 3)?, None);
-    assert_eq!(tx.remove_by_key2(&1)?, Some(1));
-    assert_eq!(tx.get(&1, &1)?, None);
-    assert_eq!(tx.get_mut(&2, &2)?, Some(&mut 2_i32));
+    assert_eq!(tx.insert(1, "1".to_string(), 1)?, None);
+    assert_eq!(tx.insert(2, "2".to_string(), 2)?, None);
+    assert_eq!(tx.insert(3, "3".to_string(), 3)?, None);
+
+    assert_eq!(tx.remove(&2, "1")?, None);
+    assert_eq!(tx.remove_by_key2("1")?, Some(1));
+
+    assert_eq!(tx.insert(1, "1".to_string(), 1)?, None);
+    assert_eq!(tx.remove(&1, "1")?, Some(1));
+
+    assert_eq!(tx.get(&1, "1")?, None);
+    assert_eq!(tx.get_mut(&2, "2")?, Some(&mut 2_i32));
 
     Ok(())
 }
