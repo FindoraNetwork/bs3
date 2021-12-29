@@ -12,6 +12,10 @@ pub enum Error {
     LockReadError,
     /// When you load a store.
     TypeMissMatch,
+    BytesLengthError,
+    TypeCodeError,
+
+    TryFromIntError(core::num::TryFromIntError),
 
     TryFromSliceError(core::array::TryFromSliceError),
 
@@ -20,6 +24,12 @@ pub enum Error {
 
     #[cfg(feature = "sled-backend")]
     StdIoError(std::io::Error),
+}
+
+impl From<core::num::TryFromIntError> for Error {
+    fn from(e: core::num::TryFromIntError) -> Self {
+        Error::TryFromIntError(e)
+    }
 }
 
 impl From<core::array::TryFromSliceError> for Error {

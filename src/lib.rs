@@ -65,9 +65,6 @@ extern crate alloc;
 #[cfg(any(feature = "std", test))]
 extern crate std;
 
-mod operation;
-pub use operation::{Operation, OperationBytes};
-
 mod cow_lite;
 pub use cow_lite::{Cow, CowBytes};
 

@@ -5,7 +5,10 @@ use core::{fmt::Debug, mem};
 
 use alloc::vec::Vec;
 
-use crate::{Operation, OperationBytes, Result};
+use crate::{
+    types::{Operation, OperationBytes},
+    Result,
+};
 
 use super::{Model, ValueT};
 

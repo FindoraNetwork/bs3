@@ -1,6 +1,6 @@
 use core::fmt::Debug;
 
-use crate::{OperationBytes, Result};
+use crate::{types::OperationBytes, Result};
 
 use alloc::vec::Vec;
 

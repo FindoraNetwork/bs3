@@ -7,7 +7,7 @@
 use crate::{CowBytes, Result};
 use alloc::vec::Vec;
 
-pub trait Store: Send + Sync + Clone { 
+pub trait Store: Send + Sync + Clone {
     /// Provide this method to execute transaction.
     fn execute(&mut self, batch: Vec<(Vec<u8>, Vec<u8>)>) -> Result<()>;
 
@@ -19,5 +19,7 @@ pub trait Store: Send + Sync + Clone {
 
     /// This is the upgraded version of get_ge
     /// The main thing is that the start index is not a fixed empty vec
-    fn get_in(&self, keys: (&[u8], &[u8])) -> Result<Option<CowBytes<'_>>>;
+    fn get_in(&self, begin_key: &[u8], end_key: &[u8]) -> Result<Option<CowBytes<'_>>>;
+
+    fn get(&self, key: &[u8]) -> Result<Option<CowBytes<'_>>>;
 }

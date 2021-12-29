@@ -5,7 +5,10 @@ use core::{fmt::Debug, mem};
 
 use crate::model::Model;
 use crate::prelude::ToBytes;
-use crate::{Operation, OperationBytes};
+use crate::{
+    types::{Operation, OperationBytes},
+    Result,
+};
 use alloc::{collections::BTreeMap, vec::Vec as AllocVec};
 
 use super::ValueT;
@@ -38,7 +41,7 @@ where
 {
     /// Consume the data in the cache
     /// Also convert key to vec<u8>
-    fn operations(&mut self) -> crate::Result<AllocVec<(AllocVec<u8>, OperationBytes)>> {
+    fn operations(&mut self) -> Result<AllocVec<(AllocVec<u8>, OperationBytes)>> {
         let mut map = AllocVec::new();
 
         let value = mem::replace(&mut self.value, BTreeMap::new());

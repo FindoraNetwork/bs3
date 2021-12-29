@@ -5,7 +5,10 @@ use core::{fmt::Debug, mem};
 
 use alloc::{collections::BTreeMap, vec::Vec};
 
-use crate::{Operation, OperationBytes, Result};
+use crate::{
+    types::{Operation, OperationBytes},
+    Result,
+};
 
 use super::{KeyT, Model, ValueT};
 
@@ -40,7 +43,7 @@ where
     K: KeyT,
     V: ValueT,
 {
-    ///define type 3
+    /// define type 3
     fn type_code(&self) -> u32 {
         3
     }
