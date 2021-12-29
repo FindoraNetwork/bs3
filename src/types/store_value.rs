@@ -5,11 +5,22 @@ use crate::{
     Error, Result,
 };
 
+use super::{Operation, OperationBytes};
+
 #[derive(Debug, Clone)]
 pub enum StoreValue {
     Update(Vec<u8>),
     Delete,
     Ref { branch_id: u64, version_id: u64 },
+}
+
+impl From<OperationBytes> for StoreValue {
+    fn from(i: OperationBytes) -> Self {
+        match i {
+            Operation::Update(v) => Self::Update(v),
+            Operation::Delete => Self::Delete,
+        }
+    }
 }
 
 const STORE_VALUE_TYPE_INDEX_UPDATE: u8 = 1;

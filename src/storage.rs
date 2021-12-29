@@ -51,6 +51,8 @@ pub struct Storage<S: Store, V: Model> {
 ///     - If kseq == Some(id) -> id
 /// 2. Store `k:self.bseq-s:kseq-self.vseq` => `value`
 ///
+/// ### NewBranch(store, branch_name, version_name, value)
+/// 1.
 impl<S, V> Storage<S, V>
 where
     S: Store,
@@ -97,21 +99,59 @@ where
         Ok(res)
     }
 
-    pub fn store(&mut self, key: &[u8], value: StoreValue) -> Result<()> {
-        let key_key = utils::key_store_key(self.branch_id, key)?;
+    pub fn store_batch(&mut self, kvs: Vec<(Vec<u8>, StoreValue)>) -> Result<()> {
+        for (key, value) in kvs {
+            let key_key = utils::key_store_key(self.branch_id, &key)?;
 
-        let key_id = if let Some(id) = self.store.get(&key_key)? {
-            let key_store = StoreKey::from_bytes(&id)?;
-            key_store.key_id
-        } else {
-            self.allocable_key_id += 1;
-            self.allocable_key_id
-        };
+            let key_id = if let Some(id) = self.store.get(&key_key)? {
+                let key_store = StoreKey::from_bytes(&id)?;
+                key_store.key_id
+            } else {
+                self.allocable_key_id += 1;
+                self.allocable_key_id
+            };
 
-        let data_key = utils::data_store_key(self.branch_id, key_id, self.version_id);
-        self.store.insert(data_key, value.to_bytes()?)?;
+            let data_key = utils::data_store_key(self.branch_id, key_id, self.version_id);
+            self.store.insert(data_key, value.to_bytes()?)?;
+        }
 
         Ok(())
+    }
+
+    pub fn new(
+        store: S,
+        branch: BranchName,
+        branch_id: u64,
+        version: VersionName,
+        value: V,
+    ) -> Result<Self> {
+        let mut value = value;
+
+        let operations = value
+            .operations()?;
+
+        let mut kvs = Vec::new();
+        for (k, v) in operations {
+            kvs.push((k, v.into()))
+        }
+
+        let mut s = Self {
+            store,
+            branch: branch.clone(),
+            version: version.clone(),
+            value,
+            allocable_key_id: 0,
+            branch_id,
+            version_id: 0,
+        };
+
+        s.store_batch(kvs)?;
+
+        let version_key = utils::version_store_key(branch_id, &version)?;
+
+        let branch_key = utils::branch_store_key(&branch)?;
+
+        Ok(s)
     }
 
     pub fn version(&self) -> &VersionName {
