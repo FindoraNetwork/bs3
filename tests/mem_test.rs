@@ -78,28 +78,67 @@ fn vec_mem_test() -> Result<()> {
     assert_eq!(ss.get(0)?, Some(Cow::Borrowed(&2)));
     assert_eq!(ss.get(1)?, Some(Cow::Borrowed(&3)));
 
+    *ss.get_mut(0)?.unwrap() += 1;
+    *ss.get_mut(1)?.unwrap() += 1;
+
+    assert_eq!(ss.get(1)?, Some(Cow::Borrowed(&4)));
+
     assert_eq!(ss.commit()?, 5);
 
-    assert_eq!(ss.get(1)?, Some(Cow::Owned(3)));
+    assert_eq!(ss.get(0)?, Some(Cow::Owned(3)));
+    assert_eq!(ss.get(1)?, Some(Cow::Owned(4)));
     assert_eq!(ss.get(2)?, None);
+
+    ss.commit()?;
+
+    for _ in 0..100 {
+        ss.pop()?;
+    }
+
+    assert_eq!(ss.get(0)?, None);
+    assert_eq!(ss.get(2)?, None);
+
+    for i in 0..100 {
+        if i == 50 {
+            ss.commit()?;
+        }
+        ss.push(i)?;
+    }
+
+    assert_eq!(ss.get(0)?, Some(Cow::Owned(0)));
+    assert_eq!(ss.get_mut(1)?, Some(&mut 1));
+    assert_eq!(ss.len()?, 100);
 
     Ok(())
 }
 
+#[test]
 fn doublekeymap_mem_test() -> Result<()> {
-    let m = DoubleKeyMap::default();
+    let m: DoubleKeyMap<u32, String, i32> = DoubleKeyMap::default();
     let s = MemoryBackend::new();
     let mut ss = SnapshotableStorage::<_, EmptyMerkle<Sha3_512>, _>::new(m, s)?;
 
-    assert_eq!(ss.insert(1, 1, 1)?, None);
-    assert_eq!(ss.insert(2, 2, 2)?, None);
-    assert_eq!(ss.insert(3, 3, 3)?, None);
-    assert_eq!(ss.remove(&1, &1)?, Some(1)); //remove valid, thought not submitted before deletion
+    assert_eq!(ss.insert(1, "1".to_string(), 1)?, None);
+    assert_eq!(ss.insert(2, "2".to_string(), 2)?, None);
+    assert_eq!(ss.insert(3, "3".to_string(), 3)?, None);
+    assert_eq!(ss.remove_by_key2("1")?, Some(1));
+
+    assert_eq!(ss.insert(1, "1".to_string(), 1)?, None);
+
     assert_eq!(ss.commit()?, 1);
+    assert_eq!(ss.remove(&1, "2")?, None);
+
     assert_eq!(ss.commit()?, 2);
+    assert_eq!(ss.remove(&1, "1")?, Some(1));
+
     assert_eq!(ss.commit()?, 3);
-    assert_eq!(ss.get(&1, &1)?, None);
-    assert_eq!(ss.get_mut(&2, &2)?, Some(&mut 2_i32));
+    assert_eq!(ss.get(&1, "1")?, None);
+
+    assert_eq!(ss.get_mut(&2, "2")?, Some(&mut 2_i32));
+    assert_eq!(ss.get_mut(&2, "3")?, None);
+
+    assert_eq!(ss.get_mut_key1(&2)?, Some(&mut 2_i32));
+    assert_eq!(ss.get_mut_key2("2")?, Some(&mut 2_i32));
 
     Ok(())
 }
@@ -129,7 +168,7 @@ fn tx_doublekeymap_mem_test() -> Result<()> {
     assert_eq!(tx.insert(1, 1, 1)?, None);
     assert_eq!(tx.insert(2, 2, 2)?, None);
     assert_eq!(tx.insert(3, 3, 3)?, None);
-    assert_eq!(tx.remove(&1, &1)?, Some(1));
+    assert_eq!(tx.remove_by_key2(&1)?, Some(1));
     assert_eq!(tx.get(&1, &1)?, None);
     assert_eq!(tx.get_mut(&2, &2)?, Some(&mut 2_i32));
 

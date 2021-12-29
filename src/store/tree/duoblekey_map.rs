@@ -2,7 +2,9 @@ use crate::prelude::Tree;
 use alloc::vec::Vec;
 
 use crate::{
-    merkle::Merkle, model::DoubleKeyMap, DoubleKeyMapStore, Result, SnapshotableStorage, Store,
+    merkle::Merkle,
+    model::{DoubleKeyMap, KeyType, ValueType},
+    DoubleKeyMapStore, Result, SnapshotableStorage, Store,
 };
 
 use core::fmt::Debug;
@@ -11,9 +13,9 @@ use serde::{Deserialize, Serialize};
 
 impl<S, M, K1, K2, V> Tree for SnapshotableStorage<S, M, DoubleKeyMap<K1, K2, V>>
 where
-    K1: Clone + PartialEq + Eq + Serialize + for<'de> Deserialize<'de> + Ord + PartialOrd + Debug,
-    K2: Clone + PartialEq + Eq + Serialize + for<'de> Deserialize<'de> + Ord + PartialOrd + Debug,
-    V: Clone + Serialize + for<'de> Deserialize<'de> + Debug,
+    K1: KeyType,
+    K2: KeyType,
+    V: ValueType,
     S: Store,
     M: Merkle,
 {

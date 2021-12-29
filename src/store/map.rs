@@ -1,6 +1,10 @@
-use core::fmt::Debug;
+use core::{borrow::Borrow, fmt::Debug};
 
-use crate::{merkle::Merkle, model::Map, Cow, Operation, Result, SnapshotableStorage, Store};
+use crate::{
+    merkle::Merkle,
+    model::{KeyType, Map, ValueType},
+    Cow, Operation, Result, SnapshotableStorage, Store,
+};
 
 use super::utils::map_utils;
 #[cfg(feature = "cbor")]
@@ -9,8 +13,8 @@ use serde::{Deserialize, Serialize};
 /// Defining the basic behavior of the map application layer
 pub trait MapStore<K, V>
 where
-    K: Clone + PartialEq + Eq + Serialize + for<'de> Deserialize<'de> + Ord + PartialOrd + Debug,
-    V: Clone + Serialize + for<'de> Deserialize<'de> + Debug,
+    K: KeyType,
+    V: ValueType,
 {
     fn get(&self, key: &K) -> Result<Option<Cow<'_, V>>>;
 
@@ -24,8 +28,8 @@ where
 /// Implementing the middle and cache layers is the behavior of map
 impl<S, M, K, V> MapStore<K, V> for SnapshotableStorage<S, M, Map<K, V>>
 where
-    K: Clone + PartialEq + Eq + Serialize + for<'de> Deserialize<'de> + Ord + PartialOrd + Debug,
-    V: Clone + Serialize + for<'de> Deserialize<'de> + Debug,
+    K: KeyType,
+    V: ValueType,
     S: Store,
     M: Merkle,
 {

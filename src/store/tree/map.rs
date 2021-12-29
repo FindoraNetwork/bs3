@@ -1,7 +1,11 @@
 use crate::prelude::Tree;
 use alloc::vec::Vec;
 
-use crate::{merkle::Merkle, model::Map, MapStore, Result, SnapshotableStorage, Store};
+use crate::{
+    merkle::Merkle,
+    model::{KeyType, Map, ValueType},
+    MapStore, Result, SnapshotableStorage, Store,
+};
 
 use core::fmt::Debug;
 #[cfg(feature = "cbor")]
@@ -9,8 +13,8 @@ use serde::{Deserialize, Serialize};
 
 impl<S, M, K, V> Tree for SnapshotableStorage<S, M, Map<K, V>>
 where
-    K: Clone + PartialEq + Eq + Serialize + for<'de> Deserialize<'de> + Ord + PartialOrd + Debug,
-    V: Clone + Serialize + for<'de> Deserialize<'de> + Debug,
+    K: KeyType,
+    V: ValueType,
     S: Store,
     M: Merkle,
 {

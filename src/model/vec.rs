@@ -74,13 +74,13 @@ impl<T: ValueType> Model for Vec<T> {
         let values = mem::replace(&mut self.cache, BTreeMap::new());
 
         for (k, v) in values.into_iter() {
-            let key = cbor_encode(k)?;
+            let key = cbor_encode(&k)?;
             let value = v.to_bytes()?;
             res.push((key, value));
         }
         if let Some(l) = self.current_len.take() {
             res.push((
-                cbor_encode(INDEX_VEC_LEN)?,
+                cbor_encode(&INDEX_VEC_LEN)?,
                 Operation::Update(l).to_bytes()?,
             ));
         }
@@ -94,14 +94,10 @@ impl<T: ValueType> Model for Vec<T> {
 
     /// Merge two caches
     fn merge(&mut self, mut other: Self) {
+        //[TODO] may conflict
         self.cache.append(&mut other.cache);
-        let len_updated = match self.current_len {
-            Some(l1) => Some(match other.current_len {
-                Some(l2) => l1.max(l2),
-                None => l1,
-            }),
-            None => other.current_len,
-        };
-        self.current_len = len_updated;
+        if let Some(l) = other.len() {
+            self.current_len = Some(l);
+        }
     }
 }

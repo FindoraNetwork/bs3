@@ -61,7 +61,7 @@ where
         let value = mem::replace(&mut self.value, BTreeMap::new());
 
         for (k, v) in value.into_iter() {
-            let key = cbor_encode(k)?;
+            let key = cbor_encode(&k)?;
             let value = v.to_bytes()?;
             map.push((key, value));
         }

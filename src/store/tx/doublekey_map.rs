@@ -1,8 +1,10 @@
 use crate::merkle::Merkle;
-use crate::model::DoubleKeyMap;
+use crate::model::{DoubleKeyMap, KeyType, ValueType};
 use crate::{Cow, DoubleKeyMapStore, Operation, Result, Store, Transaction};
+use core::borrow::Borrow;
 
-use crate::store::utils::doublekeymap_utils;
+//use crate::store::utils::doublekeymap_utils;
+use alloc::borrow::ToOwned;
 use core::fmt::Debug;
 #[cfg(feature = "cbor")]
 use serde::{Deserialize, Serialize};
@@ -10,87 +12,101 @@ use serde::{Deserialize, Serialize};
 impl<'a, S, M, K1, K2, V> DoubleKeyMapStore<K1, K2, V>
     for Transaction<'a, S, M, DoubleKeyMap<K1, K2, V>>
 where
-    K1: Clone + PartialEq + Eq + Serialize + for<'de> Deserialize<'de> + Ord + PartialOrd + Debug,
-    K2: Clone + PartialEq + Eq + Serialize + for<'de> Deserialize<'de> + Ord + PartialOrd + Debug,
-    V: Clone + Serialize + for<'de> Deserialize<'de> + Debug,
+    K1: KeyType,
+    K2: KeyType,
+    V: ValueType,
     S: Store,
     M: Merkle,
 {
-    fn get(&self, key1: &K1, key2: &K2) -> Result<Option<Cow<'_, V>>> {
-        let key = &(key1.clone(), key2.clone());
-        let self_value = self.value.value.value.get(key);
-
-        Ok(match self_value {
+    fn get_key1<Q: ?Sized + Ord + Serialize>(&self, key1: &Q) -> Result<Option<Cow<'_, V>>>
+    where
+        K1: Borrow<Q>,
+    {
+        Ok(match self.value.get_value(key1) {
             Some(Operation::Update(v)) => Some(Cow::Borrowed(v)),
             Some(Operation::Delete) => None,
-            None => {
-                let lower_value = self.store.value.value.value.get(key);
-                match lower_value {
-                    Some(Operation::Update(v)) => Some(Cow::Borrowed(v)),
-                    Some(Operation::Delete) => None,
-                    None => None,
-                }
-            }
+            None => match self.store.get_key1(key1)? {
+                Some(v) => Some(v),
+                None => None,
+            },
         })
     }
 
-    fn get_mut(&mut self, key1: &K1, key2: &K2) -> Result<Option<&mut V>> {
-        let key = &(key1.clone(), key2.clone());
-        if let Some(Operation::Delete) = self.value.value.value.get(key) {
-            return Ok(None);
-        }
+    fn get_mut_key1<Q>(&mut self, key1: &Q) -> Result<Option<&mut V>>
+    where
+        Q: ?Sized + Ord + Serialize + ToOwned<Owned = K1>,
+        K1: Borrow<Q>,
+    {
+        //may avoid double borrow-mut
 
-        if !self.value.value.value.contains_key(key) {
-            if let Some(operation) = doublekeymap_utils::get_inner_operation(self.store, key)? {
-                self.value.value.value.insert(key.clone(), operation);
-            } else {
-                return Ok(None);
-            }
-        }
-
-        if let Some(Operation::Update(value)) = self.value.value.value.get_mut(key) {
-            Ok(Some(value))
-        } else {
-            Ok(None)
-        }
-    }
-
-    fn insert(&mut self, key1: K1, key2: K2, value: V) -> Result<Option<V>> {
-        let key = (key1, key2);
-        let operation = Operation::Update(value.clone());
-        let mut pre_val = None;
-        if let Some(operation) = self.value.value.value.get_mut(&key) {
-            match operation {
-                Operation::Update(v) => {
-                    pre_val = Some(v.clone());
-                }
-                Operation::Delete => {}
-            }
-        }
-        self.value.value.value.insert(key, operation);
-        Ok(pre_val)
-    }
-
-    fn remove(&mut self, key1: &K1, key2: &K2) -> Result<Option<V>> {
-        let key = &(key1.clone(), key2.clone());
-        let res = if let Some(op) = self.value.value.value.remove(key) {
-            match op {
-                Operation::Update(v) => Some(v),
+        if self.value.contains_opertaion(key1) {
+            return Ok(match self.value.get_mut_value(key1).unwrap() {
                 Operation::Delete => None,
-            }
-        } else {
-            if let Some(v) = self.store.get(key1, key2)? {
-                Some(v.clone())
-            } else {
-                None
-            }
+                Operation::Update(t) => Some(t),
+            });
+        };
+
+        let value = match self.get_key1(key1)? {
+            Some(v) => v.into_owned(),
+            None => return Ok(None),
         };
 
         self.value
-            .value
-            .value
-            .insert(key.clone(), Operation::Delete);
+            .insert_operation(key1.to_owned(), Operation::Update(value));
 
-        Ok(res)
+        Ok(match self.value.get_mut_value(key1) {
+            Some(Operation::Update(v)) => Some(v),
+            _ => unreachable!(),
+        })
+    }
+
+    fn insert(&mut self, key1: K1, key2: K2, value: V) -> Result<Option<V>> {
+        let v_old = self.remove_by_key2(&key2)?;
+        self.value
+            .insert_operation(key1.clone(), Operation::Update(value));
+        self.value
+            .insert_operation_key1(key2, Operation::Update(key1));
+        Ok(v_old)
+    }
+
+    fn remove_by_key2<Q>(&mut self, key2: &Q) -> Result<Option<V>>
+    where
+        Q: ?Sized + Ord + Serialize + ToOwned<Owned = K2>,
+        K2: Borrow<Q>,
+    {
+        let (old_value, key1) = match self.value.remove_key1(key2) {
+            Some(Operation::Update(k1)) => match self.value.remove_operation(&k1) {
+                Some(Operation::Update(v)) => (v, k1),
+                _ => unreachable!(),
+            },
+            Some(Operation::Delete) => return Ok(None),
+            None => match self.store.key2_to_key1(key2)? {
+                Some(key1) => (
+                    self.store
+                        .get_key1(&key1)?
+                        .expect("impl bug, value must exist.")
+                        .into_owned(),
+                    key1.into_owned(),
+                ),
+                None => return Ok(None),
+            },
+        };
+
+        self.value.insert_operation(key1, Operation::Delete);
+        self.value
+            .insert_operation_key1(key2.to_owned(), Operation::Delete);
+
+        Ok(Some(old_value))
+    }
+
+    fn key2_to_key1<Q: ?Sized + Ord + Serialize>(&self, key2: &Q) -> Result<Option<Cow<'_, K1>>>
+    where
+        K2: Borrow<Q>,
+    {
+        Ok(match self.value.get_key1(key2) {
+            Some(Operation::Update(key1)) => Some(Cow::Borrowed(key1)),
+            Some(Operation::Delete) => None,
+            None => self.store.key2_to_key1(key2)?,
+        })
     }
 }

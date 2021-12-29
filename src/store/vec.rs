@@ -1,10 +1,10 @@
-use super::utils::vec_utils;
 use crate::{
     merkle::Merkle,
     model::{ValueType, Vec, INDEX_VEC_LEN},
-    Cow, Error, Operation, Result, SnapshotableStorage, Store,
+    snapshot::{FromStoreBytes, SnapshotableStorage, StoreValue},
+    utils::cbor_encode,
+    Cow, Error, Operation, Result, Store,
 };
-use serde::{Deserialize, Serialize};
 
 pub trait VecStore<T: ValueType> {
     fn get(&self, index: u64) -> Result<Option<Cow<'_, T>>>;
@@ -67,7 +67,7 @@ where
         if let Some(l) = self.value.len() {
             return Ok(l);
         }
-        Ok(vec_utils::get_len(self)?)
+        Ok(self.get_len()?)
     }
 
     fn get(&self, index: u64) -> Result<Option<Cow<'_, T>>> {
@@ -82,7 +82,7 @@ where
                 Operation::Delete => Ok(None),
             }
         } else {
-            match vec_utils::get_inner_value(self, index)? {
+            match self.get_inner_value(index)? {
                 None => Ok(None),
                 Some(v) => Ok(Some(Cow::Owned(v))),
             }
@@ -101,7 +101,7 @@ where
                 Operation::Update(t) => Ok(Some(t)),
             }
         } else {
-            match vec_utils::get_inner_value(self, index)? {
+            match self.get_inner_value(index)? {
                 Some(t) => {
                     self.value.insert_operation(index, Operation::Update(t));
                     match self.value.get_mut(&index).unwrap() {
@@ -137,10 +137,74 @@ where
             _ => (),
         };
 
-        let res = vec_utils::get_inner_operation(self, len - 1)?;
+        let res = self.get_inner_operation(len - 1)?;
         match res {
             Some(Operation::Update(t)) => Ok(Some(t)),
             _ => unreachable!(),
+        }
+    }
+}
+
+impl<S, M, T> SnapshotableStorage<S, M, Vec<T>>
+where
+    S: Store,
+    M: Merkle,
+    T: ValueType,
+{
+    pub fn get_inner_value(&self, index: u64) -> Result<Option<T>>
+    where
+        T: ValueType,
+        S: Store,
+        M: Merkle,
+    {
+        let operation = self.get_inner_operation(index)?;
+        if let Some(operation) = operation {
+            match operation {
+                Operation::Update(v) => Ok(Some(v)),
+                Operation::Delete => Ok(None),
+            }
+        } else {
+            Ok(None)
+        }
+    }
+
+    pub fn get_inner_operation(&self, key: u64) -> Result<Option<Operation<T>>>
+    where
+        T: ValueType,
+        S: Store,
+        M: Merkle,
+    {
+        let key_bytes = cbor_encode(&key)?;
+        let store_key = self.storage_tuple_key(&key_bytes);
+        let bytes = self.store.get_ge2((&store_key.0, &store_key.1))?;
+        if let Some(bytes) = bytes {
+            let value = StoreValue::from_bytes(&bytes)?;
+            let operation = Operation::from_bytes(&value.operation)?;
+            Ok(Some(operation))
+        } else {
+            Ok(None)
+        }
+    }
+
+    pub fn get_len(&self) -> Result<u64>
+    where
+        T: ValueType,
+        S: Store,
+        M: Merkle,
+    {
+        let key_bytes = cbor_encode(&INDEX_VEC_LEN)?;
+        let store_key = self.storage_tuple_key(&key_bytes);
+
+        match self.store.get_ge2((&store_key.0, &store_key.1))? {
+            Some(bytes) => {
+                let value = StoreValue::from_bytes(&bytes)?;
+                let operation = Operation::from_bytes(&value.operation)?;
+                match operation {
+                    Operation::Update(t) => Ok(t),
+                    _ => panic!("maybee a impl bug, unreachable, `len` always set"),
+                }
+            }
+            None => Ok(0),
         }
     }
 }

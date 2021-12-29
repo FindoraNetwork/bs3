@@ -23,11 +23,14 @@ pub use doublekey_map::DoubleKeyMap;
 
 use serde::{Deserialize, Serialize};
 
-pub trait KType:
-    Clone + PartialEq + Eq + Serialize + for<'de> Deserialize<'de> + Ord + PartialOrd + Debug
-{
-}
+pub trait KeyType: PartialEq + Eq + Ord + PartialOrd + ValueType {}
 pub trait ValueType: Clone + Debug + Serialize + for<'de> Deserialize<'de> {}
+
+macro_rules! impl_key_type {
+    ( $($t:ty),* )=> {
+        $(impl KeyType for $t {})*
+    };
+}
 
 macro_rules! impl_value_type {
     ( $($t:ty),* )=> {
@@ -35,7 +38,8 @@ macro_rules! impl_value_type {
     };
 }
 
-impl_value_type! {String, u8, u16, u32, u64, usize, i8, i16, i32, i64, isize}
+impl_key_type! {u8, u16, u32, u64, i8, i16, i32, i64, String}
+impl_value_type! {u8, u16, u32, u64, i8, i16, i32, i64, String}
 
 pub trait Model: Default + Debug + Clone {
     /// Get operations for this value.

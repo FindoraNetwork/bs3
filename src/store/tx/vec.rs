@@ -2,7 +2,6 @@ use core::fmt::Debug;
 
 use crate::merkle::Merkle;
 use crate::model::{ValueType, Vec};
-use crate::store::utils::vec_utils;
 use crate::{Cow, Operation, Result, Store, Transaction, VecStore};
 use serde::{Deserialize, Serialize};
 
