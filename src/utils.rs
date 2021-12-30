@@ -5,7 +5,6 @@ mod cbor {
     use crate::{Error, Result};
     use alloc::string::ToString;
     use alloc::vec::Vec;
-    use ciborium::de::from_reader;
     use ciborium::ser::into_writer;
 
     use serde::Serialize;

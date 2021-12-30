@@ -6,6 +6,8 @@ use crate::{
     Cow, Error, Operation, Result, Store,
 };
 
+use super::utils::get_greatest;
+
 pub trait VecStore<T: ValueType> {
     fn get(&self, index: u64) -> Result<Option<Cow<'_, T>>>;
 
@@ -137,11 +139,9 @@ where
             _ => (),
         };
 
-        let res = self.get_inner_operation(len - 1)?;
-        match res {
-            Some(Operation::Update(t)) => Ok(Some(t)),
-            _ => unreachable!(),
-        }
+        let res = self.get_inner_value(len - 1)?;
+        debug_assert!(res.is_some());
+        Ok(res)
     }
 }
 
@@ -157,33 +157,9 @@ where
         S: Store,
         M: Merkle,
     {
-        let operation = self.get_inner_operation(index)?;
-        if let Some(operation) = operation {
-            match operation {
-                Operation::Update(v) => Ok(Some(v)),
-                Operation::Delete => Ok(None),
-            }
-        } else {
-            Ok(None)
-        }
-    }
-
-    pub fn get_inner_operation(&self, key: u64) -> Result<Option<Operation<T>>>
-    where
-        T: ValueType,
-        S: Store,
-        M: Merkle,
-    {
-        let key_bytes = cbor_encode(&key)?;
+        let key_bytes = cbor_encode(&index)?;
         let store_key = self.storage_tuple_key(&key_bytes);
-        let bytes = self.store.get_ge2((&store_key.0, &store_key.1))?;
-        if let Some(bytes) = bytes {
-            let value = StoreValue::from_bytes(&bytes)?;
-            let operation = Operation::from_bytes(&value.operation)?;
-            Ok(Some(operation))
-        } else {
-            Ok(None)
-        }
+        get_greatest(&self.store, &store_key.0, &store_key.1)
     }
 
     pub fn get_len(&self) -> Result<u64>

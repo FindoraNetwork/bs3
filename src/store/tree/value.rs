@@ -7,10 +7,6 @@ use crate::{
     Result, SnapshotableStorage, Store, ValueStore,
 };
 
-use core::fmt::Debug;
-#[cfg(feature = "cbor")]
-use serde::{Deserialize, Serialize};
-
 impl<S, M, T> Tree for SnapshotableStorage<S, M, Value<T>>
 where
     T: ValueType,

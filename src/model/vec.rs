@@ -6,8 +6,6 @@ use core::{fmt::Debug, mem};
 use crate::model::{Model, ValueType};
 use crate::{Operation, OperationBytes};
 use alloc::{collections::BTreeMap, vec::Vec as AllocVec};
-#[cfg(feature = "cbor")]
-use serde::{Deserialize, Serialize};
 
 pub const INDEX_VEC_LEN: u64 = u64::MAX;
 

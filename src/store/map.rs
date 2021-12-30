@@ -1,5 +1,3 @@
-use core::{borrow::Borrow, fmt::Debug};
-
 use crate::{
     merkle::Merkle,
     model::{KeyType, Map, ValueType},
@@ -7,8 +5,6 @@ use crate::{
 };
 
 use super::utils::map_utils;
-#[cfg(feature = "cbor")]
-use serde::{Deserialize, Serialize};
 
 /// Defining the basic behavior of the map application layer
 pub trait MapStore<K, V>

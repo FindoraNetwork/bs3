@@ -1,9 +1,6 @@
-use core::fmt::Debug;
-
 use crate::merkle::Merkle;
 use crate::model::{ValueType, Vec};
 use crate::{Cow, Operation, Result, Store, Transaction, VecStore};
-use serde::{Deserialize, Serialize};
 
 impl<'a, S, M, T> VecStore<T> for Transaction<'a, S, M, Vec<T>>
 where

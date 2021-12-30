@@ -7,10 +7,6 @@ use crate::{
     DoubleKeyMapStore, Result, SnapshotableStorage, Store,
 };
 
-use core::fmt::Debug;
-#[cfg(feature = "cbor")]
-use serde::{Deserialize, Serialize};
-
 impl<S, M, K1, K2, V> Tree for SnapshotableStorage<S, M, DoubleKeyMap<K1, K2, V>>
 where
     K1: KeyType,

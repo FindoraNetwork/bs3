@@ -4,10 +4,6 @@ use core::{fmt::Debug, mem};
 use alloc::collections::BTreeMap;
 use alloc::vec::Vec;
 
-use serde::de::value;
-#[cfg(feature = "cbor")]
-use serde::{Deserialize, Serialize};
-
 use crate::model::{KeyType, Model, ValueType};
 use crate::{Operation, OperationBytes, Result};
 

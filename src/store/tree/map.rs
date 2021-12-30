@@ -7,10 +7,6 @@ use crate::{
     MapStore, Result, SnapshotableStorage, Store,
 };
 
-use core::fmt::Debug;
-#[cfg(feature = "cbor")]
-use serde::{Deserialize, Serialize};
-
 impl<S, M, K, V> Tree for SnapshotableStorage<S, M, Map<K, V>>
 where
     K: KeyType,

@@ -1,13 +1,11 @@
-use core::fmt::Debug;
-
-use serde::{Deserialize, Serialize};
-
-use super::utils::value_utils;
 use crate::{
     merkle::Merkle,
     model::{Value, ValueType},
     Cow, Operation, Result, SnapshotableStorage, Store,
 };
+use alloc::vec::Vec;
+
+use super::utils::get_greatest;
 
 pub trait ValueStore<T>
 where
@@ -34,7 +32,7 @@ where
                 Operation::Update(iv) => Some(Cow::Borrowed(iv)),
                 Operation::Delete => None,
             },
-            None => match value_utils::get_inner_value(self)? {
+            None => match self.get_inner_value()? {
                 Some(v) => Some(Cow::Owned(v)),
                 None => None,
             },
@@ -48,7 +46,7 @@ where
                 Operation::Delete => None,
             }
         } else {
-            let v = value_utils::get_inner_value(self)?;
+            let v = self.get_inner_value()?;
             match v {
                 None => None,
                 Some(v) => {
@@ -64,7 +62,7 @@ where
 
     fn set(&mut self, value: T) -> Result<Option<T>> {
         self.value.store(value);
-        value_utils::get_inner_value(self)
+        self.get_inner_value()
     }
 
     fn del(&mut self) -> Result<Option<T>> {
@@ -73,7 +71,19 @@ where
                 Operation::Update(t) => Some(t),
                 Operation::Delete => None,
             },
-            None => return value_utils::get_inner_value(self),
+            None => return self.get_inner_value(),
         })
+    }
+}
+
+impl<S, M, T> SnapshotableStorage<S, M, Value<T>>
+where
+    S: Store,
+    M: Merkle,
+    T: ValueType,
+{
+    fn get_inner_value(&self) -> Result<Option<T>> {
+        let store_key = self.storage_tuple_key(&Vec::new());
+        get_greatest(&self.store, &store_key.0, &store_key.1)
     }
 }

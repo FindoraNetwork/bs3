@@ -2,10 +2,6 @@ use crate::merkle::Merkle;
 use crate::model::{KeyType, Map, ValueType};
 use crate::{Cow, MapStore, Operation, Store, Transaction};
 
-use core::fmt::Debug;
-#[cfg(feature = "cbor")]
-use serde::{Deserialize, Serialize};
-
 impl<'a, S, M, K, V> MapStore<K, V> for Transaction<'a, S, M, Map<K, V>>
 where
     K: KeyType,

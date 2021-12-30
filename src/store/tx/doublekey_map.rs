@@ -5,9 +5,7 @@ use core::borrow::Borrow;
 
 //use crate::store::utils::doublekeymap_utils;
 use alloc::borrow::ToOwned;
-use core::fmt::Debug;
-#[cfg(feature = "cbor")]
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
 impl<'a, S, M, K1, K2, V> DoubleKeyMapStore<K1, K2, V>
     for Transaction<'a, S, M, DoubleKeyMap<K1, K2, V>>

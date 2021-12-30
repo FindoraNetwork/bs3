@@ -1,18 +1,17 @@
 use alloc::{borrow::ToOwned, vec::Vec};
-use core::{borrow::Borrow, fmt::Debug};
+use core::borrow::Borrow;
 
 use crate::{
     merkle::Merkle,
     model::{DoubleKeyMap, KeyType, ValueType},
-    operation,
-    snapshot::{FromStoreBytes, SnapshotableStorage, StoreValue},
-    store::utils::get_greatest,
-    utils::{cbor_encode, cbor_encode_writer},
+    snapshot::SnapshotableStorage,
+    utils::cbor_encode_writer,
     Cow, Operation, Result, Store,
 };
 
-#[cfg(feature = "cbor")]
-use serde::{Deserialize, Serialize};
+use super::utils::get_greatest;
+
+use serde::Serialize;
 
 pub trait DoubleKeyMapStore<K1, K2, V>
 where

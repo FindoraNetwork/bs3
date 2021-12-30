@@ -1,17 +1,11 @@
 //!
 //!
-
-use alloc::vec::Vec as alloc_vec;
-use core::fmt::Debug;
-
 use crate::snapshot::{FromStoreBytes, StoreValue};
 use crate::utils::cbor_encode;
 use crate::{
-    model::{DoubleKeyMap, Map, Value, ValueType, Vec, INDEX_VEC_LEN},
+    model::{Map, ValueType},
     Operation, Result, SnapshotableStorage, Store,
 };
-#[cfg(feature = "cbor")]
-use serde::{Deserialize, Serialize};
 
 pub fn get_greatest<S: Store, V: ValueType>(
     store: &S,
@@ -32,7 +26,7 @@ pub fn get_greatest<S: Store, V: ValueType>(
 }
 
 pub(crate) mod map_utils {
-    use crate::merkle::Merkle;
+    use crate::{merkle::Merkle, model::KeyType};
 
     use super::*;
 
@@ -41,15 +35,8 @@ pub(crate) mod map_utils {
         key: &K,
     ) -> Result<Option<Operation<V>>>
     where
-        K: Clone
-            + PartialEq
-            + Eq
-            + Serialize
-            + for<'de> Deserialize<'de>
-            + Ord
-            + PartialOrd
-            + Debug,
-        V: Clone + Serialize + for<'de> Deserialize<'de> + Debug,
+        K: KeyType,
+        V: ValueType,
         S: Store,
         M: Merkle,
     {
@@ -72,15 +59,8 @@ pub(crate) mod map_utils {
         key: &K,
     ) -> Result<Option<V>>
     where
-        K: Clone
-            + PartialEq
-            + Eq
-            + Serialize
-            + for<'de> Deserialize<'de>
-            + Ord
-            + PartialOrd
-            + Debug,
-        V: Clone + Serialize + for<'de> Deserialize<'de> + Debug,
+        K: KeyType,
+        V: ValueType,
         S: Store,
         M: Merkle,
     {
@@ -92,44 +72,6 @@ pub(crate) mod map_utils {
             }
         } else {
             Ok(None)
-        }
-    }
-}
-
-pub(crate) mod value_utils {
-    use crate::merkle::Merkle;
-
-    use super::*;
-
-    pub fn storage_key<S, M, T>(
-        vss: &SnapshotableStorage<S, M, Value<T>>,
-    ) -> (alloc_vec<u8>, alloc_vec<u8>)
-    where
-        T: ValueType,
-        S: Store,
-        M: Merkle,
-    {
-        let inner_key = alloc_vec::new();
-        vss.storage_tuple_key(&inner_key)
-    }
-
-    pub fn get_inner_value<S, M, T>(vss: &SnapshotableStorage<S, M, Value<T>>) -> Result<Option<T>>
-    where
-        T: ValueType,
-        S: Store,
-        M: Merkle,
-    {
-        let store_key = storage_key(vss);
-        match vss.store.get_ge2((&store_key.0, &store_key.1))? {
-            Some(bytes) => {
-                let value = StoreValue::from_bytes(&bytes)?;
-                let operation = Operation::from_bytes(&value.operation)?;
-                match operation {
-                    Operation::Update(v) => Ok(Some(v)),
-                    Operation::Delete => Ok(None),
-                }
-            }
-            None => Ok(None),
         }
     }
 }

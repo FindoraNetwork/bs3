@@ -4,10 +4,6 @@
 use core::{fmt::Debug, mem};
 
 use alloc::vec::Vec;
-// use serde::{Deserialize, Serialize};
-
-#[cfg(feature = "cbor")]
-use serde::{Deserialize, Serialize};
 
 use crate::{Operation, OperationBytes, Result};
 

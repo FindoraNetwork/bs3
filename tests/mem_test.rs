@@ -173,6 +173,8 @@ fn tx_doublekeymap_mem_test() -> Result<()> {
     assert_eq!(tx.remove(&2, "1")?, None);
     assert_eq!(tx.remove_by_key2("1")?, Some(1));
 
+    //&String, &str
+
     assert_eq!(tx.insert(1, "1".to_string(), 1)?, None);
     assert_eq!(tx.remove(&1, "1")?, Some(1));
 
