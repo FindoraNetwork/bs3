@@ -42,7 +42,7 @@ where
 
         let mut map = alloc_vec::new();
 
-        let value = mem::replace(&mut self.value, BTreeMap::new());
+        let value = mem::take(&mut self.value);
 
         for (k, v) in value.into_iter() {
             let key = cbor_encode(k)?;

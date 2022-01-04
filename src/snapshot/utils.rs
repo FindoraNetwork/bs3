@@ -2,10 +2,10 @@
 //! snapshot utils
 //!
 
-use alloc::{format, string::String, vec::Vec};
+use alloc::{format, vec::Vec};
 
 /// Build current block high key
-pub fn current_height_key(namespace: &String) -> Vec<u8> {
+pub fn current_height_key(namespace: &str) -> Vec<u8> {
     // TODO: use binary key to optimization performance
     format!("{}-ch", namespace).into_bytes()
 }
@@ -17,7 +17,7 @@ pub fn storage_key<T: AsRef<[u8]>>(namespace: &str, key: T, height: i64) -> Vec<
 }
 
 /// Build type key
-pub fn type_key(namespace: &String) -> Vec<u8> {
+pub fn type_key(namespace: &str) -> Vec<u8> {
     // TODO: use binary key to optimization performance
     format!("{}-ty", namespace).into_bytes()
 }

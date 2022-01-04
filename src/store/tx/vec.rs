@@ -18,20 +18,11 @@ where
         Ok(match self_value {
             Some(Operation::Update(v)) => Some(Cow::Borrowed(v)),
             Some(Operation::Delete) => None,
-            None => {
-                let lower_value = self.store.value.value.get(&index);
-                match lower_value {
-                    Some(Operation::Update(v)) => Some(Cow::Borrowed(v)),
-                    Some(Operation::Delete) => None,
-                    None => {
-                        let store_inner_value = self.store.get(index)?;
-                        match store_inner_value {
-                            None => None,
-                            Some(v) => Some(v),
-                        }
-                    }
-                }
-            }
+            None => match self.store.value.value.get(&index) {
+                Some(Operation::Update(v)) => Some(Cow::Borrowed(v)),
+                Some(Operation::Delete) => None,
+                None => self.store.get(index)?,
+            },
         })
     }
 
@@ -39,10 +30,9 @@ where
         if let Some(Operation::Delete) = self.value.value.get(&index) {
             return Ok(None);
         }
-
-        if !self.value.value.contains_key(&index) {
+        if let alloc::collections::btree_map::Entry::Vacant(e) = self.value.value.entry(index) {
             if let Some(operation) = vec_utils::get_inner_operation(self.store, index)? {
-                self.value.value.insert(index, operation);
+                e.insert(operation);
             } else {
                 return Ok(None);
             }
@@ -58,7 +48,7 @@ where
     }
 
     fn insert(&mut self, value: T) -> Result<Option<T>> {
-        let operation = Operation::Update(value.clone());
+        let operation = Operation::Update(value);
         let index = self.value.value.len() as u64;
         let mut pre_val = None;
         if let Some(operation) = self.value.value.get_mut(&index) {
@@ -74,13 +64,13 @@ where
     }
 
     fn remove(&mut self, index: u64) -> Result<Option<T>> {
-        return if let Some(op) = self.value.value.remove(&index) {
+        if let Some(op) = self.value.value.remove(&index) {
             match op {
                 Operation::Update(v) => Ok(Some(v)),
                 Operation::Delete => Ok(None),
             }
         } else {
             Ok(None)
-        };
+        }
     }
 }

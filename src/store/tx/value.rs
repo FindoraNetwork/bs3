@@ -15,20 +15,11 @@ where
         Ok(match &self.value.value {
             Some(Operation::Update(v)) => Some(Cow::Borrowed(v)),
             Some(Operation::Delete) => None,
-            None => {
-                let lower_value = &self.store.value.value;
-                match lower_value {
-                    Some(Operation::Update(v)) => Some(Cow::Borrowed(v)),
-                    Some(Operation::Delete) => None,
-                    None => {
-                        let store_inner_value = self.store.get()?;
-                        match store_inner_value {
-                            None => None,
-                            Some(v) => Some(v),
-                        }
-                    }
-                }
-            }
+            None => match &self.store.value.value {
+                Some(Operation::Update(v)) => Some(Cow::Borrowed(v)),
+                Some(Operation::Delete) => None,
+                None => self.store.get()?,
+            },
         })
     }
 
