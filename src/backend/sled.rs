@@ -43,13 +43,11 @@ pub fn sled_db_open(path: Option<&str>) -> Result<sled::Db> {
 
     let path = if let Some(path) = path {
         path.to_string()
+    } else if let Some(path) = tmp_dir()?.to_str() {
+        is_tmp = true;
+        path.to_string()
     } else {
-        if let Some(path) = tmp_dir()?.to_str() {
-            is_tmp = true;
-            path.to_string()
-        } else {
-            return Err(Error::StoreError(Box::new("tmp_dir is none")));
-        }
+        return Err(Error::StoreError(Box::new("tmp_dir is none")));
     };
 
     let mut cfg = sled::Config::default()

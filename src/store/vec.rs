@@ -69,12 +69,10 @@ where
                 Operation::Update(v) => Some(v),
                 Operation::Delete => None,
             }
+        } else if let Some(v) = vec_utils::get_inner_value(self, index)? {
+            Some(v)
         } else {
-            if let Some(v) = vec_utils::get_inner_value(self, index)? {
-                Some(v)
-            } else {
-                None
-            }
+            None
         };
 
         self.value.value.insert(index, Operation::Delete);

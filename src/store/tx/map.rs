@@ -82,12 +82,10 @@ where
                 Operation::Update(v) => Some(v),
                 Operation::Delete => None,
             }
+        } else if let Some(v) = self.store.get(key)? {
+            Some(v.clone())
         } else {
-            if let Some(v) = self.store.get(key)? {
-                Some(v.clone())
-            } else {
-                None
-            }
+            None
         };
 
         self.value.value.insert(key.clone(), Operation::Delete);

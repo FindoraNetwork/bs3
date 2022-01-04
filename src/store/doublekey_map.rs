@@ -39,12 +39,10 @@ where
                 Operation::Update(v) => Ok(Some(Cow::Borrowed(v))),
                 Operation::Delete => Ok(None),
             }
+        } else if let Some(v) = doublekeymap_utils::get_inner_value(self, key)? {
+            Ok(Some(Cow::Owned(v)))
         } else {
-            if let Some(v) = doublekeymap_utils::get_inner_value(self, key)? {
-                Ok(Some(Cow::Owned(v)))
-            } else {
-                Ok(None)
-            }
+            Ok(None)
         };
     }
 
@@ -83,12 +81,10 @@ where
                 Operation::Update(v) => Some(v),
                 Operation::Delete => None,
             }
+        } else if let Some(v) = self.get(key1, key2)? {
+            Some(v.clone())
         } else {
-            if let Some(v) = self.get(key1, key2)? {
-                Some(v.clone())
-            } else {
-                None
-            }
+            None
         };
 
         self.value

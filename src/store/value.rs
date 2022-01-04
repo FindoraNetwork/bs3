@@ -49,12 +49,10 @@ where
                 }
                 Operation::Delete => None,
             }
+        } else if let Some(v) = value_utils::get_inner_value(self)? {
+            Some(v)
         } else {
-            if let Some(v) = value_utils::get_inner_value(self)? {
-                Some(v)
-            } else {
-                None
-            }
+            None
         };
 
         self.value.value = Some(Operation::Delete);

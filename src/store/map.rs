@@ -35,12 +35,10 @@ where
                 Operation::Update(v) => Ok(Some(Cow::Borrowed(v))),
                 Operation::Delete => Ok(None),
             }
+        } else if let Some(v) = map_utils::get_inner_value(self, key)? {
+            Ok(Some(Cow::Owned(v)))
         } else {
-            if let Some(v) = map_utils::get_inner_value(self, key)? {
-                Ok(Some(Cow::Owned(v)))
-            } else {
-                Ok(None)
-            }
+            Ok(None)
         };
     }
 
@@ -76,12 +74,10 @@ where
                 Operation::Update(v) => Some(v),
                 Operation::Delete => None,
             }
+        } else if let Some(v) = map_utils::get_inner_value(self, key)? {
+            Some(v)
         } else {
-            if let Some(v) = map_utils::get_inner_value(self, key)? {
-                Some(v)
-            } else {
-                None
-            }
+            None
         };
 
         self.value.value.insert(key.clone(), Operation::Delete);

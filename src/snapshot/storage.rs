@@ -73,7 +73,7 @@ where
         store: S,
     ) -> Result<Self> {
         let mut s = Self {
-            store: store,
+            store,
             height,
             value,
             namespace,
