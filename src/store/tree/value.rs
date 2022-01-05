@@ -13,7 +13,7 @@ where
     S: Store,
     M: Merkle,
 {
-    fn tree_get(&self, _key: &Vec<u8>) -> Result<Vec<u8>> {
+    fn tree_get(&self, _key: &[u8]) -> Result<Vec<u8>> {
         let value = self.get()?;
         if let Some(val) = value {
             let bytes = serde_json::to_vec(val.as_ref())?;

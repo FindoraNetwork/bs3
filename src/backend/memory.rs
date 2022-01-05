@@ -42,6 +42,12 @@ impl fmt::Debug for MemoryBackend {
     }
 }
 
+impl Default for MemoryBackend {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl MemoryBackend {
     /// create MemoryBackend
     pub fn new() -> Self {

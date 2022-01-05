@@ -41,7 +41,7 @@ where
             return Ok(None);
         }
 
-        if !self.value.value.contains_key(&index) {
+        if self.value.value.get(&index).is_none() {
             if let Some(operation) = vec_utils::get_inner_operation(self, index)? {
                 self.value.value.insert(index, operation);
             } else {
@@ -57,7 +57,7 @@ where
     }
 
     fn insert(&mut self, value: T) -> Result<Option<T>> {
-        let operation = Operation::Update(value.clone());
+        let operation = Operation::Update(value);
         let index = self.value.value.len() as u64;
         self.value.value.insert(index, operation);
         vec_utils::get_inner_value(self, index)
@@ -70,11 +70,7 @@ where
                 Operation::Delete => None,
             }
         } else {
-            if let Some(v) = vec_utils::get_inner_value(self, index)? {
-                Some(v)
-            } else {
-                None
-            }
+            vec_utils::get_inner_value(self, index)?
         };
 
         self.value.value.insert(index, Operation::Delete);

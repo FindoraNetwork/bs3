@@ -28,10 +28,7 @@ where
                 Operation::Update(iv) => Some(Cow::Borrowed(iv)),
                 Operation::Delete => None,
             },
-            None => match value_utils::get_inner_value(self)? {
-                Some(v) => Some(Cow::Owned(v)),
-                None => None,
-            },
+            None => value_utils::get_inner_value(self)?.map(Cow::Owned),
         })
     }
 
@@ -50,11 +47,7 @@ where
                 Operation::Delete => None,
             }
         } else {
-            if let Some(v) = value_utils::get_inner_value(self)? {
-                Some(v)
-            } else {
-                None
-            }
+            value_utils::get_inner_value(self)?
         };
 
         self.value.value = Some(Operation::Delete);

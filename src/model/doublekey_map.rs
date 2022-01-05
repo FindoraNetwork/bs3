@@ -42,7 +42,7 @@ where
 
         let mut map = Vec::new();
 
-        let value = mem::replace(&mut self.value, Map::default());
+        let value = mem::take(&mut self.value);
 
         for (pair, v) in value.value.into_iter() {
             let key = cbor_encode(pair)?;

@@ -95,7 +95,7 @@ fn sled_value_test() -> Result<()> {
 
     ss.rollback(2)?;
 
-    assert_eq!(ss.tree_get(&vec![])?, 50_u8.to_be_bytes().to_vec());
+    assert_eq!(ss.tree_get(&[])?, 50_u8.to_be_bytes().to_vec());
 
     Ok(())
 }

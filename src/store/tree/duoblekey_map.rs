@@ -17,7 +17,7 @@ where
     S: Store,
     M: Merkle,
 {
-    fn tree_get(&self, key: &Vec<u8>) -> Result<Vec<u8>> {
+    fn tree_get(&self, key: &[u8]) -> Result<Vec<u8>> {
         let key = serde_json::from_slice::<(K1, K2)>(key)?;
 
         let value = self.get(&key.0, &key.1)?;
