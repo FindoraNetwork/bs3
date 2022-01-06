@@ -39,4 +39,9 @@ where
             value: V::default(),
         }
     }
+
+    pub fn execute(&mut self, val: V) {
+        log::debug!("Transaction Cache: {:?}", val);
+        self.value.merge(val)
+    }
 }
