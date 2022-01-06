@@ -21,10 +21,12 @@ pub struct Storage<S: Store, V: Model> {
 ///
 /// Data in storage:
 /// ```
-/// DataStore     d:bseq-s:kseq-vseq -> {Update(data), Delete, Ref(bseq, vseq)}
-/// VersionStore  v:bseq-n:version -> vseq(u64)
-/// KeyStore      k:bseq-n:key -> kseq(u64)
-/// BranchStore   b:branch -> <parent(BranchName), last_vseq(u64), bseq(u64)>
+/// DataStore      d:bid-s:kid-vid -> {Update(data), Delete}
+/// BranchMapStore m:bid-s:vid -> merge_from(u64)
+/// VersionStore   v:bid-n:version -> vid(u64)
+/// KeyStore       k:bid-n:key -> kid(u64)
+/// BranchStore    b:branch -> <parent_branch(u64), allocable_key_id(u64), bid(u64), version_id(u64),
+/// allocable_key_id(u64)>
 /// ```
 ///
 /// ## Logic
