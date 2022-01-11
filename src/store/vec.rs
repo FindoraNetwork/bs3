@@ -119,7 +119,8 @@ where
     fn push(&mut self, value: T) -> Result<()> {
         let len = self.len()?;
         self.value.insert_operation(len, Operation::Update(value));
-        self.value.set_len(len + 1);
+        self.value.set_length(len + 1);
+        self.value.add_offset();
         Ok(())
     }
 
@@ -130,7 +131,8 @@ where
             return Ok(None);
         }
 
-        self.value.set_len(len - 1);
+        self.value.set_length(len - 1);
+        self.value.sub_offset();
 
         match self.value.remove_operation(len - 1) {
             Some(Operation::Update(t)) => {

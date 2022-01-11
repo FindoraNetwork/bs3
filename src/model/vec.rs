@@ -1,6 +1,6 @@
 //!
 //! vec cache layer
-//!
+//! Don't use it with length that is larger than i64::MAX.
 use core::{fmt::Debug, mem};
 
 use crate::model::{Model, ValueType};
@@ -14,7 +14,9 @@ pub const INDEX_VEC_LEN: u64 = u64::MAX;
 #[derive(Debug, Clone)]
 pub struct Vec<T: ValueType> {
     cache: BTreeMap<u64, Operation<T>>,
-    current_len: Option<u64>,
+    offset: i64,
+    //cache of length, avoid frequently access to database.
+    len: Option<u64>,
 }
 
 impl<T: ValueType> Vec<T> {
@@ -22,12 +24,24 @@ impl<T: ValueType> Vec<T> {
         Self::default()
     }
 
-    pub fn set_len(&mut self, len: u64) {
-        self.current_len = Some(len);
+    pub fn add_offset(&mut self) {
+        self.offset += 1;
+    }
+
+    pub fn sub_offset(&mut self) {
+        self.offset -= 1;
     }
 
     pub fn len(&self) -> Option<u64> {
-        self.current_len
+        self.len
+    }
+
+    pub fn set_length(&mut self, len: u64) {
+        self.len = Some(len);
+    }
+
+    pub fn offset(&self) -> i64 {
+        self.offset
     }
 
     pub fn insert_operation(&mut self, index: u64, op: Operation<T>) -> Option<Operation<T>> {
@@ -55,7 +69,8 @@ impl<T: ValueType> Default for Vec<T> {
     fn default() -> Self {
         Self {
             cache: BTreeMap::new(),
-            current_len: None,
+            offset: 0,
+            len: None,
         }
     }
 }
@@ -76,12 +91,14 @@ impl<T: ValueType> Model for Vec<T> {
             let value = v.to_bytes()?;
             res.push((key, value));
         }
-        if let Some(l) = self.current_len.take() {
+
+        if let Some(l) = self.len.take() {
             res.push((
                 cbor_encode(&INDEX_VEC_LEN)?,
                 Operation::Update(l).to_bytes()?,
             ));
         }
+
         Ok(res)
     }
 
@@ -90,12 +107,26 @@ impl<T: ValueType> Model for Vec<T> {
         2
     }
 
-    /// Merge two caches
+    /// Merge two caches, may conflict.
     fn merge(&mut self, mut other: Self) {
-        //[TODO] may conflict
-        self.cache.append(&mut other.cache);
-        if let Some(l) = other.len() {
-            self.current_len = Some(l);
+        let others_offset = other.offset;
+        if others_offset == 0 {
+            //means other didn't modify the length.
+            self.cache.append(&mut other.cache);
+        } else {
+            self.offset += others_offset;
+            // other.offset < 0 means others pop something, nothing needs to insert.
+            if others_offset > 0 {
+                //means other push something.
+                for (_, op) in other.cache.into_iter() {
+                    let len = self.len().unwrap_or(0);
+                    if self.offset > 0 {
+                        self.cache.insert(len, op);
+                    }
+                    self.offset += 1;
+                    self.len = Some(len + 1);
+                }
+            }
         }
     }
 }
