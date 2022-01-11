@@ -56,7 +56,6 @@
 //!     bytes({name_space}-kw-{hex(4)}-{:00000000000000000003}): bytes(Operation::Update(4)),
 //! }
 //! ```
-
 #![feature(generic_associated_types)]
 #![no_std]
 

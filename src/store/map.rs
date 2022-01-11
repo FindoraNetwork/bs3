@@ -35,12 +35,10 @@ where
                 Operation::Update(v) => Ok(Some(Cow::Borrowed(v))),
                 Operation::Delete => Ok(None),
             }
+        } else if let Some(v) = map_utils::get_inner_value(self, key)? {
+            Ok(Some(Cow::Owned(v)))
         } else {
-            if let Some(v) = map_utils::get_inner_value(self, key)? {
-                Ok(Some(Cow::Owned(v)))
-            } else {
-                Ok(None)
-            }
+            Ok(None)
         };
     }
 
@@ -65,7 +63,7 @@ where
     }
 
     fn insert(&mut self, key: K, value: V) -> Result<Option<V>> {
-        let operation = Operation::Update(value.clone());
+        let operation = Operation::Update(value);
         self.value.value.insert(key.clone(), operation);
         map_utils::get_inner_value(self, &key)
     }
@@ -77,11 +75,7 @@ where
                 Operation::Delete => None,
             }
         } else {
-            if let Some(v) = map_utils::get_inner_value(self, key)? {
-                Some(v)
-            } else {
-                None
-            }
+            map_utils::get_inner_value(self, key)?
         };
 
         self.value.value.insert(key.clone(), Operation::Delete);
