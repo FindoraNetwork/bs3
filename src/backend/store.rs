@@ -5,7 +5,7 @@
 //!
 
 use crate::{CowBytes, Result};
-use alloc::vec::Vec;
+use alloc::{vec, vec::Vec};
 
 pub trait Store: Send + Sync + Clone {
     #[cfg(feature = "nightly")]
@@ -21,9 +21,7 @@ pub trait Store: Send + Sync + Clone {
     fn execute(&mut self, batch: Vec<(Vec<u8>, Vec<u8>)>) -> Result<()>;
 
     fn insert(&mut self, key: Vec<u8>, value: Vec<u8>) -> Result<()> {
-        let mut vec = Vec::new();
-        vec.push((key, value));
-        self.execute(vec)
+        self.execute(vec![(key, value)])
     }
 
     #[cfg(not(feature = "nightly"))]

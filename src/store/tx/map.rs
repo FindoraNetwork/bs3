@@ -18,20 +18,11 @@ where
         Ok(match self_value {
             Some(Operation::Update(v)) => Some(Cow::Borrowed(v)),
             Some(Operation::Delete) => None,
-            None => {
-                let lower_value = self.store.value.value.get(key);
-                match lower_value {
-                    Some(Operation::Update(v)) => Some(Cow::Borrowed(v)),
-                    Some(Operation::Delete) => None,
-                    None => {
-                        let store_inner_value = self.store.get(key)?;
-                        match store_inner_value {
-                            None => None,
-                            Some(v) => Some(v),
-                        }
-                    }
-                }
-            }
+            None => match self.store.value.value.get(key) {
+                Some(Operation::Update(v)) => Some(Cow::Borrowed(v)),
+                Some(Operation::Delete) => None,
+                None => self.store.get(key)?,
+            },
         })
     }
 
@@ -62,7 +53,7 @@ where
     }
 
     fn insert(&mut self, key: K, value: V) -> crate::Result<Option<V>> {
-        let operation = Operation::Update(value.clone());
+        let operation = Operation::Update(value);
         let mut pre_val = None;
         if let Some(operation) = self.value.value.get_mut(&key) {
             match operation {
@@ -83,11 +74,7 @@ where
                 Operation::Delete => None,
             }
         } else {
-            if let Some(v) = self.store.get(key)? {
-                Some(v.clone())
-            } else {
-                None
-            }
+            self.store.get(key)?.map(|v| v.clone())
         };
 
         self.value.value.insert(key.clone(), Operation::Delete);

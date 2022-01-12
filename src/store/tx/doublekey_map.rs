@@ -57,7 +57,7 @@ where
 
     fn insert(&mut self, key1: K1, key2: K2, value: V) -> Result<Option<V>> {
         let key = (key1, key2);
-        let operation = Operation::Update(value.clone());
+        let operation = Operation::Update(value);
         let mut pre_val = None;
         if let Some(operation) = self.value.value.value.get_mut(&key) {
             match operation {
@@ -79,11 +79,7 @@ where
                 Operation::Delete => None,
             }
         } else {
-            if let Some(v) = self.store.get(key1, key2)? {
-                Some(v.clone())
-            } else {
-                None
-            }
+            self.store.get(key1, key2)?.map(|v| v.clone())
         };
 
         self.value
