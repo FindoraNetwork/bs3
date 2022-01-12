@@ -107,24 +107,47 @@ impl<T: ValueType> Model for Vec<T> {
         2
     }
 
-    /// Merge two caches, may conflict.
+    /// Merge two caches, two cache should base on same storage. may conflict.
     fn merge(&mut self, mut other: Self) {
         let others_offset = other.offset;
         if others_offset == 0 {
             //means other didn't modify the length.
-            self.cache.append(&mut other.cache);
+            if let Some(mut len) = self.len {
+                for (_, op) in other.cache.into_iter() {
+                    self.cache.insert(len, op);
+                    self.offset += 1;
+                    len += 1;
+                }
+                self.len = Some(len);
+            } else {
+                self.cache.append(&mut other.cache);
+            }
         } else {
-            self.offset += others_offset;
             // other.offset < 0 means others pop something, nothing needs to insert.
             if others_offset > 0 {
-                //means other push something.
-                for (_, op) in other.cache.into_iter() {
-                    let len = self.len().unwrap_or(0);
-                    if self.offset > 0 {
-                        self.cache.insert(len, op);
+                match self.len() {
+                    Some(mut len) => {
+                        for (_, op) in other.cache.into_iter() {
+                            self.cache.insert(len, op);
+                            self.offset += 1;
+                            len += 1;
+                        }
+                        self.len = Some(len);
                     }
-                    self.offset += 1;
-                    self.len = Some(len + 1);
+                    //means self didn't push or pop.
+                    None => {
+                        self.len = other.len;
+                        self.cache.append(&mut other.cache);
+                    }
+                };
+            } else {
+                self.offset += others_offset;
+                match self.len {
+                    Some(l) => {
+                        let len = l as i64 + others_offset;
+                        self.len = Some(len.max(0) as u64);
+                    }
+                    None => self.len = other.len,
                 }
             }
         }
