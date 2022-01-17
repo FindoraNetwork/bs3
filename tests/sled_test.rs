@@ -7,20 +7,19 @@ use bs3::{SnapshotableStorage, Transaction};
 use sha3::Sha3_512;
 
 fn sled_vec_test() -> Result<()> {
-    let v = Vec::default();
+    let v: Vec<i32> = Vec::default();
     let db = sled_db_open(None).unwrap();
     let s = SledBackend::open_tree(&db, "vec_sled_test").unwrap();
     let mut ss = SnapshotableStorage::<_, EmptyMerkle<Sha3_512>, _>::new(v, s).unwrap();
 
-    assert_eq!(ss.push(1)?, None);
-    assert_eq!(ss.push(2)?, None);
-    assert_eq!(ss.push(3)?, None);
+    ss.push(1)?;
+    ss.push(2)?;
+    ss.push(3)?;
     assert_eq!(ss.commit()?, 1);
     assert_eq!(ss.remove(0)?, Some(1));
     assert_eq!(ss.commit()?, 2);
-    assert_eq!(ss.get(0)?, None);
-    assert_eq!(ss.get(1)?, Some(Cow::Owned(2)));
-    assert_eq!(ss.get(2)?, Some(Cow::Owned(3)));
+    assert_eq!(ss.get(0)?, Some(Cow::Owned(2)));
+    assert_eq!(ss.get(1)?, Some(Cow::Owned(3)));
 
     ss.rollback(2)?;
     let key = serde_json::value::Number::from(2);
@@ -98,7 +97,7 @@ fn sled_value_test() -> Result<()> {
 
     ss.rollback(2)?;
 
-    assert_eq!(ss.tree_get(&vec![])?, 52_u8.to_be_bytes().to_vec());
+    assert_eq!(ss.tree_get(&[])?, 52_u8.to_be_bytes().to_vec());
 
     Ok(())
 }
@@ -153,25 +152,24 @@ fn tx_sled_doublekeymap_test() -> Result<()> {
 }
 
 fn tx_sled_vec_test() -> Result<()> {
-    let v = Vec::default();
+    let v: Vec<i32> = Vec::default();
     let db = sled_db_open(None).unwrap();
     let s = SledBackend::open_tree(&db, "vec_sled_test").unwrap();
     let ss = SnapshotableStorage::<_, EmptyMerkle<Sha3_512>, _>::new(v, s).unwrap();
     let mut tx = Transaction::new(&ss);
 
-    assert_eq!(tx.push(1)?, None);
-    assert_eq!(tx.push(2)?, None);
-    assert_eq!(tx.push(3)?, None);
+    tx.push(1)?;
+    tx.push(2)?;
+    tx.push(3)?;
     assert_eq!(tx.remove(0)?, Some(1));
-    assert_eq!(tx.get(0)?, None);
-    assert_eq!(tx.get(1)?, Some(Cow::Borrowed(&2)));
-    assert_eq!(tx.get(2)?, Some(Cow::Borrowed(&3)));
+    assert_eq!(tx.get(0)?, Some(Cow::Borrowed(&2)));
+    assert_eq!(tx.get(1)?, Some(Cow::Borrowed(&3)));
 
     Ok(())
 }
 
 fn sled_vec_test_reload_and_callback(is_rollback: bool) -> Result<()> {
-    let v = Vec::default();
+    let v: Vec<i32> = Vec::default();
     let db = sled_db_open(Some("/tmp/bs3_test/vec_test")).unwrap();
     let s = SledBackend::open_tree(&db, "vec_sled_test").unwrap();
     let mut ss = SnapshotableStorage::<_, EmptyMerkle<Sha3_512>, _>::new(v, s).unwrap();
@@ -183,9 +181,9 @@ fn sled_vec_test_reload_and_callback(is_rollback: bool) -> Result<()> {
         assert_eq!(ss.get(2)?, Some(Cow::Owned(3)));
         assert_eq!(ss.commit()?, 2);
     } else {
-        assert_eq!(ss.push(1)?, None);
-        assert_eq!(ss.push(2)?, None);
-        assert_eq!(ss.push(3)?, None);
+        ss.push(1)?;
+        ss.push(2)?;
+        ss.push(3)?;
         assert_eq!(ss.commit()?, 1);
         assert_eq!(ss.remove(0)?, None); //remove invalid, because it has already been submitted
         assert_eq!(ss.commit()?, 2);
