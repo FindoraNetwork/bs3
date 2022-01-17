@@ -32,7 +32,7 @@ impl<T: ValueType> Vec<T> {
         self.offset -= 1;
     }
 
-    pub fn len(&self) -> Option<u64> {
+    pub fn current_len(&self) -> Option<u64> {
         self.len
     }
 
@@ -84,7 +84,7 @@ impl<T: ValueType> Model for Vec<T> {
 
         let mut res = AllocVec::new();
 
-        let values = mem::replace(&mut self.cache, BTreeMap::new());
+        let values = mem::take(&mut self.cache);
 
         for (k, v) in values.into_iter() {
             let key = cbor_encode(&k)?;
@@ -125,7 +125,7 @@ impl<T: ValueType> Model for Vec<T> {
         } else {
             // other.offset < 0 means others pop something, nothing needs to insert.
             if others_offset > 0 {
-                match self.len() {
+                match self.current_len() {
                     Some(mut len) => {
                         for (_, op) in other.cache.into_iter() {
                             self.cache.insert(len, op);

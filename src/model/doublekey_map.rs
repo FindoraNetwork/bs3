@@ -107,7 +107,7 @@ where
 
         let mut operations = Vec::new();
 
-        for (k1, v) in mem::replace(&mut self.cache, BTreeMap::new()).into_iter() {
+        for (k1, v) in mem::take(&mut self.cache).into_iter() {
             let mut key: Vec<u8> = Vec::with_capacity(16);
             key.push(1);
             cbor_encode_writer(&k1, &mut key)?;
@@ -115,7 +115,7 @@ where
             operations.push((key, value));
         }
 
-        for (k2, v) in mem::replace(&mut self.key2key, BTreeMap::new()).into_iter() {
+        for (k2, v) in mem::take(&mut self.key2key).into_iter() {
             let mut key: Vec<u8> = Vec::with_capacity(16);
             key.push(2);
             cbor_encode_writer(&k2, &mut key)?;

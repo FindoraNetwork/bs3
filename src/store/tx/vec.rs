@@ -9,10 +9,10 @@ where
     M: Merkle,
 {
     fn len(&self) -> Result<u64> {
-        if let Some(l) = self.value.len() {
+        if let Some(l) = self.value.current_len() {
             return Ok(l);
         }
-        Ok(self.store.len()?)
+        self.store.len()
     }
 
     fn push(&mut self, value: T) -> Result<()> {
@@ -32,11 +32,8 @@ where
         self.value.set_length(len - 1);
         self.value.sub_offset();
 
-        match self.value.remove_operation(len - 1) {
-            Some(Operation::Update(t)) => {
-                return Ok(Some(t));
-            }
-            _ => (),
+        if let Some(Operation::Update(t)) = self.value.remove_operation(len - 1) {
+            return Ok(Some(t));
         };
 
         let res = self.store.get(len - 1)?.map(Cow::into_owned);

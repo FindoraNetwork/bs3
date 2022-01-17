@@ -57,6 +57,10 @@ pub trait VecStore<T: ValueType> {
     }
 
     fn len(&self) -> Result<u64>;
+
+    fn is_empty(&self) -> Result<bool> {
+        self.len().map(|x| x == 0)
+    }
 }
 
 impl<S, M, T> VecStore<T> for SnapshotableStorage<S, M, Vec<T>>
@@ -66,10 +70,10 @@ where
     M: Merkle,
 {
     fn len(&self) -> Result<u64> {
-        if let Some(l) = self.value.len() {
+        if let Some(l) = self.value.current_len() {
             return Ok(l);
         }
-        Ok(self.get_len()?)
+        self.get_len()
     }
 
     fn get(&self, index: u64) -> Result<Option<Cow<'_, T>>> {
@@ -134,11 +138,8 @@ where
         self.value.set_length(len - 1);
         self.value.sub_offset();
 
-        match self.value.remove_operation(len - 1) {
-            Some(Operation::Update(t)) => {
-                return Ok(Some(t));
-            }
-            _ => (),
+        if let Some(Operation::Update(t)) = self.value.remove_operation(len - 1) {
+            return Ok(Some(t));
         };
 
         let res = self.get_inner_value(len - 1)?;

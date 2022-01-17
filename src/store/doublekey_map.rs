@@ -135,10 +135,7 @@ where
         Ok(match self.value.get_value(key1) {
             Some(Operation::Update(v)) => Some(Cow::Borrowed(v)),
             Some(Operation::Delete) => None,
-            None => match self.get_value_inner(&key1)? {
-                Some(v) => Some(Cow::Owned(v)),
-                None => None,
-            },
+            None => self.get_value_inner(&key1)?.map(Cow::Owned),
         })
     }
 
@@ -200,7 +197,7 @@ where
             },
         };
 
-        self.value.insert_operation(key1.clone(), Operation::Delete);
+        self.value.insert_operation(key1, Operation::Delete);
         self.value
             .insert_operation_key1(key2.to_owned(), Operation::Delete);
 
@@ -214,10 +211,7 @@ where
         Ok(match self.value.get_key1(key2) {
             Some(Operation::Update(key1)) => Some(Cow::Borrowed(key1)),
             Some(Operation::Delete) => None,
-            None => match self.get_key1_inner(key2)? {
-                Some(key1) => Some(Cow::Owned(key1)),
-                None => None,
-            },
+            None => self.get_key1_inner(key2)?.map(Cow::Owned),
         })
     }
 }
@@ -235,7 +229,7 @@ where
         key_bytes.push(1);
         cbor_encode_writer(&key1, &mut key_bytes)?;
         let store_key = self.storage_tuple_key(&key_bytes);
-        Ok(get_greatest(&self.store, &store_key.0, &store_key.1)?)
+        get_greatest(&self.store, &store_key.0, &store_key.1)
     }
 
     fn get_key1_inner(&self, key2: impl Serialize) -> Result<Option<K1>> {
@@ -243,6 +237,6 @@ where
         key_bytes.push(2);
         cbor_encode_writer(&key2, &mut key_bytes)?;
         let store_key = self.storage_tuple_key(&key_bytes);
-        Ok(get_greatest(&self.store, &store_key.0, &store_key.1)?)
+        get_greatest(&self.store, &store_key.0, &store_key.1)
     }
 }

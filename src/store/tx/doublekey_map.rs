@@ -23,10 +23,7 @@ where
         Ok(match self.value.get_value(key1) {
             Some(Operation::Update(v)) => Some(Cow::Borrowed(v)),
             Some(Operation::Delete) => None,
-            None => match self.store.get_key1(key1)? {
-                Some(v) => Some(v),
-                None => None,
-            },
+            None => self.store.get_key1(key1)?,
         })
     }
 

@@ -32,10 +32,7 @@ where
                 Operation::Update(iv) => Some(Cow::Borrowed(iv)),
                 Operation::Delete => None,
             },
-            None => match self.get_inner_value()? {
-                Some(v) => Some(Cow::Owned(v)),
-                None => None,
-            },
+            None => self.get_inner_value()?.map(Cow::Owned),
         })
     }
 
