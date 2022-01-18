@@ -14,8 +14,8 @@ where
     K2: KeyType,
     V: ValueType,
 {
-    cache: BTreeMap<K1, Operation<V>>,
-    key2key: BTreeMap<K2, Operation<K1>>,
+    cache: BTreeMap<K2, Operation<V>>,
+    key2key: BTreeMap<K1, Operation<K2>>,
 }
 
 impl<K1, K2, V> DoubleKeyMap<K1, K2, V>
@@ -24,61 +24,61 @@ where
     K2: KeyType,
     V: ValueType,
 {
-    pub fn get_value<Q: ?Sized + Ord>(&self, key1: &Q) -> Option<&Operation<V>>
-    where
-        K1: Borrow<Q>,
-    {
-        self.cache.get(key1)
-    }
-
-    pub fn get_key1<Q: ?Sized + Ord>(&self, key2: &Q) -> Option<&Operation<K1>>
+    pub fn get_value<Q: ?Sized + Ord>(&self, key2: &Q) -> Option<&Operation<V>>
     where
         K2: Borrow<Q>,
     {
-        self.key2key.get(key2)
+        self.cache.get(key2)
     }
 
-    pub fn get_mut_value<Q: ?Sized + Ord>(&mut self, key1: &Q) -> Option<&mut Operation<V>>
+    pub fn get_key2<Q: ?Sized + Ord>(&self, key1: &Q) -> Option<&Operation<K2>>
     where
         K1: Borrow<Q>,
     {
-        self.cache.get_mut(key1)
+        self.key2key.get(key1)
     }
 
-    pub fn get_mut_key1<Q: ?Sized + Ord>(&mut self, key2: &Q) -> Option<&mut Operation<K1>>
+    pub fn get_mut_value<Q: ?Sized + Ord>(&mut self, key2: &Q) -> Option<&mut Operation<V>>
     where
         K2: Borrow<Q>,
     {
-        self.key2key.get_mut(key2)
+        self.cache.get_mut(key2)
     }
 
-    pub fn remove_operation<Q: ?Sized + Ord>(&mut self, key1: &Q) -> Option<Operation<V>>
+    pub fn get_mut_key2<Q: ?Sized + Ord>(&mut self, key1: &Q) -> Option<&mut Operation<K2>>
     where
         K1: Borrow<Q>,
     {
-        self.cache.remove(key1)
+        self.key2key.get_mut(key1)
     }
 
-    pub fn remove_key1<Q: ?Sized + Ord>(&mut self, key2: &Q) -> Option<Operation<K1>>
+    pub fn remove_operation<Q: ?Sized + Ord>(&mut self, key2: &Q) -> Option<Operation<V>>
     where
         K2: Borrow<Q>,
     {
-        self.key2key.remove(key2)
+        self.cache.remove(key2)
     }
 
-    pub fn insert_operation(&mut self, key1: K1, value: Operation<V>) -> Option<Operation<V>> {
-        self.cache.insert(key1, value)
-    }
-
-    pub fn insert_operation_key1(&mut self, key2: K2, key1: Operation<K1>) {
-        self.key2key.insert(key2, key1);
-    }
-
-    pub fn contains_opertaion<Q: ?Sized + Ord>(&self, key1: &Q) -> bool
+    pub fn remove_key2<Q: ?Sized + Ord>(&mut self, key1: &Q) -> Option<Operation<K2>>
     where
         K1: Borrow<Q>,
     {
-        self.cache.contains_key(key1)
+        self.key2key.remove(key1)
+    }
+
+    pub fn insert_operation(&mut self, key2: K2, value: Operation<V>) -> Option<Operation<V>> {
+        self.cache.insert(key2, value)
+    }
+
+    pub fn insert_operation_key2(&mut self, key1: K1, key2: Operation<K2>) {
+        self.key2key.insert(key1, key2);
+    }
+
+    pub fn contains_opertaion<Q: ?Sized + Ord>(&self, key2: &Q) -> bool
+    where
+        K2: Borrow<Q>,
+    {
+        self.cache.contains_key(key2)
     }
 }
 

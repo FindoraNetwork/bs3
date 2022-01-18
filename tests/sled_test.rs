@@ -64,7 +64,7 @@ fn sled_doublekeymap_test() -> Result<()> {
     assert_eq!(ss.insert(1, 1, 1)?, None);
     assert_eq!(ss.insert(2, 2, 2)?, None);
     assert_eq!(ss.insert(3, 3, 3)?, None);
-    assert_eq!(ss.remove_by_key2(&1)?, Some(1)); //remove valid, thought not submitted before deletion
+    assert_eq!(ss.remove_by_key1(&1)?, Some(1)); //remove valid, thought not submitted before deletion
     assert_eq!(ss.commit()?, 1);
     assert_eq!(ss.commit()?, 2);
     assert_eq!(ss.commit()?, 3);
@@ -144,7 +144,7 @@ fn tx_sled_doublekeymap_test() -> Result<()> {
     assert_eq!(tx.insert(1, 1, 1)?, None);
     assert_eq!(tx.insert(2, 2, 2)?, None);
     assert_eq!(tx.insert(3, 3, 3)?, None);
-    assert_eq!(tx.remove_by_key2(&1)?, Some(1));
+    assert_eq!(tx.remove_by_key1(&1)?, Some(1));
     assert_eq!(tx.get(&1, &1)?, None);
     assert_eq!(tx.get_mut(&2, &2)?, Some(&mut 2_i32));
 
@@ -258,7 +258,7 @@ fn sled_doublekeymap_test_reload_and_callback(is_rollback: bool) -> Result<()> {
         assert_eq!(ss.insert(1, 1, 1)?, None);
         assert_eq!(ss.insert(2, 2, 2)?, None);
         assert_eq!(ss.insert(3, 3, 3)?, None);
-        assert_eq!(ss.remove_by_key2(&1)?, Some(1)); //remove valid, thought not submitted before deletion
+        assert_eq!(ss.remove_by_key1(&1)?, Some(1)); //remove valid, thought not submitted before deletion
         assert_eq!(ss.commit()?, 1);
         assert_eq!(ss.commit()?, 2);
         assert_eq!(ss.commit()?, 3);

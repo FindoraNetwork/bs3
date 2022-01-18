@@ -121,7 +121,7 @@ fn doublekeymap_mem_test() -> Result<()> {
     assert_eq!(ss.insert(1, "1".to_string(), 1)?, None);
     assert_eq!(ss.insert(2, "2".to_string(), 2)?, None);
     assert_eq!(ss.insert(3, "3".to_string(), 3)?, None);
-    assert_eq!(ss.remove_by_key2("1")?, Some(1));
+    assert_eq!(ss.remove_by_key1(&1)?, Some(1));
 
     assert_eq!(ss.insert(1, "1".to_string(), 1)?, None);
 
@@ -171,7 +171,7 @@ fn tx_doublekeymap_mem_test() -> Result<()> {
     assert_eq!(tx.insert(3, "3".to_string(), 3)?, None);
 
     assert_eq!(tx.remove(&2, "1")?, None);
-    assert_eq!(tx.remove_by_key2("1")?, Some(1));
+    assert_eq!(tx.remove_by_key1(&1)?, Some(1));
 
     //&String, &str
 
