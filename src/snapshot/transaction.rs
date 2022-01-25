@@ -4,6 +4,14 @@
 
 use crate::{backend::Store, merkle::Merkle, model::Model, SnapshotableStorage};
 
+pub trait Forkable {
+    type Cache;
+
+    fn cache(self) -> Self::Cache;
+
+    fn merge(&mut self, v: Self::Cache);
+}
+
 pub struct Transaction<'a, S, M, V>
 where
     S: Store,
@@ -27,6 +35,25 @@ where
         }
     }
 }
+
+impl<'a, S, M, V> Forkable for Transaction<'a, S, M, V>
+where
+    S: Store,
+    M: Merkle,
+    V: Model,
+{
+    type Cache = V;
+
+    fn cache(self) -> Self::Cache {
+        self.value
+    }
+
+    fn merge(&mut self, v: Self::Cache) {
+        self.execute(v)
+    }
+}
+
+
 impl<'a, S, M, V> Transaction<'a, S, M, V>
 where
     S: Store,
