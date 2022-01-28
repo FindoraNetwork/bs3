@@ -81,6 +81,11 @@ impl SledBackend {
             Err(e) => Err(Error::StoreError(Box::new(e))),
         }
     }
+
+    pub fn flush(&self) -> Result<()> {
+        self.tree.flush()?;
+        Ok(())
+    }
 }
 
 /// SledRange used to host the sled iter
