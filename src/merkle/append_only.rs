@@ -34,17 +34,8 @@ impl<D: Digest + Clone> Merkle for AppendOnlyMerkle<D> {
     type Digest = D;
 
     fn rollback(&mut self, target_height: i64) -> Result<()> {
-        if target_height > self.height {
-            log::error!(
-                "Target height {} must less than current height {}",
-                target_height,
-                self.height
-            );
-            Err(Error::HeightError)
-        } else {
-            self.height = target_height;
-            Ok(())
-        }
+        self.height = target_height;
+        Ok(())
     }
 
     fn new(namespace: &str, height: i64) -> Self {
@@ -64,6 +55,7 @@ impl<D: Digest + Clone> Merkle for AppendOnlyMerkle<D> {
 
         // get last hash
         let output = self.root(store)?;
+        // TODO: optimize needed
         if !output.eq(&Output::<D>::default()) {
             let prev_root = output[..].to_vec();
             hashs.push(prev_root);
