@@ -53,7 +53,6 @@ where
     }
 }
 
-
 impl<'a, S, M, V> Transaction<'a, S, M, V>
 where
     S: Store,
