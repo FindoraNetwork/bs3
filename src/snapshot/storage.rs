@@ -51,6 +51,7 @@ where
                 s.height
             );
             s.height = s.read_height()?;
+            s.merkle.rollback(s.height)?;
         }
 
         Ok(s)
@@ -83,6 +84,7 @@ where
         if height == 0 {
             s.init()?;
         } else {
+            s.merkle.rollback(height)?;
             s.rollback(height)?;
         };
 
